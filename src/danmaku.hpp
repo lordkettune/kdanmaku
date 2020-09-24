@@ -7,7 +7,9 @@
 namespace godot {
 
 struct Shot {
+    bool active;
     Vector2 position;
+    Vector2 local_position;
     Vector2 direction;
     float speed;
 };
@@ -19,7 +21,12 @@ private:
     Shot* _shots;
     int* _free_ids;
     int _max_shots;
+
     int _free_count;
+    int _active_count;
+
+    Rect2 region;
+    int tolerance;
 
     int max_shots;
     
@@ -34,9 +41,16 @@ public:
     void _enter_tree();
     void _exit_tree();
 
-    void get_free_ids(int* buf, int count);
+    void capture_ids(int* buf, int count);
+    void release_ids(int* buf, int count);
 
     inline Shot* get_shot(int id) { return &_shots[id]; }
+
+    inline Rect2 get_region() { return region; }
+    inline int get_tolerance() { return tolerance; }
+
+    int get_free_shot_count()   { return _free_count;   }
+    int get_active_shot_count() { return _active_count; }
 };
 
 }

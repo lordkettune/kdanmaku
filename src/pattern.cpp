@@ -10,7 +10,7 @@ void Pattern::_register_methods()
     register_method("_physics_process", &Pattern::_physics_process);
     register_method("_draw", &Pattern::_draw);
 
-    register_method("create_circle", &Pattern::create_circle);
+    register_method("fire_circle", &Pattern::fire_circle);
 }
 
 Pattern::Pattern()
@@ -43,10 +43,43 @@ void Pattern::_enter_tree()
 
 void Pattern::_physics_process(float delta)
 {
+    Transform2D transform = get_global_transform() * _danmaku->get_global_transform().inverse();
+    Rect2 region = _danmaku->get_region().grow(_danmaku->get_tolerance());
+
+    int release_count = 0;
+
     for (int i = 0; i != _shot_count; ++i) {
         Shot* shot = _danmaku->get_shot(_shot_ids[i]);
-        shot->position += shot->direction * shot->speed;
+        if (!shot->active)
+            continue;
+
+        shot->local_position += shot->direction * shot->speed;
+        shot->position = transform.xform(shot->local_position);
+
+        if (!region.has_point(shot->position)) {
+            shot->active = false;
+            ++release_count;
+        }
     }
+
+    // Shots left danmaku region, release their IDs
+    if (release_count != 0) {
+        for (int j = 0; j != release_count; ++j) {
+            int i = 0;
+            while (i != _shot_count) {
+                Shot* shot = _danmaku->get_shot(_shot_ids[i]);
+                if (!shot->active) {
+                    int temp = _shot_ids[--_shot_count];
+                    _shot_ids[_shot_count] = _shot_ids[i];
+                    _shot_ids[i] = temp;
+                    break;
+                }
+                ++i;
+            }
+        }
+        _danmaku->release_ids(_shot_ids + _shot_count, release_count);
+    }
+
     update();
 }
 
@@ -54,7 +87,8 @@ void Pattern::_draw()
 {
     for (int i = 0; i != _shot_count; ++i) {
         Shot* shot = _danmaku->get_shot(_shot_ids[i]);
-        draw_circle(shot->position, 10, Color(1, 1, 1));
+        if (shot->active)
+            draw_circle(shot->local_position, 10, Color(1, 1, 1));
     }
 }
 
@@ -70,14 +104,14 @@ int* Pattern::buffer(int count)
         }
         _shot_ids = (int*)api->godot_realloc(_shot_ids, _shot_ids_size * sizeof(int));
     }
-    int* buf = &_shot_ids[_shot_count];
-    _danmaku->get_free_ids(buf, count);
+    int* buf = _shot_ids + _shot_count;
+    _danmaku->capture_ids(buf, count);
     _shot_count += count;
     return buf;
 }
 
 
-void Pattern::create_circle(int count, float speed)
+void Pattern::fire_circle(int count, float speed)
 {
     if (_danmaku == nullptr) return;
 
@@ -88,7 +122,8 @@ void Pattern::create_circle(int count, float speed)
 
         Shot* shot = _danmaku->get_shot(buf[i]);
         shot->direction = Vector2(cos(angle), sin(angle));
-        shot->position = Vector2(0, 0);
+        shot->local_position = Vector2(0, 0);
         shot->speed = speed;
+        shot->active = true;
     }
 }

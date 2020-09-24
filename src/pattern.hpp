@@ -31,7 +31,7 @@ public:
     void _physics_process(float delta);
     void _draw();
     
-    void create_circle(int count, float speed);
+    void fire_circle(int count, float speed);
 };
 
 }
