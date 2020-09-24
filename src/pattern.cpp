@@ -7,6 +7,7 @@ using namespace godot;
 void Pattern::_register_methods()
 {
     register_method("_enter_tree", &Pattern::_enter_tree);
+    register_method("_exit_tree", &Pattern::_exit_tree);
     register_method("_physics_process", &Pattern::_physics_process);
     register_method("_draw", &Pattern::_draw);
 
@@ -23,6 +24,7 @@ Pattern::Pattern()
 
 Pattern::~Pattern()
 {
+    _exit_tree();
     if (_shot_ids != nullptr) {
         api->godot_free(_shot_ids);
     }
@@ -39,6 +41,15 @@ void Pattern::_enter_tree()
         }
     }
     _danmaku = Object::cast_to<Danmaku>(parent);
+}
+
+void Pattern::_exit_tree()
+{
+    // Release all shot IDs when exiting tree
+    if (_shot_count != 0) {
+        _danmaku->release_ids(_shot_ids, _shot_count);
+        _shot_count = 0;
+    }
 }
 
 void Pattern::_physics_process(float delta)

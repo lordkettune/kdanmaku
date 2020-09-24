@@ -28,6 +28,7 @@ public:
     ~Pattern();
 
     void _enter_tree();
+    void _exit_tree();
     void _physics_process(float delta);
     void _draw();
     
