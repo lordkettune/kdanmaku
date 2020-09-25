@@ -24,7 +24,6 @@ Pattern::Pattern()
 
 Pattern::~Pattern()
 {
-    _exit_tree();
     if (_shot_ids != nullptr) {
         api->godot_free(_shot_ids);
     }
@@ -41,6 +40,7 @@ void Pattern::_enter_tree()
         }
     }
     _danmaku = Object::cast_to<Danmaku>(parent);
+    _danmaku->count_pattern();
 }
 
 void Pattern::_exit_tree()
@@ -50,6 +50,7 @@ void Pattern::_exit_tree()
         _danmaku->release_ids(_shot_ids, _shot_count);
         _shot_count = 0;
     }
+    _danmaku->decount_pattern();
 }
 
 void Pattern::_physics_process(float delta)

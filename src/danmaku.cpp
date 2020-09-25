@@ -14,6 +14,7 @@ void Danmaku::_register_methods()
 
     register_method("get_free_shot_count", &Danmaku::get_free_shot_count);
     register_method("get_active_shot_count", &Danmaku::get_active_shot_count);
+    register_method("get_pattern_count", &Danmaku::get_pattern_count);
 }
 
 // Annoying workaround for there not being a good way to check if an object is a custom type. Hopefully I can fix this in Godot 4.0.
@@ -24,7 +25,10 @@ bool Danmaku::is_danmaku()
 
 Danmaku::Danmaku()
 {
-    _free_count = _max_shots = 0;
+    _free_count = 0;
+    _active_count = 0;
+    _pattern_count = 0;
+    _max_shots = 0;
     _shots = nullptr;
     _free_ids = nullptr;
 

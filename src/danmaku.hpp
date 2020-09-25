@@ -23,7 +23,9 @@ private:
     int _max_shots;
 
     int _free_count;
+
     int _active_count;
+    int _pattern_count;
 
     Rect2 region;
     int tolerance;
@@ -41,6 +43,9 @@ public:
     void _enter_tree();
     void _exit_tree();
 
+    void count_pattern() { ++_pattern_count; }
+    void decount_pattern() { --_pattern_count; }
+
     void capture_ids(int* buf, int count);
     void release_ids(int* buf, int count);
 
@@ -49,8 +54,9 @@ public:
     inline Rect2 get_region() { return region; }
     inline int get_tolerance() { return tolerance; }
 
-    int get_free_shot_count()   { return _free_count;   }
-    int get_active_shot_count() { return _active_count; }
+    int get_free_shot_count()   { return _free_count;    }
+    int get_active_shot_count() { return _active_count;  }
+    int get_pattern_count()     { return _pattern_count; }
 };
 
 }
