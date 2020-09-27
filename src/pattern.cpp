@@ -1,6 +1,7 @@
 #include "pattern.hpp"
 
 #include <Math.hpp>
+#include "hitbox.hpp"
 
 using namespace godot;
 
@@ -56,8 +57,16 @@ void Pattern::_exit_tree()
 
 void Pattern::_physics_process(float delta)
 {
-    Transform2D transform = get_global_transform() * _danmaku->get_global_transform().inverse();
+    if (_danmaku == nullptr) return;
+
+    Transform2D transform = get_relative_transform_to_parent(_danmaku);
     Rect2 region = _danmaku->get_region().grow(_danmaku->get_tolerance());
+
+    Hitbox* hitbox = _danmaku->get_hitbox();
+    Vector2 hitbox_pos = Vector2(0, 0);
+    if (hitbox != nullptr) {
+        hitbox_pos = hitbox->get_relative_transform_to_parent(_danmaku).get_origin();
+    }
 
     int release_count = 0;
 
@@ -66,10 +75,16 @@ void Pattern::_physics_process(float delta)
         if (!shot->active)
             continue;
 
-        shot->local_position += shot->direction * shot->speed;
-        shot->position = transform.xform(shot->local_position);
+        shot->position += shot->direction * shot->speed;
+        shot->relative_position = transform.xform(shot->position);
 
-        if (!region.has_point(shot->position)) {
+        if (hitbox != nullptr) {
+            if (shot->relative_position.distance_to(hitbox_pos) <= hitbox->radius + shot->radius) {
+                hitbox->hit();
+            }
+        }
+
+        if (!region.has_point(shot->relative_position)) {
             shot->active = false;
             ++release_count;
         }
@@ -103,7 +118,7 @@ void Pattern::_draw()
         ShotSprite* sprite = _danmaku->get_sprite(shot->sprite_id);
 
         if (shot->active)
-            sprite->draw_to(this, shot->local_position);
+            sprite->draw_to(this, shot->position);
     }
 }
 
@@ -131,6 +146,8 @@ void Pattern::fire_circle(String sprite, int count, float speed)
     if (_danmaku == nullptr) return;
 
     int sprite_id = _danmaku->get_sprite_id(sprite);
+    float radius = _danmaku->get_sprite(sprite_id)->collider_radius;
+
     int* buf = buffer(count);
 
     for (int i = 0; i != count; ++i) {
@@ -138,9 +155,10 @@ void Pattern::fire_circle(String sprite, int count, float speed)
 
         Shot* shot = _danmaku->get_shot(buf[i]);
         shot->direction = Vector2(cos(angle), sin(angle));
-        shot->local_position = Vector2(0, 0);
+        shot->position = Vector2(0, 0);
         shot->speed = speed;
         shot->active = true;
         shot->sprite_id = sprite_id;
+        shot->radius = radius;
     }
 }

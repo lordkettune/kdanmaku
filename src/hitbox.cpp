@@ -5,16 +5,20 @@ using namespace godot;
 void Hitbox::_register_methods()
 {
     register_property<Hitbox, float>("radius", &Hitbox::radius, 2);
+    register_property<Hitbox, bool>("invulnerable", &Hitbox::invulnerable, false);
 
     register_method("_enter_tree", &Hitbox::_enter_tree);
     register_method("_exit_tree", &Hitbox::_exit_tree);
 
     register_method("get_danmaku", &Hitbox::get_danmaku);
+
+    register_signal<Hitbox>("hit", Dictionary());
 }
 
 void Hitbox::_init()
 {
     radius = 2;
+    invulnerable = false;
     _danmaku = nullptr;
 }
 
@@ -35,4 +39,11 @@ void Hitbox::_enter_tree()
 void Hitbox::_exit_tree()
 {
     _danmaku->remove_hitbox();
+}
+
+void Hitbox::hit()
+{
+    if (invulnerable)
+        return;
+    emit_signal("hit");
 }

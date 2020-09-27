@@ -12,11 +12,12 @@ class Hitbox;
 
 struct Shot {
     bool active;
-    Vector2 position;
-    Vector2 local_position;
+    Vector2 relative_position; // Position relative to Danmaku
+    Vector2 position;          // Local position
     Vector2 direction;
     float speed;
     int sprite_id;
+    float radius;
 };
 
 class Danmaku : public Node2D {

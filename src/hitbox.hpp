@@ -16,6 +16,7 @@ private:
 
 public:
     float radius;
+    bool invulnerable;
 
     Danmaku* get_danmaku() { return _danmaku; }
 
@@ -24,6 +25,8 @@ public:
 
     void _enter_tree();
     void _exit_tree();
+
+    void hit();
 };
 
 };
