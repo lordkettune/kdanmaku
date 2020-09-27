@@ -19,7 +19,7 @@ if env['platform'] == 'windows':
         env = Environment(TARGET_ARCH='x86')
     opts.Update(env)
     env.Append(CPPDEFINES=['WIN32', '_WIN32', '_WINDOWS', '_CRT_SECURE_NO_WARNINGS', 'NDEBUG'])
-    env.Append(CCFLAGS=['/W3', '/GR', '/O2', '/EHsc', '/MD'])
+    env.Append(CCFLAGS=['/W3', '/GR', '/O2', '/EHsc', '/MD', '/wd4244', '/wd4305'])
 
 env.Append(CPPPATH=[
     'src/',

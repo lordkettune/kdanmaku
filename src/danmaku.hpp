@@ -4,6 +4,8 @@
 #include <Godot.hpp>
 #include <Node2D.hpp>
 
+#include "shot_sprite.hpp"
+
 namespace godot {
 
 struct Shot {
@@ -12,6 +14,7 @@ struct Shot {
     Vector2 local_position;
     Vector2 direction;
     float speed;
+    int sprite_id;
 };
 
 class Danmaku : public Node2D {
@@ -27,12 +30,18 @@ private:
     int _active_count;
     int _pattern_count;
 
+    ShotSprite** _sprites;
+    int _sprite_count;
+    
+public:
     Rect2 region;
     int tolerance;
 
+    // Public versions of _max_shots and _sprites.
+    // These can't be changed after initialization without breaking things, so they're copied to a private version in _enter_tree
     int max_shots;
-    
-public:
+    Array sprites;
+
     static void _register_methods();
     void _init() {};
     bool is_danmaku();
@@ -50,6 +59,9 @@ public:
     void release_ids(int* buf, int count);
 
     inline Shot* get_shot(int id) { return &_shots[id]; }
+
+    inline ShotSprite* get_sprite(int id) { return _sprites[id]; }
+    int get_sprite_id(const String& key);
 
     inline Rect2 get_region() { return region; }
     inline int get_tolerance() { return tolerance; }

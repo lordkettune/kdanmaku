@@ -32,7 +32,7 @@ public:
     void _physics_process(float delta);
     void _draw();
     
-    void fire_circle(int count, float speed);
+    void fire_circle(String sprite, int count, float speed);
 };
 
 }

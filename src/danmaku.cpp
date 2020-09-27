@@ -7,6 +7,7 @@ void Danmaku::_register_methods()
     register_property<Danmaku, int>("max_shots", &Danmaku::max_shots, 2048);
     register_property<Danmaku, Rect2>("region", &Danmaku::region, Rect2(0, 0, 384, 448));
     register_property<Danmaku, int>("tolerance", &Danmaku::tolerance, 64);
+    register_property<Danmaku, Array>("sprites", &Danmaku::sprites, Array());
 
     register_method("is_danmaku", &Danmaku::is_danmaku);
     register_method("_enter_tree", &Danmaku::_enter_tree);
@@ -35,28 +36,44 @@ Danmaku::Danmaku()
     max_shots = 2048;
     region = Rect2(0, 0, 384, 448);
     tolerance = 64;
+    sprites = Array();
 }
 
 Danmaku::~Danmaku()
 {
-    _exit_tree();
+    
 }
 
 void Danmaku::_enter_tree()
 {
     _free_count = _max_shots = max_shots;
-    _shots = (Shot*)api->godot_alloc(_max_shots * sizeof(Shot));
-    _free_ids = (int*)api->godot_alloc(_max_shots * sizeof(int));
 
+    _shots = new Shot[_max_shots];
+    _free_ids = new int[_max_shots];
+    
     for (int i = 0; i != _max_shots; ++i) {
         _free_ids[i] = i;
+    }
+
+    _sprite_count = sprites.size();
+    _sprites = new ShotSprite*[_sprite_count];
+
+    for (int i = 0; i != _sprite_count; ++i) {
+        _sprites[i] = Object::cast_to<ShotSprite>(sprites[i]);
+        _sprites[i]->reference();
     }
 }
 
 void Danmaku::_exit_tree()
 {
-    if (_shots != nullptr) api->godot_free(_shots);
-    if (_free_ids != nullptr) api->godot_free(_free_ids);
+    delete[] _shots;
+    delete[] _free_ids;
+
+    for (int i = 0; i != _sprite_count; ++i) {
+        if (_sprites[i]->unreference())
+            _sprites[i]->free();
+    }
+    delete[] _sprites;
 }
 
 
@@ -75,4 +92,14 @@ void Danmaku::release_ids(int* buf, int count)
         _free_ids[_free_count++] = buf[i];
     }
     _active_count -= count;
+}
+
+
+int Danmaku::get_sprite_id(const String& key)
+{
+    for (int i = 0; i != _sprite_count; ++i) {
+        if (_sprites[i]->key == key)
+            return i;
+    }
+    return 0;
 }

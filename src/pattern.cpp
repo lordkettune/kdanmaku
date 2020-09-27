@@ -41,6 +41,7 @@ void Pattern::_enter_tree()
     }
     _danmaku = Object::cast_to<Danmaku>(parent);
     _danmaku->count_pattern();
+    set_z_index(_danmaku->get_z_index());
 }
 
 void Pattern::_exit_tree()
@@ -99,8 +100,10 @@ void Pattern::_draw()
 {
     for (int i = 0; i != _shot_count; ++i) {
         Shot* shot = _danmaku->get_shot(_shot_ids[i]);
+        ShotSprite* sprite = _danmaku->get_sprite(shot->sprite_id);
+
         if (shot->active)
-            draw_circle(shot->local_position, 10, Color(1, 1, 1));
+            draw_texture_rect_region(sprite->texture, Rect2(shot->local_position - sprite->region.size / 2.0f, sprite->region.size), sprite->region);
     }
 }
 
@@ -123,10 +126,11 @@ int* Pattern::buffer(int count)
 }
 
 
-void Pattern::fire_circle(int count, float speed)
+void Pattern::fire_circle(String sprite, int count, float speed)
 {
     if (_danmaku == nullptr) return;
 
+    int sprite_id = _danmaku->get_sprite_id(sprite);
     int* buf = buffer(count);
 
     for (int i = 0; i != count; ++i) {
@@ -137,5 +141,6 @@ void Pattern::fire_circle(int count, float speed)
         shot->local_position = Vector2(0, 0);
         shot->speed = speed;
         shot->active = true;
+        shot->sprite_id = sprite_id;
     }
 }
