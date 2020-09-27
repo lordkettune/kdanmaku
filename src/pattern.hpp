@@ -35,6 +35,6 @@ public:
     void fire_circle(String sprite, int count, float speed);
 };
 
-}
+};
 
 #endif

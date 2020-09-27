@@ -8,6 +8,8 @@
 
 namespace godot {
 
+class Hitbox;
+
 struct Shot {
     bool active;
     Vector2 position;
@@ -32,6 +34,8 @@ private:
 
     ShotSprite** _sprites;
     int _sprite_count;
+
+    Hitbox* _hitbox;
     
 public:
     Rect2 region;
@@ -55,6 +59,10 @@ public:
     void count_pattern() { ++_pattern_count; }
     void decount_pattern() { --_pattern_count; }
 
+    void register_hitbox(Hitbox* hitbox) { _hitbox = hitbox; }
+    void remove_hitbox() { _hitbox = nullptr; }
+    Hitbox* get_hitbox() { return _hitbox; }
+
     void capture_ids(int* buf, int count);
     void release_ids(int* buf, int count);
 
@@ -63,7 +71,7 @@ public:
     inline ShotSprite* get_sprite(int id) { return _sprites[id]; }
     int get_sprite_id(const String& key);
 
-    inline Rect2 get_region() { return region; }
+    inline Rect2 get_region()  { return region;    }
     inline int get_tolerance() { return tolerance; }
 
     int get_free_shot_count()   { return _free_count;    }
@@ -71,6 +79,6 @@ public:
     int get_pattern_count()     { return _pattern_count; }
 };
 
-}
+};
 
 #endif

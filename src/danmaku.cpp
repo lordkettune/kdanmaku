@@ -32,6 +32,7 @@ Danmaku::Danmaku()
     _max_shots = 0;
     _shots = nullptr;
     _free_ids = nullptr;
+    _hitbox = nullptr;
 
     max_shots = 2048;
     region = Rect2(0, 0, 384, 448);

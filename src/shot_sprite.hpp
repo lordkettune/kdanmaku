@@ -4,6 +4,7 @@
 #include <Godot.hpp>
 #include <Texture.hpp>
 #include <Resource.hpp>
+#include <CanvasItem.hpp>
 
 namespace godot {
 
@@ -14,11 +15,14 @@ public:
     String key;
     Ref<Texture> texture;
     Rect2 region;
+    float collider_radius;
 
     static void _register_methods();
     void _init();
+
+    void draw_to(CanvasItem* canvas_item, Vector2 position);
 };
 
-}
+};
 
 #endif

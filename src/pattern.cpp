@@ -103,7 +103,7 @@ void Pattern::_draw()
         ShotSprite* sprite = _danmaku->get_sprite(shot->sprite_id);
 
         if (shot->active)
-            draw_texture_rect_region(sprite->texture, Rect2(shot->local_position - sprite->region.size / 2.0f, sprite->region.size), sprite->region);
+            sprite->draw_to(this, shot->local_position);
     }
 }
 
