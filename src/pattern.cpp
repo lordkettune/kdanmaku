@@ -12,7 +12,12 @@ void Pattern::_register_methods()
     register_method("_physics_process", &Pattern::_physics_process);
     register_method("_draw", &Pattern::_draw);
 
+    register_method("fire", &Pattern::fire);
+    register_method("fire_layered", &Pattern::fire_layered);
     register_method("fire_circle", &Pattern::fire_circle);
+    register_method("fire_layered_circle", &Pattern::fire_layered_circle);
+    register_method("fire_fan", &Pattern::fire_fan);
+    register_method("fire_layered_fan", &Pattern::fire_layered_fan);
 }
 
 Pattern::Pattern()
@@ -36,7 +41,7 @@ void Pattern::_enter_tree()
     while ((bool)parent->call("is_danmaku") != true) {
         parent = parent->get_parent();
         if (parent == nullptr) {
-            api->godot_print_error("Pattern is not a child of Danmaku!", "_enter_tree", __FILE__, __LINE__);
+            Godot::print_error("Pattern is not a descendent of a Danmaku node!", "_enter_tree", __FILE__, __LINE__);
             return;
         }
     }
@@ -84,7 +89,7 @@ void Pattern::_physics_process(float delta)
             }
         }
 
-        if (!region.has_point(shot->relative_position)) {
+        if (!region.has_point(shot->relative_position) || _danmaku->should_clear(shot->relative_position)) {
             shot->active = false;
             ++release_count;
         }
@@ -141,24 +146,125 @@ int* Pattern::buffer(int count)
 }
 
 
-void Pattern::fire_circle(String sprite, int count, float speed)
+bool Pattern::prepare(const String& sprite, int& sprite_id, float& radius, float& angle, int count, bool aim, int*& buf)
 {
-    if (_danmaku == nullptr) return;
+    if (_danmaku == nullptr) {
+        Godot::print_error("Pattern is not a descendent of a Danmaku node!", "prepare", __FILE__, __LINE__);
+        return false;
+    }
 
-    int sprite_id = _danmaku->get_sprite_id(sprite);
-    float radius = _danmaku->get_sprite(sprite_id)->collider_radius;
+    sprite_id = _danmaku->get_sprite_id(sprite);
+    if (sprite_id < 0) {
+        Godot::print_error("Sprite key \"" + sprite + "\" does not exist!", "prepare", __FILE__, __LINE__);
+        return false;
+    }
 
-    int* buf = buffer(count);
+    radius = _danmaku->get_sprite(sprite_id)->collider_radius;
 
-    for (int i = 0; i != count; ++i) {
-        float angle = i * (Math_TAU / (float)count);
+    if (aim) {
+        Hitbox* hitbox = _danmaku->get_hitbox();
+        if (hitbox == nullptr) {
+            Godot::print_error("No Hitbox to aim at, make sure Hitbox is a descendent of Danmaku!", "prepare", __FILE__, __LINE__);
+            return false;
+        }
+        angle += get_global_position().angle_to_point(hitbox->get_global_position());
+    }
 
-        Shot* shot = _danmaku->get_shot(buf[i]);
-        shot->direction = Vector2(cos(angle), sin(angle));
+    buf = buffer(count);
+    return true;
+}
+
+void Pattern::fire(String sprite, float speed, float angle, bool aim)
+{
+    int sprite_id;
+    float radius;
+    int* buf;
+    if (prepare(sprite, sprite_id, radius, angle, 1, aim, buf)) {
+        Shot* shot = _danmaku->get_shot(buf[0]);
+        shot->direction = Vector2(-cos(angle), -sin(angle));
         shot->position = Vector2(0, 0);
         shot->speed = speed;
-        shot->active = true;
         shot->sprite_id = sprite_id;
         shot->radius = radius;
+        shot->active = true;
+    }
+}
+
+void Pattern::fire_layered(String sprite, int layers, float min_speed, float max_speed, float angle, bool aim)
+{
+    int sprite_id;
+    float radius;
+    int* buf;
+    if (prepare(sprite, sprite_id, radius, angle, layers, aim, buf)) {
+        float cx = -cos(angle);
+        float sy = -sin(angle);
+        float step = (max_speed - min_speed) / layers;
+        for (int i = 0; i != layers; ++i) {
+            Shot* shot = _danmaku->get_shot(buf[i]);
+            shot->direction = Vector2(cx, sy);
+            shot->position = Vector2(0, 0);
+            shot->speed = min_speed + step * i;
+            shot->sprite_id = sprite_id;
+            shot->radius = radius;
+            shot->active = true;
+        }
+    }
+}
+
+void Pattern::fire_circle(String sprite, int count, float speed, float angle, bool aim)
+{
+    int sprite_id;
+    float radius;
+    int* buf;
+    if (prepare(sprite, sprite_id, radius, angle, count, aim, buf)) {
+        for (int i = 0; i != count; ++i) {
+            float shot_angle = angle + i * (Math_TAU / (float)count);
+
+            Shot* shot = _danmaku->get_shot(buf[i]);
+            shot->direction = Vector2(-cos(shot_angle), -sin(shot_angle));
+            shot->position = Vector2(0, 0);
+            shot->speed = speed;
+            shot->sprite_id = sprite_id;
+            shot->radius = radius;
+            shot->active = true;
+        }
+    }
+}
+
+void Pattern::fire_layered_circle(String sprite, int count, int layers, float min_speed, float max_speed, float angle, bool aim)
+{
+    float step = (max_speed - min_speed) / layers;
+    for (int i = 0; i != layers; ++i) {
+        fire_circle(sprite, count, min_speed + step * i, angle, aim);
+    }
+}
+
+void Pattern::fire_fan(String sprite, int count, float speed, float angle, float theta, bool aim)
+{
+    int sprite_id;
+    float radius;
+    int* buf;
+    if (prepare(sprite, sprite_id, radius, angle, count, aim, buf)) {
+        float base = angle - theta * 0.5f;
+        float step = theta / (count - 1);
+        for (int i = 0; i != count; ++i) {
+            float shot_angle = base + i * step;
+
+            Shot* shot = _danmaku->get_shot(buf[i]);
+            shot->direction = Vector2(-cos(shot_angle), -sin(shot_angle));
+            shot->position = Vector2(0, 0);
+            shot->speed = speed;
+            shot->sprite_id = sprite_id;
+            shot->radius = radius;
+            shot->active = true;
+        }
+    }
+}
+
+void Pattern::fire_layered_fan(String sprite, int count, int layers, float min_speed, float max_speed, float angle, float theta, bool aim)
+{
+    float step = (max_speed - min_speed) / layers;
+    for (int i = 0; i != layers; ++i) {
+        fire_fan(sprite, count, min_speed + step * i, angle, theta, aim);
     }
 }

@@ -19,6 +19,7 @@ private:
     int _shot_count;
 
     int* buffer(int count);
+    bool prepare(const String& sprite, int& sprite_id, float& radius, float& angle, int count, bool aim, int*& buf);
 
 public:
     static void _register_methods();
@@ -32,7 +33,12 @@ public:
     void _physics_process(float delta);
     void _draw();
     
-    void fire_circle(String sprite, int count, float speed);
+    void fire(String sprite, float speed, float angle, bool aim);
+    void fire_layered(String sprite, int layers, float min_speed, float max_speed, float angle, bool aim);
+    void fire_circle(String sprite, int count, float speed, float angle, bool aim);
+    void fire_layered_circle(String sprite, int count, int layers, float min_speed, float max_speed, float angle, bool aim);
+    void fire_fan(String sprite, int count, float speed, float angle, float theta, bool aim);
+    void fire_layered_fan(String sprite, int count, int layers, float min_speed, float max_speed, float angle, float theta, bool aim);
 };
 
 };

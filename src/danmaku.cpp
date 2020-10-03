@@ -9,6 +9,10 @@ void Danmaku::_register_methods()
     register_property<Danmaku, int>("tolerance", &Danmaku::tolerance, 64);
     register_property<Danmaku, Array>("sprites", &Danmaku::sprites, Array());
 
+    register_property<Danmaku, bool>("clear_enabled", &Danmaku::clear_enabled, false);
+    register_property<Danmaku, Vector2>("clear_origin", &Danmaku::clear_origin, Vector2(0, 0));
+    register_property<Danmaku, float>("clear_radius", &Danmaku::clear_radius, 0);
+
     register_method("is_danmaku", &Danmaku::is_danmaku);
     register_method("_enter_tree", &Danmaku::_enter_tree);
     register_method("_exit_tree", &Danmaku::_exit_tree);
@@ -34,6 +38,9 @@ Danmaku::Danmaku()
     _free_ids = nullptr;
     _hitbox = nullptr;
 
+    clear_radius = 0;
+    clear_origin = Vector2(0, 0);
+    clear_enabled = false;
     max_shots = 2048;
     region = Rect2(0, 0, 384, 448);
     tolerance = 64;
@@ -102,5 +109,14 @@ int Danmaku::get_sprite_id(const String& key)
         if (_sprites[i]->key == key)
             return i;
     }
-    return 0;
+    return -1;
+}
+
+
+bool Danmaku::should_clear(Vector2 position)
+{
+    if (clear_enabled) {
+        return position.distance_to(clear_origin) <= clear_radius;
+    }
+    return false;
 }

@@ -47,6 +47,10 @@ public:
     int max_shots;
     Array sprites;
 
+    Vector2 clear_origin;
+    float clear_radius;
+    bool clear_enabled;
+
     static void _register_methods();
     void _init() {};
     bool is_danmaku();
@@ -66,6 +70,8 @@ public:
 
     void capture_ids(int* buf, int count);
     void release_ids(int* buf, int count);
+
+    bool should_clear(Vector2 position);
 
     inline Shot* get_shot(int id) { return &_shots[id]; }
 
