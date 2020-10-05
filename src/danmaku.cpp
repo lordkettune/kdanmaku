@@ -34,8 +34,7 @@ Danmaku::Danmaku()
     _active_count = 0;
     _pattern_count = 0;
     _max_shots = 0;
-    _shots = nullptr;
-    _free_ids = nullptr;
+    _free_shots = nullptr;
     _hitbox = nullptr;
 
     clear_radius = 0;
@@ -56,16 +55,13 @@ void Danmaku::_enter_tree()
 {
     _free_count = _max_shots = max_shots;
 
-    _shots = new Shot[_max_shots];
-    _free_ids = new int[_max_shots];
-    
+    _free_shots = new Shot*[_max_shots];
     for (int i = 0; i != _max_shots; ++i) {
-        _free_ids[i] = i;
+        _free_shots[i] = Shot::_new();
     }
 
     _sprite_count = sprites.size();
     _sprites = new ShotSprite*[_sprite_count];
-
     for (int i = 0; i != _sprite_count; ++i) {
         _sprites[i] = Object::cast_to<ShotSprite>(sprites[i]);
         _sprites[i]->reference();
@@ -74,8 +70,10 @@ void Danmaku::_enter_tree()
 
 void Danmaku::_exit_tree()
 {
-    delete[] _shots;
-    delete[] _free_ids;
+    for (int i = 0; i != _max_shots; ++i) {
+        _free_shots[i]->free();
+    }
+    delete[] _free_shots;
 
     for (int i = 0; i != _sprite_count; ++i) {
         if (_sprites[i]->unreference())
@@ -85,19 +83,19 @@ void Danmaku::_exit_tree()
 }
 
 
-void Danmaku::capture_ids(int* buf, int count)
+void Danmaku::capture(Shot** buf, int count)
 {
     for (int i = 0; i != count; ++i) {
-        buf[i] = _free_ids[0];
-        _free_ids[0] = _free_ids[--_free_count];
+        buf[i] = _free_shots[0];
+        _free_shots[0] = _free_shots[--_free_count];
     }
     _active_count += count;
 }
 
-void Danmaku::release_ids(int* buf, int count)
+void Danmaku::release(Shot** buf, int count)
 {
     for (int i = 0; i != count; ++i) {
-        _free_ids[_free_count++] = buf[i];
+        _free_shots[_free_count++] = buf[i];
     }
     _active_count -= count;
 }

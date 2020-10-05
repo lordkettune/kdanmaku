@@ -1,5 +1,6 @@
 #include <Godot.hpp>
 
+#include "shot.hpp"
 #include "danmaku.hpp"
 #include "pattern.hpp"
 #include "shot_sprite.hpp"
@@ -21,6 +22,7 @@ extern "C" void GDN_EXPORT godot_nativescript_init(void* handle)
 {
     Godot::nativescript_init(handle);
 
+    register_class<Shot>();
     register_class<ShotSprite>();
     register_class<Danmaku>();
     register_class<Hitbox>();

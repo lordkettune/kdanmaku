@@ -5,30 +5,19 @@
 #include <Node2D.hpp>
 
 #include "shot_sprite.hpp"
+#include "shot.hpp"
 
 namespace godot {
 
 class Hitbox;
 
-struct Shot {
-    bool active;
-    Vector2 relative_position; // Position relative to Danmaku
-    Vector2 position;          // Local position
-    Vector2 direction;
-    float speed;
-    int sprite_id;
-    float radius;
-};
-
 class Danmaku : public Node2D {
     GODOT_CLASS(Danmaku, Node2D)
 
 private:
-    Shot* _shots;
-    int* _free_ids;
-    int _max_shots;
-
+    Shot** _free_shots;
     int _free_count;
+    int _max_shots;
 
     int _active_count;
     int _pattern_count;
@@ -68,12 +57,10 @@ public:
     void remove_hitbox() { _hitbox = nullptr; }
     Hitbox* get_hitbox() { return _hitbox; }
 
-    void capture_ids(int* buf, int count);
-    void release_ids(int* buf, int count);
+    void capture(Shot** buf, int count);
+    void release(Shot** buf, int count);
 
     bool should_clear(Vector2 position);
-
-    inline Shot* get_shot(int id) { return &_shots[id]; }
 
     inline ShotSprite* get_sprite(int id) { return _sprites[id]; }
     int get_sprite_id(const String& key);
