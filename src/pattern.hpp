@@ -3,6 +3,7 @@
 
 #include <Godot.hpp>
 #include <Node2D.hpp>
+#include <Reference.hpp>
 
 #include "danmaku.hpp"
 #include "shot.hpp"
@@ -18,6 +19,8 @@ private:
     Shot** _shots;
     int _shots_size;
     int _active_count;
+
+    Ref<Reference> delegate;
 
     Shot** buffer(int count);
     bool prepare(const String& sprite, int& sprite_id, float& radius, float& angle, int count, bool aim, Shot**& buf);
@@ -42,6 +45,7 @@ public:
     void fire_layered_circle(String sprite, int count, int layers, float min_speed, float max_speed, float angle, bool aim);
     void fire_fan(String sprite, int count, float speed, float angle, float theta, bool aim);
     void fire_layered_fan(String sprite, int count, int layers, float min_speed, float max_speed, float angle, float theta, bool aim);
+    void fire_custom(String sprite, int count, String name);
 };
 
 };

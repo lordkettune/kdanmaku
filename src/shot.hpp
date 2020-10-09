@@ -6,6 +6,8 @@
 
 namespace godot {
 
+class Pattern;
+
 class Shot : public Object {
     GODOT_CLASS(Shot, Object)
 
@@ -13,13 +15,17 @@ public:
     static void _register_methods();
     void _init();
 
+    Pattern* get_pattern() { return owner; }
+
+    Pattern* owner;
     bool active;
+    int sprite_id;
     Vector2 global_position;
+    
     Vector2 position;
     Vector2 direction;
     float speed;
     float radius;
-    int sprite_id;
 };
 
 }

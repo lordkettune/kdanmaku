@@ -8,6 +8,8 @@ using namespace godot;
 
 void Pattern::_register_methods()
 {
+    register_property<Pattern, Ref<Reference>>("delegate", &Pattern::delegate, nullptr);
+
     register_method("_enter_tree", &Pattern::_enter_tree);
     register_method("_exit_tree", &Pattern::_exit_tree);
     register_method("_physics_process", &Pattern::_physics_process);
@@ -21,6 +23,7 @@ void Pattern::_register_methods()
     register_method("fire_layered_circle", &Pattern::fire_layered_circle);
     register_method("fire_fan", &Pattern::fire_fan);
     register_method("fire_layered_fan", &Pattern::fire_layered_fan);
+    register_method("fire_custom", &Pattern::fire_custom);
 }
 
 Pattern::Pattern()
@@ -29,6 +32,7 @@ Pattern::Pattern()
     _shots = nullptr;
     _shots_size = 0;
     _active_count = 0;
+    delegate = nullptr;
 }
 
 Pattern::~Pattern()
@@ -180,6 +184,7 @@ void Pattern::fire(String sprite, float speed, float angle, bool aim)
     Shot** buf;
     if (prepare(sprite, sprite_id, radius, angle, 1, aim, buf)) {
         Shot* shot = buf[0];
+        shot->owner = this;
         shot->direction = Vector2(-cos(angle), -sin(angle));
         shot->position = Vector2(0, 0);
         shot->speed = speed;
@@ -200,6 +205,7 @@ void Pattern::fire_layered(String sprite, int layers, float min_speed, float max
         float step = (max_speed - min_speed) / layers;
         for (int i = 0; i != layers; ++i) {
             Shot* shot = buf[i];
+            shot->owner = this;
             shot->direction = Vector2(cx, sy);
             shot->position = Vector2(0, 0);
             shot->speed = min_speed + step * i;
@@ -220,6 +226,7 @@ void Pattern::fire_circle(String sprite, int count, float speed, float angle, bo
             float shot_angle = angle + i * (Math_TAU / (float)count);
 
             Shot* shot = buf[i];
+            shot->owner = this;
             shot->direction = Vector2(-cos(shot_angle), -sin(shot_angle));
             shot->position = Vector2(0, 0);
             shot->speed = speed;
@@ -250,6 +257,7 @@ void Pattern::fire_fan(String sprite, int count, float speed, float angle, float
             float shot_angle = base + i * step;
 
             Shot* shot = buf[i];
+            shot->owner = this;
             shot->direction = Vector2(-cos(shot_angle), -sin(shot_angle));
             shot->position = Vector2(0, 0);
             shot->speed = speed;
@@ -265,5 +273,45 @@ void Pattern::fire_layered_fan(String sprite, int count, int layers, float min_s
     float step = (max_speed - min_speed) / layers;
     for (int i = 0; i != layers; ++i) {
         fire_fan(sprite, count, min_speed + step * i, angle, theta, aim);
+    }
+}
+
+void Pattern::fire_custom(String sprite, int count, String name)
+{
+    if (_danmaku == nullptr) {
+        Godot::print_error("Pattern is not a descendent of a Danmaku node!", "fire_custom", __FILE__, __LINE__);
+        return;
+    }
+
+    if (delegate == nullptr) {
+        Godot::print_error("Pattern does not have a delegate, can't fire custom pattern!", "fire_custom", __FILE__, __LINE__);
+        return;
+    }
+
+    if (!delegate->has_method(name)) {
+        Godot::print_error("Delegate has no custom pattern by name \"" + sprite + "\"", "fire_custom", __FILE__, __LINE__);
+        return;
+    }
+
+    int sprite_id = _danmaku->get_sprite_id(sprite);
+    if (sprite_id < 0) {
+        Godot::print_error("Sprite key \"" + sprite + "\" does not exist!", "fire_custom", __FILE__, __LINE__);
+        return;
+    }
+
+    float radius = _danmaku->get_sprite(sprite_id)->collider_radius;
+    Shot** buf = buffer(count);
+
+    for (int i = 0; i != count; ++i) {
+        Shot* shot = buf[i];
+        shot->owner = this;
+        shot->direction = Vector2(0, 1);
+        shot->position = Vector2(0, 0);
+        shot->speed = 0;
+        shot->sprite_id = sprite_id;
+        shot->radius = radius;
+        shot->active = true;
+
+        delegate->call(name, count, i, shot);
     }
 }
