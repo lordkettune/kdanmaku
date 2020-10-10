@@ -172,7 +172,8 @@ bool Pattern::prepare(const String& sprite, int& sprite_id, float& radius, float
             Godot::print_error("No Hitbox to aim at, make sure Hitbox is a descendent of Danmaku!", "prepare", __FILE__, __LINE__);
             return false;
         }
-        angle += get_global_position().angle_to_point(hitbox->get_global_position());
+        Vector2 diff = hitbox->get_global_position() - get_global_position();
+        angle += atan2(diff.y, diff.x);
     }
 
     buf = buffer(count);
@@ -188,7 +189,7 @@ void Pattern::fire(String sprite, float speed, float angle, bool aim)
         Shot* shot = buf[0];
         shot->reset();
         shot->owner = this;
-        shot->direction = Vector2(-cos(angle), -sin(angle));
+        shot->direction = Vector2(cos(angle), sin(angle));
         shot->speed = speed;
         shot->sprite_id = sprite_id;
         shot->radius = radius;
@@ -202,8 +203,8 @@ void Pattern::fire_layered(String sprite, int layers, float min_speed, float max
     float radius;
     Shot** buf;
     if (prepare(sprite, sprite_id, radius, angle, layers, aim, buf)) {
-        float cx = -cos(angle);
-        float sy = -sin(angle);
+        float cx = cos(angle);
+        float sy = sin(angle);
         float step = (max_speed - min_speed) / layers;
         for (int i = 0; i != layers; ++i) {
             Shot* shot = buf[i];
@@ -230,7 +231,7 @@ void Pattern::fire_circle(String sprite, int count, float speed, float angle, bo
             Shot* shot = buf[i];
             shot->reset();
             shot->owner = this;
-            shot->direction = Vector2(-cos(shot_angle), -sin(shot_angle));
+            shot->direction = Vector2(cos(shot_angle), sin(shot_angle));
             shot->speed = speed;
             shot->sprite_id = sprite_id;
             shot->radius = radius;
@@ -261,7 +262,7 @@ void Pattern::fire_fan(String sprite, int count, float speed, float angle, float
             Shot* shot = buf[i];
             shot->reset();
             shot->owner = this;
-            shot->direction = Vector2(-cos(shot_angle), -sin(shot_angle));
+            shot->direction = Vector2(cos(shot_angle), sin(shot_angle));
             shot->speed = speed;
             shot->sprite_id = sprite_id;
             shot->radius = radius;
