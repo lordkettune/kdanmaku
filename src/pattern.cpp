@@ -15,7 +15,7 @@ void Pattern::_register_methods()
     register_method("_physics_process", &Pattern::_physics_process);
     register_method("_draw", &Pattern::_draw);
 
-    register_method("get_shot", &Pattern::get_shot);
+    register_method("get_danmaku", &Pattern::get_danmaku);
 
     register_method("fire", &Pattern::fire);
     register_method("fire_layered", &Pattern::fire_layered);
@@ -95,6 +95,8 @@ void Pattern::_physics_process(float delta)
                 hitbox->hit();
             }
         }
+
+        ++shot->time;
 
         if (!region.has_point(shot->global_position) || _danmaku->should_clear(shot->global_position)) {
             shot->active = false;
@@ -184,9 +186,9 @@ void Pattern::fire(String sprite, float speed, float angle, bool aim)
     Shot** buf;
     if (prepare(sprite, sprite_id, radius, angle, 1, aim, buf)) {
         Shot* shot = buf[0];
+        shot->reset();
         shot->owner = this;
         shot->direction = Vector2(-cos(angle), -sin(angle));
-        shot->position = Vector2(0, 0);
         shot->speed = speed;
         shot->sprite_id = sprite_id;
         shot->radius = radius;
@@ -205,9 +207,9 @@ void Pattern::fire_layered(String sprite, int layers, float min_speed, float max
         float step = (max_speed - min_speed) / layers;
         for (int i = 0; i != layers; ++i) {
             Shot* shot = buf[i];
+            shot->reset();
             shot->owner = this;
             shot->direction = Vector2(cx, sy);
-            shot->position = Vector2(0, 0);
             shot->speed = min_speed + step * i;
             shot->sprite_id = sprite_id;
             shot->radius = radius;
@@ -226,9 +228,9 @@ void Pattern::fire_circle(String sprite, int count, float speed, float angle, bo
             float shot_angle = angle + i * (Math_TAU / (float)count);
 
             Shot* shot = buf[i];
+            shot->reset();
             shot->owner = this;
             shot->direction = Vector2(-cos(shot_angle), -sin(shot_angle));
-            shot->position = Vector2(0, 0);
             shot->speed = speed;
             shot->sprite_id = sprite_id;
             shot->radius = radius;
@@ -257,9 +259,9 @@ void Pattern::fire_fan(String sprite, int count, float speed, float angle, float
             float shot_angle = base + i * step;
 
             Shot* shot = buf[i];
+            shot->reset();
             shot->owner = this;
             shot->direction = Vector2(-cos(shot_angle), -sin(shot_angle));
-            shot->position = Vector2(0, 0);
             shot->speed = speed;
             shot->sprite_id = sprite_id;
             shot->radius = radius;
@@ -304,10 +306,8 @@ void Pattern::fire_custom(String sprite, int count, String name)
 
     for (int i = 0; i != count; ++i) {
         Shot* shot = buf[i];
+        shot->reset();
         shot->owner = this;
-        shot->direction = Vector2(0, 1);
-        shot->position = Vector2(0, 0);
-        shot->speed = 0;
         shot->sprite_id = sprite_id;
         shot->radius = radius;
         shot->active = true;

@@ -37,7 +37,7 @@ public:
     void _physics_process(float delta);
     void _draw();
 
-    Shot* get_shot(int idx) { return _shots[idx]; }
+    Danmaku* get_danmaku() { return _danmaku; }
     
     void fire(String sprite, float speed, float angle, bool aim);
     void fire_layered(String sprite, int layers, float min_speed, float max_speed, float angle, bool aim);
