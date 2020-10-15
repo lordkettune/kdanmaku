@@ -4,6 +4,8 @@
 #include <Godot.hpp>
 #include <Node2D.hpp>
 
+#include <vector>
+
 #include "shot_sprite.hpp"
 #include "shot.hpp"
 
@@ -22,8 +24,7 @@ private:
     int _active_count;
     int _pattern_count;
 
-    ShotSprite** _sprites;
-    int _sprite_count;
+    std::vector<ShotSprite*> _sprites;
 
     Hitbox* _hitbox;
     

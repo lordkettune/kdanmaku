@@ -3,6 +3,8 @@
 #include <Math.hpp>
 
 #include "hitbox.hpp"
+#include "selector.hpp"
+#include "parser.hpp"
 
 using namespace godot;
 

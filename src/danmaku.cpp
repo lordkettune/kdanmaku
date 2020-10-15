@@ -60,11 +60,10 @@ void Danmaku::_enter_tree()
         _free_shots[i] = Shot::_new();
     }
 
-    _sprite_count = sprites.size();
-    _sprites = new ShotSprite*[_sprite_count];
-    for (int i = 0; i != _sprite_count; ++i) {
-        _sprites[i] = Object::cast_to<ShotSprite>(sprites[i]);
-        _sprites[i]->reference();
+    for (int i = 0; i != sprites.size(); ++i) {
+        ShotSprite* sprite = Object::cast_to<ShotSprite>(sprites[i]);
+        sprite->reference();
+        _sprites.push_back(sprite);
     }
 }
 
@@ -75,11 +74,10 @@ void Danmaku::_exit_tree()
     }
     delete[] _free_shots;
 
-    for (int i = 0; i != _sprite_count; ++i) {
-        if (_sprites[i]->unreference())
-            _sprites[i]->free();
+    for (ShotSprite* sprite : _sprites) {
+        if (sprite->unreference())
+            sprite->free();
     }
-    delete[] _sprites;
 }
 
 
@@ -103,7 +101,7 @@ void Danmaku::release(Shot** buf, int count)
 
 int Danmaku::get_sprite_id(const String& key)
 {
-    for (int i = 0; i != _sprite_count; ++i) {
+    for (int i = 0; i != _sprites.size(); ++i) {
         if (_sprites[i]->key == key)
             return i;
     }
