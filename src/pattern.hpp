@@ -5,8 +5,10 @@
 #include <Node2D.hpp>
 #include <Reference.hpp>
 
+#include "utils.hpp"
 #include "danmaku.hpp"
 #include "shot.hpp"
+#include "selector.hpp"
 
 namespace godot {
 
@@ -24,6 +26,8 @@ private:
 
     Shot** buffer(int count);
     bool prepare(const String& sprite, int& sprite_id, float& radius, float& angle, int count, bool aim, Shot**& buf);
+
+    ISelector* make_selector(String source);
 
 public:
     static void _register_methods();
@@ -46,6 +50,8 @@ public:
     void fire_fan(String sprite, int count, float speed, float angle, float theta, bool aim);
     void fire_layered_fan(String sprite, int count, int layers, float min_speed, float max_speed, float angle, float theta, bool aim);
     void fire_custom(String sprite, int count, String name);
+
+    Array select(String selector);
 };
 
 };

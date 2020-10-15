@@ -26,6 +26,8 @@ void Pattern::_register_methods()
     register_method("fire_fan", &Pattern::fire_fan);
     register_method("fire_layered_fan", &Pattern::fire_layered_fan);
     register_method("fire_custom", &Pattern::fire_custom);
+
+    register_method("select", &Pattern::select);
 }
 
 Pattern::Pattern()
@@ -317,4 +319,29 @@ void Pattern::fire_custom(String sprite, int count, String name)
 
         delegate->call(name, count, i, shot);
     }
+}
+
+
+ISelector* Pattern::make_selector(String source)
+{
+    return Parser::get_singleton()->parse_selector(source);
+}
+
+Array Pattern::select(String source)
+{
+    Array result;
+    ISelector* selector = make_selector(source);
+    if (selector == nullptr) {
+        return result;
+    }
+
+    for (int i = 0; i != _active_count; ++i) {
+        Shot* shot = _shots[i];
+        if (selector->select(shot)) {
+            result.push_back(shot);
+        }
+    }
+    
+    delete selector;
+    return result;
 }

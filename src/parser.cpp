@@ -31,13 +31,16 @@ ISelector* Parser::parse_selector(String src)
         return nullptr;
     }
 
-    String args_src = split[1];
-    if (args_src.empty()) {
-        Godot::print_error("Parsing failed, expected arguments on right side of ':'", "parse_selector", __FILE__, __LINE__);
-        return nullptr;
-    }
+    PoolStringArray args;
 
-    PoolStringArray args = args_src.split(",");
+    if (split.size() > 1) {
+        String args_src = split[1];
+        if (args_src.empty()) {
+            Godot::print_error("Parsing failed, expected arguments on right side of ':'", "parse_selector", __FILE__, __LINE__);
+            return nullptr;
+        }
+        args = args_src.split(",");
+    }
 
     if (_selectors.count(key) == 0) {
         return nullptr;

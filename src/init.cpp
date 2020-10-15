@@ -6,27 +6,22 @@
 #include "shot_sprite.hpp"
 #include "hitbox.hpp"
 #include "parser.hpp"
+#include "standard_lib.hpp"
 
 using namespace godot;
-
-bool time_range(Shot* shot, int start, int end)
-{
-    return shot->time >= start && shot->time < end;
-}
 
 extern "C" void GDN_EXPORT godot_gdnative_init(godot_gdnative_init_options* o)
 {
     Godot::gdnative_init(o);
-
-    Parser* parser = Parser::get_singleton();
-
-    parser->register_selector(time_range, "time_range");
+    
+    Parser::get_singleton();
+    register_standard_lib();
 }
 
 extern "C" void GDN_EXPORT godot_gdnative_terminate(godot_gdnative_terminate_options* o)
 {
     Godot::gdnative_terminate(o);
-
+    
     Parser::free_singleton();
 }
 
