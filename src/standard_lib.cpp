@@ -21,7 +21,7 @@ bool s_time(Shot* shot, int time)
 
 bool s_time_range(Shot* shot, int start, int end)
 {
-    return shot->time >= start && shot->time < end;
+    return shot->time >= start && shot->time <= end;
 }
 
 

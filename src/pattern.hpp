@@ -17,13 +17,18 @@ class Pattern : public Node2D {
     GODOT_CLASS(Pattern, Node2D)
 
 private:
+    struct Mapping {
+        ISelector* selector;
+        IAction* action;
+    };
+
     Danmaku* _danmaku;
 
     Shot** _shots;
     int _shots_size;
     int _active_count;
 
-    Ref<Reference> delegate;
+    Vector<Mapping> _mappings;
 
     Shot** buffer(int count);
     bool prepare(const String& sprite, int& sprite_id, float& radius, float& angle, int count, bool aim, Shot**& buf);
@@ -32,6 +37,8 @@ private:
     IAction* make_action(String source);
 
 public:
+    Ref<Reference> delegate;
+
     static void _register_methods();
     void _init() {};
 
@@ -55,6 +62,7 @@ public:
 
     Array select(String selector);
     void apply(String action);
+    void map(String selector_source, String action_source);
 };
 
 };

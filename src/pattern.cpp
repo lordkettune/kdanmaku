@@ -28,6 +28,7 @@ void Pattern::_register_methods()
 
     register_method("select", &Pattern::select);
     register_method("apply", &Pattern::apply);
+    register_method("map", &Pattern::map);
 }
 
 Pattern::Pattern()
@@ -101,6 +102,12 @@ void Pattern::_physics_process(float delta)
         }
 
         ++shot->time;
+
+        for (auto const& mapping : _mappings) {
+            if (mapping.selector->select(shot)) {
+                mapping.action->apply(shot);
+            }
+        }
 
         if (!region.has_point(shot->global_position) || _danmaku->should_clear(shot->global_position)) {
             shot->active = false;
@@ -363,4 +370,15 @@ void Pattern::apply(String source)
     }
 
     delete action;
+}
+
+void Pattern::map(String selector_source, String action_source)
+{
+    ISelector* selector = make_selector(selector_source);
+    IAction* action = make_action(action_source);
+    if (selector == nullptr || action == nullptr) {
+        return;
+    }
+
+    _mappings.push_back({selector, action});
 }
