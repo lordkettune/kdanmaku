@@ -3,7 +3,6 @@
 #include <Math.hpp>
 
 #include "hitbox.hpp"
-#include "selector.hpp"
 #include "parser.hpp"
 
 using namespace godot;
@@ -28,6 +27,7 @@ void Pattern::_register_methods()
     register_method("fire_custom", &Pattern::fire_custom);
 
     register_method("select", &Pattern::select);
+    register_method("apply", &Pattern::apply);
 }
 
 Pattern::Pattern()
@@ -327,6 +327,11 @@ ISelector* Pattern::make_selector(String source)
     return Parser::get_singleton()->parse_selector(source);
 }
 
+IAction* Pattern::make_action(String source)
+{
+    return Parser::get_singleton()->parse_action(source);
+}
+
 Array Pattern::select(String source)
 {
     Array result;
@@ -344,4 +349,18 @@ Array Pattern::select(String source)
     
     delete selector;
     return result;
+}
+
+void Pattern::apply(String source)
+{
+    IAction* action = make_action(source);
+    if (action == nullptr) {
+        return;
+    }
+
+    for (int i = 0; i != _active_count; ++i) {
+        action->apply(_shots[i]);
+    }
+
+    delete action;
 }

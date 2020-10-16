@@ -8,6 +8,7 @@
 
 #include "shot_sprite.hpp"
 #include "shot.hpp"
+#include "utils.hpp"
 
 namespace godot {
 
@@ -24,7 +25,7 @@ private:
     int _active_count;
     int _pattern_count;
 
-    std::vector<ShotSprite*> _sprites;
+    Vector<ShotSprite*> _sprites;
 
     Hitbox* _hitbox;
     

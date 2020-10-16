@@ -9,6 +9,7 @@
 #include "danmaku.hpp"
 #include "shot.hpp"
 #include "selector.hpp"
+#include "action.hpp"
 
 namespace godot {
 
@@ -28,6 +29,7 @@ private:
     bool prepare(const String& sprite, int& sprite_id, float& radius, float& angle, int count, bool aim, Shot**& buf);
 
     ISelector* make_selector(String source);
+    IAction* make_action(String source);
 
 public:
     static void _register_methods();
@@ -52,6 +54,7 @@ public:
     void fire_custom(String sprite, int count, String name);
 
     Array select(String selector);
+    void apply(String action);
 };
 
 };

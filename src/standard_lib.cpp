@@ -29,6 +29,16 @@ bool s_time_range(Shot* shot, int start, int end)
 // Built-in actions
 // ======== ======== ======== ======== ======== ======== ======== ========
 
+void a_set_speed(Shot* shot, float speed)
+{
+    shot->speed = speed;
+}
+
+void a_accelerate(Shot* shot, float amount)
+{
+    shot->speed += amount;
+}
+
 
 void godot::register_standard_lib()
 {
@@ -37,4 +47,7 @@ void godot::register_standard_lib()
     parser->register_selector(s_all, "all");
     parser->register_selector(s_time, "time");
     parser->register_selector(s_time_range, "time_range");
+
+    parser->register_action(a_set_speed, "set_speed");
+    parser->register_action(a_accelerate, "accelerate");
 }
