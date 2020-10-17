@@ -11,6 +11,11 @@ void Pattern::_register_methods()
 {
     register_property<Pattern, Ref<Reference>>("delegate", &Pattern::delegate, nullptr);
 
+    register_property<Pattern, float>("fire_speed", &Pattern::fire_speed, 0);
+    register_property<Pattern, Vector2>("fire_offset", &Pattern::fire_offset, Vector2(0, 0));
+    register_property<Pattern, String>("fire_sprite", &Pattern::set_fire_sprite, &Pattern::get_fire_sprite, "");
+    register_property<Pattern, float>("fire_angle", &Pattern::set_fire_angle, &Pattern::get_fire_angle, 0);
+    
     register_method("_enter_tree", &Pattern::_enter_tree);
     register_method("_exit_tree", &Pattern::_exit_tree);
     register_method("_physics_process", &Pattern::_physics_process);
@@ -34,17 +39,18 @@ void Pattern::_register_methods()
 Pattern::Pattern()
 {
     _danmaku = nullptr;
-    _shots = nullptr;
-    _shots_size = 0;
-    _active_count = 0;
+    _fire_sprite = -1;
+    _fire_radius = 0;
+    _fire_direction = Vector2(1, 0);
+
     delegate = nullptr;
+    fire_offset = Vector2(0, 0);
+    fire_speed = 0;
 }
 
 Pattern::~Pattern()
 {
-    if (_shots != nullptr) {
-        api->godot_free(_shots);
-    }
+
 }
 
 void Pattern::_enter_tree()
@@ -65,11 +71,11 @@ void Pattern::_enter_tree()
 void Pattern::_exit_tree()
 {
     // Release all shot IDs when exiting tree
-    if (_active_count != 0) {
-        _danmaku->release(_shots, _active_count);
-        _active_count = 0;
+    for (Shot* shot : _shots) {
+        _danmaku->release(shot);
     }
     _danmaku->decount_pattern();
+    _shots.clear();
 }
 
 void Pattern::_physics_process(float delta)
@@ -77,7 +83,7 @@ void Pattern::_physics_process(float delta)
     if (_danmaku == nullptr) return;
 
     Transform2D transform = get_global_transform();
-    Rect2 region = _danmaku->get_region().grow(_danmaku->get_tolerance());
+    Rect2 region = _danmaku->region.grow(_danmaku->tolerance);
 
     Hitbox* hitbox = _danmaku->get_hitbox();
     Vector2 hitbox_pos = Vector2(0, 0);
@@ -85,12 +91,13 @@ void Pattern::_physics_process(float delta)
         hitbox_pos = hitbox->get_global_transform().get_origin();
     }
 
-    int release_count = 0;
+    bool clean = false;
 
-    for (int i = 0; i != _active_count; ++i) {
-        Shot* shot = _shots[i];
-        if (!shot->active)
+    for (Shot* shot : _shots) {
+        if (!shot->active) {
+            clean = true;
             continue;
+        }
 
         shot->position += shot->direction * shot->speed;
         shot->global_position = transform.xform(shot->position);
@@ -111,25 +118,20 @@ void Pattern::_physics_process(float delta)
 
         if (!region.has_point(shot->global_position) || _danmaku->should_clear(shot->global_position)) {
             shot->active = false;
-            ++release_count;
+            clean = true;
         }
     }
 
     // Shots left danmaku region, release their IDs
-    if (release_count != 0) {
-        for (int j = 0; j != release_count; ++j) {
-            int i = 0;
-            while (i != _active_count) {
-                if (!_shots[i]->active) {
-                    Shot* temp = _shots[--_active_count];
-                    _shots[_active_count] = _shots[i];
-                    _shots[i] = temp;
-                    break;
-                }
-                ++i;
+    if (clean) {
+        for (int i = 0; i != _shots.size();) {
+            if (!_shots[i]->active) {
+                _danmaku->release(_shots[i]);
+                _shots.erase(_shots.begin() + i);
+            } else {
+                i++;
             }
         }
-        _danmaku->release(_shots + _active_count, release_count);
     }
 
     update();
@@ -137,194 +139,172 @@ void Pattern::_physics_process(float delta)
 
 void Pattern::_draw()
 {
-    for (int i = 0; i != _active_count; ++i) {
-        ShotSprite* sprite = _danmaku->get_sprite(_shots[i]->sprite_id);
-        sprite->draw_to(this, _shots[i]->position);
+    for (Shot* shot : _shots) {
+        ShotSprite* sprite = _danmaku->get_sprite(shot->sprite_id);
+        sprite->draw_to(this, shot->position);
     }
 }
 
 
-Shot** Pattern::buffer(int count)
+void Pattern::set_fire_angle(float angle)
 {
-    if (_shots == nullptr) {
-        _shots_size = count;
-        _shots = (Shot**)api->godot_alloc(_shots_size * sizeof(Shot*));
-    } else {
-        while (_shots_size < _active_count + count) {
-            _shots_size *= 2;
-        }
-        _shots = (Shot**)api->godot_realloc(_shots, _shots_size * sizeof(Shot*));
-    }
-    Shot** buf = _shots + _active_count;
-    _danmaku->capture(buf, count);
-    _active_count += count;
-    return buf;
+    _fire_direction = Vector2(cos(angle), sin(angle));
 }
 
+float Pattern::get_fire_angle()
+{
+    return _fire_direction.angle();
+}
 
-bool Pattern::prepare(const String& sprite, int& sprite_id, float& radius, float& angle, int count, bool aim, Shot**& buf)
+void Pattern::set_fire_sprite(String sprite)
 {
     if (_danmaku == nullptr) {
-        Godot::print_error("Pattern is not a descendent of a Danmaku node!", "prepare", __FILE__, __LINE__);
+        return;
+    }
+    _fire_sprite = _danmaku->get_sprite_id(sprite);
+    if (_fire_sprite != -1) {
+        _fire_radius = _danmaku->get_sprite(_fire_sprite)->collider_radius;
+    }
+}
+
+String Pattern::get_fire_sprite()
+{
+    if (_fire_sprite != -1 && _danmaku != nullptr) {
+        return _danmaku->get_sprite(_fire_sprite)->key;
+    }
+    return "";
+}
+
+bool Pattern::validate_fire()
+{
+    if (_danmaku == nullptr) {
+        Godot::print_error("Pattern is not a descendent of a Danmaku node!", "validate_fire", __FILE__, __LINE__);
         return false;
     }
 
-    sprite_id = _danmaku->get_sprite_id(sprite);
-    if (sprite_id < 0) {
-        Godot::print_error("Sprite key \"" + sprite + "\" does not exist!", "prepare", __FILE__, __LINE__);
+    if (_fire_sprite == -1) {
+        Godot::print_error("Cannot fire until fire_sprite is set!", "validate_fire", __FILE__, __LINE__);
         return false;
     }
 
-    radius = _danmaku->get_sprite(sprite_id)->collider_radius;
-
-    if (aim) {
-        Hitbox* hitbox = _danmaku->get_hitbox();
-        if (hitbox == nullptr) {
-            Godot::print_error("No Hitbox to aim at, make sure Hitbox is a descendent of Danmaku!", "prepare", __FILE__, __LINE__);
-            return false;
-        }
-        Vector2 diff = hitbox->get_global_position() - get_global_position();
-        angle += atan2(diff.y, diff.x);
-    }
-
-    buf = buffer(count);
     return true;
 }
 
-void Pattern::fire(String sprite, float speed, float angle, bool aim)
+Shot* Pattern::next_shot()
 {
-    int sprite_id;
-    float radius;
-    Shot** buf;
-    if (prepare(sprite, sprite_id, radius, angle, 1, aim, buf)) {
-        Shot* shot = buf[0];
-        shot->reset();
-        shot->owner = this;
-        shot->direction = Vector2(cos(angle), sin(angle));
-        shot->speed = speed;
-        shot->sprite_id = sprite_id;
-        shot->radius = radius;
-        shot->active = true;
+    Shot* shot = _danmaku->capture();
+    shot->owner = this;
+    shot->time = 0;
+    shot->sprite_id = _fire_sprite;
+    shot->direction = _fire_direction;
+    shot->radius = _fire_radius;
+    shot->speed = fire_speed;
+    shot->position = fire_offset;
+    shot->active = true;
+    _shots.push_back(shot);
+    return shot;
+}
+
+void Pattern::fire()
+{
+    if (validate_fire()) {
+        next_shot();
     }
 }
 
-void Pattern::fire_layered(String sprite, int layers, float min_speed, float max_speed, float angle, bool aim)
+void Pattern::fire_layered(int layers, float min, float max)
 {
-    int sprite_id;
-    float radius;
-    Shot** buf;
-    if (prepare(sprite, sprite_id, radius, angle, layers, aim, buf)) {
-        float cx = cos(angle);
-        float sy = sin(angle);
-        float step = (max_speed - min_speed) / layers;
+    if (validate_fire()) {
+        float step = (max - min) / layers;
         for (int i = 0; i != layers; ++i) {
-            Shot* shot = buf[i];
-            shot->reset();
-            shot->owner = this;
-            shot->direction = Vector2(cx, sy);
-            shot->speed = min_speed + step * i;
-            shot->sprite_id = sprite_id;
-            shot->radius = radius;
-            shot->active = true;
+            Shot* shot = next_shot();
+            shot->speed = min + step * i;
         }
     }
 }
 
-void Pattern::fire_circle(String sprite, int count, float speed, float angle, bool aim)
+void Pattern::fire_circle(int count)
 {
-    int sprite_id;
-    float radius;
-    Shot** buf;
-    if (prepare(sprite, sprite_id, radius, angle, count, aim, buf)) {
+    if (validate_fire()) {
+        float base = get_fire_angle();
         for (int i = 0; i != count; ++i) {
-            float shot_angle = angle + i * (Math_TAU / (float)count);
-
-            Shot* shot = buf[i];
-            shot->reset();
-            shot->owner = this;
-            shot->direction = Vector2(cos(shot_angle), sin(shot_angle));
-            shot->speed = speed;
-            shot->sprite_id = sprite_id;
-            shot->radius = radius;
-            shot->active = true;
+            Shot* shot = next_shot();
+            float angle = base + i * (Math_TAU / (float)count);
+            shot->direction = Vector2(cos(angle), sin(angle));
         }
     }
 }
 
-void Pattern::fire_layered_circle(String sprite, int count, int layers, float min_speed, float max_speed, float angle, bool aim)
+void Pattern::fire_layered_circle(int count, int layers, float min, float max)
 {
-    float step = (max_speed - min_speed) / layers;
-    for (int i = 0; i != layers; ++i) {
-        fire_circle(sprite, count, min_speed + step * i, angle, aim);
+    if (validate_fire()) {
+        float base = get_fire_angle();
+        float step = (min - max) / layers;
+
+        for (int i = 0; i != count; ++i) {
+            float angle = base + i * (Math_TAU / (float)count);
+            Vector2 direction = Vector2(cos(angle), sin(angle));
+
+            for (int j = 0; j != layers; ++j) {
+                Shot* shot = next_shot();
+                shot->direction = direction;
+                shot->speed = min + j * step;
+            }
+        }
     }
 }
 
-void Pattern::fire_fan(String sprite, int count, float speed, float angle, float theta, bool aim)
+void Pattern::fire_fan(int count, float theta)
 {
-    int sprite_id;
-    float radius;
-    Shot** buf;
-    if (prepare(sprite, sprite_id, radius, angle, count, aim, buf)) {
-        float base = angle - theta * 0.5f;
+    if (validate_fire()) {
+        float base = get_fire_angle() - theta * 0.5f;
         float step = theta / (count - 1);
+        
         for (int i = 0; i != count; ++i) {
-            float shot_angle = base + i * step;
-
-            Shot* shot = buf[i];
-            shot->reset();
-            shot->owner = this;
-            shot->direction = Vector2(cos(shot_angle), sin(shot_angle));
-            shot->speed = speed;
-            shot->sprite_id = sprite_id;
-            shot->radius = radius;
-            shot->active = true;
+            Shot* shot = next_shot();
+            float angle = base + i * step;
+            shot->direction = Vector2(cos(angle), sin(angle));
         }
     }
 }
 
-void Pattern::fire_layered_fan(String sprite, int count, int layers, float min_speed, float max_speed, float angle, float theta, bool aim)
+void Pattern::fire_layered_fan(int count, float theta, int layers, float min, float max)
 {
-    float step = (max_speed - min_speed) / layers;
-    for (int i = 0; i != layers; ++i) {
-        fire_fan(sprite, count, min_speed + step * i, angle, theta, aim);
+    if (validate_fire()) {
+        float angle_base = get_fire_angle() - theta * 0.5f;
+        float angle_step = theta / (count - 1);
+        float speed_step = (max - min) / layers;
+
+        for (int i = 0; i != count; ++i) {
+            float angle = angle_base + i * angle_step;
+            Vector2 direction = Vector2(cos(angle), sin(angle));
+
+            for (int j = 0; j != count; ++j) {
+                Shot* shot = next_shot();
+                shot->direction = direction;
+                shot->speed = min + j * speed_step;
+            }
+        }
     }
 }
 
-void Pattern::fire_custom(String sprite, int count, String name)
+void Pattern::fire_custom(int count, String name)
 {
-    if (_danmaku == nullptr) {
-        Godot::print_error("Pattern is not a descendent of a Danmaku node!", "fire_custom", __FILE__, __LINE__);
-        return;
-    }
-
     if (delegate == nullptr) {
         Godot::print_error("Pattern does not have a delegate, can't fire custom pattern!", "fire_custom", __FILE__, __LINE__);
         return;
     }
 
     if (!delegate->has_method(name)) {
-        Godot::print_error("Delegate has no custom pattern by name \"" + sprite + "\"", "fire_custom", __FILE__, __LINE__);
+        Godot::print_error("Delegate has no custom pattern by name \"" + name + "\"", "fire_custom", __FILE__, __LINE__);
         return;
     }
 
-    int sprite_id = _danmaku->get_sprite_id(sprite);
-    if (sprite_id < 0) {
-        Godot::print_error("Sprite key \"" + sprite + "\" does not exist!", "fire_custom", __FILE__, __LINE__);
-        return;
-    }
-
-    float radius = _danmaku->get_sprite(sprite_id)->collider_radius;
-    Shot** buf = buffer(count);
-
-    for (int i = 0; i != count; ++i) {
-        Shot* shot = buf[i];
-        shot->reset();
-        shot->owner = this;
-        shot->sprite_id = sprite_id;
-        shot->radius = radius;
-        shot->active = true;
-
-        delegate->call(name, count, i, shot);
+    if (validate_fire()) {
+        for (int i = 0; i != count; ++i) {
+            Shot* shot = next_shot();
+            delegate->call(name, count, i, shot);
+        }
     }
 }
 
@@ -347,8 +327,7 @@ Array Pattern::select(String source)
         return result;
     }
 
-    for (int i = 0; i != _active_count; ++i) {
-        Shot* shot = _shots[i];
+    for (Shot* shot : _shots) {
         if (selector->select(shot)) {
             result.push_back(shot);
         }
@@ -365,8 +344,8 @@ void Pattern::apply(String source)
         return;
     }
 
-    for (int i = 0; i != _active_count; ++i) {
-        action->apply(_shots[i]);
+    for (Shot* shot : _shots) {
+        action->apply(shot);
     }
 
     delete action;

@@ -81,21 +81,16 @@ void Danmaku::_exit_tree()
 }
 
 
-void Danmaku::capture(Shot** buf, int count)
+Shot* Danmaku::capture()
 {
-    for (int i = 0; i != count; ++i) {
-        buf[i] = _free_shots[0];
-        _free_shots[0] = _free_shots[--_free_count];
-    }
-    _active_count += count;
+    _active_count++;
+    return _free_shots[--_free_count];
 }
 
-void Danmaku::release(Shot** buf, int count)
+void Danmaku::release(Shot* shot)
 {
-    for (int i = 0; i != count; ++i) {
-        _free_shots[_free_count++] = buf[i];
-    }
-    _active_count -= count;
+    _active_count--;
+    _free_shots[_free_count++] = shot;
 }
 
 

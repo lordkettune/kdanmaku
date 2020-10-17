@@ -75,5 +75,5 @@ void Shot::set_rotation(float rotation)
 
 float Shot::get_rotation()
 {
-    return atan2(direction.y, direction.x);
+    return direction.angle();
 }

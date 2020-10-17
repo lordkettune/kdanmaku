@@ -24,19 +24,23 @@ private:
 
     Danmaku* _danmaku;
 
-    Shot** _shots;
-    int _shots_size;
-    int _active_count;
-
+    Vector<Shot*> _shots;
     Vector<Mapping> _mappings;
 
-    Shot** buffer(int count);
-    bool prepare(const String& sprite, int& sprite_id, float& radius, float& angle, int count, bool aim, Shot**& buf);
+    int _fire_sprite;
+    float _fire_radius;
+    Vector2 _fire_direction;
+
+    bool validate_fire();
+    Shot* next_shot();
 
     ISelector* make_selector(String source);
     IAction* make_action(String source);
 
 public:
+    Vector2 fire_offset;
+    float fire_speed;
+
     Ref<Reference> delegate;
 
     static void _register_methods();
@@ -51,14 +55,20 @@ public:
     void _draw();
 
     Danmaku* get_danmaku() { return _danmaku; }
+
+    void set_fire_angle(float angle);
+    float get_fire_angle();
+
+    void set_fire_sprite(String sprite);
+    String get_fire_sprite();
     
-    void fire(String sprite, float speed, float angle, bool aim);
-    void fire_layered(String sprite, int layers, float min_speed, float max_speed, float angle, bool aim);
-    void fire_circle(String sprite, int count, float speed, float angle, bool aim);
-    void fire_layered_circle(String sprite, int count, int layers, float min_speed, float max_speed, float angle, bool aim);
-    void fire_fan(String sprite, int count, float speed, float angle, float theta, bool aim);
-    void fire_layered_fan(String sprite, int count, int layers, float min_speed, float max_speed, float angle, float theta, bool aim);
-    void fire_custom(String sprite, int count, String name);
+    void fire();
+    void fire_circle(int count);
+    void fire_fan(int count, float theta);
+    void fire_layered(int layers, float min, float max);
+    void fire_layered_circle(int count, int layers, float min, float max);
+    void fire_layered_fan(int count, float theta, int layers, float min, float max);
+    void fire_custom(int count, String name);
 
     Array select(String selector);
     void apply(String action);

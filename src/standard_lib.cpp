@@ -34,7 +34,7 @@ void a_set_speed(Shot* shot, float speed)
     shot->speed = speed;
 }
 
-void a_accelerate(Shot* shot, float amount)
+void a_change_speed(Shot* shot, float amount)
 {
     shot->speed += amount;
 }
@@ -49,5 +49,5 @@ void godot::register_standard_lib()
     parser->register_selector(s_time_range, "time_range");
 
     parser->register_action(a_set_speed, "set_speed");
-    parser->register_action(a_accelerate, "accelerate");
+    parser->register_action(a_change_speed, "change_speed");
 }
