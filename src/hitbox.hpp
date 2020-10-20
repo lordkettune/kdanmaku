@@ -5,6 +5,7 @@
 #include <Node2D.hpp>
 
 #include "danmaku.hpp"
+#include "shot.hpp"
 
 namespace godot {
 
@@ -14,12 +15,18 @@ class Hitbox : public Node2D {
 private:
     Danmaku* _danmaku;
 
+    Shot* _grazing_shot;
+    Shot* _colliding_shot;
+
 public:
-    float radius;
+    float collision_radius;
     float graze_radius;
+
     bool invulnerable;
 
     Danmaku* get_danmaku() { return _danmaku; }
+    Shot* get_colliding_shot() { return _colliding_shot; }
+    Shot* get_grazing_shot() { return _grazing_shot; }
 
     static void _register_methods();
     void _init();
@@ -27,8 +34,8 @@ public:
     void _enter_tree();
     void _exit_tree();
 
-    void hit();
-    void graze();
+    void hit(Shot* shot);
+    void graze(Shot* shot);
 };
 
 };

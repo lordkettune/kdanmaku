@@ -7,6 +7,7 @@
 namespace godot {
 
 class Pattern;
+class Danmaku;
 
 class Shot : public Object {
     GODOT_CLASS(Shot, Object)
@@ -17,7 +18,9 @@ public:
 
     void reset();
 
-    Pattern* get_pattern() { return owner; }
+    Pattern* get_pattern();
+    Danmaku* get_danmaku();
+
     int get_time() { return time; }
 
     void set_sprite(String key);
@@ -28,6 +31,12 @@ public:
 
     void set_rotation(float rotation);
     float get_rotation();
+
+    int global_id;
+    int local_id;
+
+    bool is_grazing;
+    bool is_colliding;
 
     Pattern* owner;
     int time;

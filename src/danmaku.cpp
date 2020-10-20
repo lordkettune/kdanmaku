@@ -58,6 +58,7 @@ void Danmaku::_enter_tree()
     _free_shots = new Shot*[_max_shots];
     for (int i = 0; i != _max_shots; ++i) {
         _free_shots[i] = Shot::_new();
+        _free_shots[i]->global_id = i;
     }
 
     for (int i = 0; i != sprites.size(); ++i) {

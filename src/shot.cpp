@@ -19,6 +19,7 @@ void Shot::_register_methods()
     register_property<Shot, float>("rotation", &Shot::set_rotation, &Shot::get_rotation, 0);
 
     register_method("get_pattern", &Shot::get_pattern);
+    register_method("get_danmaku", &Shot::get_danmaku);
     register_method("get_time", &Shot::get_time);
 }
 
@@ -38,6 +39,20 @@ void Shot::reset()
     speed = 0;
     radius = 0;
     sprite_id = 0;
+    local_id = 0;
+    global_id = 0;
+    is_grazing = false;
+    is_colliding = false;
+}
+
+Pattern* Shot::get_pattern()
+{
+    return owner;
+}
+
+Danmaku* Shot::get_danmaku()
+{
+    return owner->get_danmaku();
 }
 
 void Shot::set_sprite(String key)

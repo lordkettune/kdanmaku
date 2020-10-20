@@ -23,6 +23,7 @@ private:
     };
 
     Danmaku* _danmaku;
+    int _current_local_id;
 
     Vector<Shot*> _shots;
     Vector<Mapping> _mappings;

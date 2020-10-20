@@ -4,14 +4,16 @@ using namespace godot;
 
 void Hitbox::_register_methods()
 {
-    register_property<Hitbox, float>("radius", &Hitbox::radius, 2);
-    register_property<Hitbox, float>("graze_radius", &Hitbox::graze_radius, 8);
+    register_property<Hitbox, float>("collision_radius", &Hitbox::collision_radius, 2);
+    register_property<Hitbox, float>("graze_radius", &Hitbox::graze_radius, 16);
     register_property<Hitbox, bool>("invulnerable", &Hitbox::invulnerable, false);
 
     register_method("_enter_tree", &Hitbox::_enter_tree);
     register_method("_exit_tree", &Hitbox::_exit_tree);
 
     register_method("get_danmaku", &Hitbox::get_danmaku);
+    register_method("get_colliding_shot", &Hitbox::get_colliding_shot);
+    register_method("get_grazing_shot", &Hitbox::get_grazing_shot);
 
     register_signal<Hitbox>("hit", Dictionary());
     register_signal<Hitbox>("graze", Dictionary());
@@ -19,9 +21,11 @@ void Hitbox::_register_methods()
 
 void Hitbox::_init()
 {
-    radius = 2;
-    graze_radius = 8;
+    collision_radius = 2;
+    graze_radius = 16;
     invulnerable = false;
+    _colliding_shot = nullptr;
+    _grazing_shot = nullptr;
     _danmaku = nullptr;
 }
 
@@ -44,16 +48,18 @@ void Hitbox::_exit_tree()
     _danmaku->remove_hitbox();
 }
 
-void Hitbox::hit()
+void Hitbox::hit(Shot* shot)
 {
     if (invulnerable)
         return;
+    _colliding_shot = shot;
     emit_signal("hit");
 }
 
-void Hitbox::graze()
+void Hitbox::graze(Shot* shot)
 {
     if (invulnerable)
         return;
+    _grazing_shot = shot;
     emit_signal("graze");
 }

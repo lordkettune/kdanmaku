@@ -39,6 +39,7 @@ void Pattern::_register_methods()
 Pattern::Pattern()
 {
     _danmaku = nullptr;
+    _current_local_id = 0;
     _fire_sprite = -1;
     _fire_radius = 0;
     _fire_direction = Vector2(1, 0);
@@ -104,10 +105,23 @@ void Pattern::_physics_process(float delta)
 
         if (hitbox != nullptr) {
             float distance = shot->global_position.distance_to(hitbox_pos);
-            if (distance <= hitbox->radius + shot->radius) {
-                hitbox->hit();
-            } else if (distance <= hitbox->graze_radius + shot->radius) {
-                hitbox->graze();
+
+            if (distance <= hitbox->collision_radius + shot->radius) {
+                if (!shot->is_colliding) {
+                    hitbox->hit(shot);
+                    shot->is_colliding = true;
+                }
+            } else {
+                shot->is_colliding = false;
+            }
+
+            if (distance <= hitbox->graze_radius + shot->radius) {
+                if (!shot->is_grazing) {
+                    hitbox->graze(shot);
+                    shot->is_grazing = true;
+                }
+            } else {
+                shot->is_grazing = false;
             }
         }
 
@@ -197,12 +211,15 @@ Shot* Pattern::next_shot()
 {
     Shot* shot = _danmaku->capture();
     shot->owner = this;
+    shot->local_id = _current_local_id++;
     shot->time = 0;
     shot->sprite_id = _fire_sprite;
     shot->direction = _fire_direction;
     shot->radius = _fire_radius;
     shot->speed = fire_speed;
     shot->position = fire_offset;
+    shot->is_grazing = false;
+    shot->is_colliding = false;
     shot->active = true;
     _shots.push_back(shot);
     return shot;
