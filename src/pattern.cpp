@@ -103,8 +103,11 @@ void Pattern::_physics_process(float delta)
         shot->global_position = transform.xform(shot->position);
 
         if (hitbox != nullptr) {
-            if (shot->global_position.distance_to(hitbox_pos) <= hitbox->radius + shot->radius) {
+            float distance = shot->global_position.distance_to(hitbox_pos);
+            if (distance <= hitbox->radius + shot->radius) {
                 hitbox->hit();
+            } else if (distance <= hitbox->graze_radius + shot->radius) {
+                hitbox->graze();
             }
         }
 
