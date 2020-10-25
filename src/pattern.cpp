@@ -92,17 +92,23 @@ void Pattern::_physics_process(float delta)
         hitbox_pos = hitbox->get_global_transform().get_origin();
     }
 
+    // If this is set while updating we need to clean the shot array
     bool clean = false;
 
+    // Update all shots
     for (Shot* shot : _shots) {
         if (!shot->active) {
             clean = true;
             continue;
         }
 
+        // Move shot by its direction and speed, then update its global position
         shot->position += shot->direction * shot->speed;
         shot->global_position = transform.xform(shot->position);
 
+        ++shot->time;
+
+        // Check for graze or collision
         if (hitbox != nullptr) {
             float distance = shot->global_position.distance_to(hitbox_pos);
 
@@ -125,21 +131,21 @@ void Pattern::_physics_process(float delta)
             }
         }
 
-        ++shot->time;
-
+        // Apply mappings -- test selector then apply action if it passes
         for (auto const& mapping : _mappings) {
             if (mapping.selector->select(shot)) {
                 mapping.action->apply(shot);
             }
         }
 
+        // Clear shot if it's either outside the gameplay region or in clear circle
         if (!region.has_point(shot->global_position) || _danmaku->should_clear(shot->global_position)) {
             shot->active = false;
             clean = true;
         }
     }
 
-    // Shots left danmaku region, release their IDs
+    // Shots left danmaku region, release them back to Danmaku
     if (clean) {
         for (int i = 0; i != _shots.size();) {
             if (!_shots[i]->active) {

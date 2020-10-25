@@ -6,8 +6,13 @@
 #include <unordered_map>
 #include <vector>
 
+// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
+// *:･ﾟ✧ utils.hpp *:･ﾟ✧
+// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
+
 namespace std {
 
+// Implement std::hash for godot::String
 template<>
 struct hash<godot::String>
 {
@@ -20,6 +25,8 @@ struct hash<godot::String>
 }
 
 namespace godot {
+
+// I plan on implementing versions of these myself at some point
 
 template<typename T>
 using Map = std::unordered_map<String, T>;

@@ -1,3 +1,9 @@
+// ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
+// *:･ﾟ✧ init.cpp *:･ﾟ✧
+// 
+// Entry point -- this is where GDNative is set up. Registers object types.
+// ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
+
 #include <Godot.hpp>
 
 #include "shot.hpp"

@@ -1,6 +1,13 @@
 #ifndef __KD_ACTION_HPP__
 #define __KD_ACTION_HPP__
 
+// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
+// *:･ﾟ✧ action.hpp *:･ﾟ✧
+// 
+// An Action is simply a function that takes a shot and changes it somehow.
+// See selector.hpp -- This is exactly like a Selector, except it doesn't return a bool.
+// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
+
 #include <Godot.hpp>
 
 #include <utility>

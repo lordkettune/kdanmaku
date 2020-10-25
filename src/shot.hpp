@@ -1,6 +1,13 @@
 #ifndef __KD_SHOT_HPP__
 #define __KD_SHOT_HPP__
 
+// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
+// *:･ﾟ✧ shot.hpp *:･ﾟ✧
+// 
+// Shot object. This doesn't really do much on its own; it's mostly just a data object.
+// Managed by Danmaku and Pattern nodes.
+// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
+
 #include <Godot.hpp>
 #include <Object.hpp>
 
@@ -32,8 +39,8 @@ public:
     void set_rotation(float rotation);
     float get_rotation();
 
-    int global_id;
-    int local_id;
+    int global_id; // Index in Danmaku's pool array -- never changes
+    int local_id; // Index in owner Pattern's shot array
 
     bool is_grazing;
     bool is_colliding;
