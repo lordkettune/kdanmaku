@@ -19,17 +19,10 @@ class ShotSprite : public Resource {
     GODOT_CLASS(ShotSprite, Resource)
 
 public:
-    // Key that this will be referred to by during gameplay
-    String key;
-
-    // Sprite sheet that this is in -- it's a good idea to keep your bullet sprites in an atlas for performance
-    Ref<Texture> texture;
-
-    // Texture region to render
-    Rect2 region;
-
-    // Collider radius shots with this sprite should use
-    float collider_radius;
+    String key;              // Key that this will be referred to by during gameplay
+    Ref<Texture> texture;    // Sprite sheet that this is in -- it's a good idea to keep your bullet sprites in an atlas for performance
+    Rect2 region;            // Texture region to render
+    float collider_radius;   // Collider radius shots with this sprite should use
 
     static void _register_methods();
     void _init();

@@ -40,15 +40,10 @@ private:
     int _free_count;
     int _max_shots;
 
-    // Debug counters
-    int _active_count;
-    int _pattern_count;
-
-    // Registered shot sprites
-    Vector<ShotSprite*> _sprites;
-
-    // The player
-    Hitbox* _hitbox;
+    int _active_count;            // Active shot count
+    int _pattern_count;           // Active pattern count
+    Vector<ShotSprite*> _sprites; // Registered shot sprites
+    Hitbox* _hitbox;              // The player
     
 public:
     // Public versions of _max_shots and _sprites.
@@ -56,12 +51,10 @@ public:
     int max_shots;
     Array sprites;
 
-    // Gameplay rectangle -- note that these are in global coordinates!
-    Rect2 region;
-    int tolerance;
-
-    // Clear circle -- also global coordinates
-    Vector2 clear_origin;
+    Rect2 region;                 // Gameplay rectangle -- note that this is in global coordinates!
+    int tolerance;                // Distance outside of gameplay rect where shots will despawn
+    
+    Vector2 clear_origin;         // Clear circle -- also global coordinates
     float clear_radius;
     bool clear_enabled;
 

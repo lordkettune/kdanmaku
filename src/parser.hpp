@@ -110,15 +110,13 @@ private:
         }
     };
 
-    // Maps of selector/action keys to factory objects
-    Map<IFactory<ISelector>*> _selectors;
-    Map<IFactory<IAction>*> _actions;
+    Map<IFactory<ISelector>*> _selectors;   // Map of selector keys to factory objects
+    Map<IFactory<IAction>*> _actions;       // Map of action keys to factory objects
 
 public:
     static Parser* get_singleton();
     static void free_singleton();
 
-    // The actual parse functions
     ISelector* parse_selector(String src);
     IAction* parse_action(String src);
 

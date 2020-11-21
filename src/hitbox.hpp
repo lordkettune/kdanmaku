@@ -22,17 +22,13 @@ class Hitbox : public Node2D {
 private:
     Danmaku* _danmaku;
 
-    // Last shot grazed/collided with
-    Shot* _grazing_shot;
-    Shot* _colliding_shot;
+    Shot* _grazing_shot;     // Last shot grazed with
+    Shot* _colliding_shot;   // Last shot collided with
 
 public:
-    // Graze and collision radiuses
-    float collision_radius;
-    float graze_radius;
-
-    // Collisions won't be reported if this is set to true
-    bool invulnerable;
+    float collision_radius;  // Graze radius
+    float graze_radius;      // Collision radius    
+    bool invulnerable;       // Collisions won't be reported if this is set to true
 
     Danmaku* get_danmaku() { return _danmaku; }
     Shot* get_colliding_shot() { return _colliding_shot; }

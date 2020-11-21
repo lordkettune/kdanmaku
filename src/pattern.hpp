@@ -37,19 +37,12 @@ private:
 
     Danmaku* _danmaku;
     int _current_local_id;
-
-    // Shots owned by this Pattern
-    Vector<Shot*> _shots;
-
-    // List of Selectors to test each frame, mapped to actions that should be applied if passed
-    Vector<Mapping> _mappings;
-
-    // Sprite to use on next fire, and radius from that sprite
-    int _fire_sprite;
-    float _fire_radius;
-
-    // Direction to use on next fire
-    Vector2 _fire_direction;
+    Vector<Shot*> _shots;         // Shots owned by this Pattern
+    Vector<Mapping> _mappings;    // List of Selectors to test each frame, mapped to actions that should be applied if passed
+    
+    int _fire_sprite;             // Sprite to use on next fire
+    float _fire_radius;           // Collider radius to use on next fire (from sprite)
+    Vector2 _fire_direction;      // Direction to use on next fire
 
     bool validate_fire();
     Shot* next_shot();
@@ -58,14 +51,9 @@ private:
     IAction* make_action(String source);
 
 public:
-    // Offset from local 0,0 to use on next fire
-    Vector2 fire_offset;
-
-    // Speed to use on next fire
-    float fire_speed;
-
-    // Any object set by the user that has methods for custom patterns, actions, and selectors
-    Ref<Reference> delegate;
+    Vector2 fire_offset;          // Offset from local 0,0 to use on next fire    
+    float fire_speed;             // Speed to use on next fire
+    Ref<Reference> delegate;      // Any object set by the user that has methods for custom patterns, actions, and selectors
 
     static void _register_methods();
     void _init() {};

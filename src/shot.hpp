@@ -39,8 +39,8 @@ public:
     void set_rotation(float rotation);
     float get_rotation();
 
-    int global_id; // Index in Danmaku's pool array -- never changes
-    int local_id; // Index in owner Pattern's shot array
+    int global_id;      // Index in Danmaku's pool array -- never changes
+    int local_id;       // Index in owner Pattern's shot array
 
     bool is_grazing;
     bool is_colliding;
