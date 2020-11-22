@@ -28,59 +28,25 @@ namespace godot {
 class Pattern : public Node2D {
     GODOT_CLASS(Pattern, Node2D)
 
-private:
-    // Selector -> Action mapping
-    struct Mapping {
-        ISelector* selector;
-        IAction* action;
-    };
-
-    Danmaku* _danmaku;
-    int _current_local_id;
-    Vector<Shot*> _shots;         // Shots owned by this Pattern
-    Vector<Mapping> _mappings;    // List of Selectors to test each frame, mapped to actions that should be applied if passed
-    
-    int _fire_sprite;             // Sprite to use on next fire
-    float _fire_radius;           // Collider radius to use on next fire (from sprite)
-    Vector2 _fire_direction;      // Direction to use on next fire
-
-    bool validate_fire();
-    Shot* next_shot();
-
-    ISelector* make_selector(String source);
-    IAction* make_action(String source);
-
-public:
     Vector2 fire_offset;          // Offset from local 0,0 to use on next fire    
     float fire_speed;             // Speed to use on next fire
     Ref<Reference> delegate;      // Any object set by the user that has methods for custom patterns, actions, and selectors
 
-    static void _register_methods();
-    void _init() {};
+public:
+    Danmaku* get_danmaku();
 
-    Pattern();
-    ~Pattern();
-
-    void _enter_tree();
-    void _exit_tree();
-    void _physics_process(float delta);
-    void _draw();
-
-    Danmaku* get_danmaku() { return _danmaku; }
-
-    void set_fire_angle(float angle);
+    void set_fire_angle(float p_angle);
     float get_fire_angle();
 
-    void set_fire_sprite(String sprite);
+    void set_fire_sprite(String p_sprite);
     String get_fire_sprite();
-    
-    // These are a couple of basic, built-in patterns for convenience
+
     void fire();
-    void fire_circle(int count);
-    void fire_fan(int count, float theta);
-    void fire_layered(int layers, float min, float max);
-    void fire_layered_circle(int count, int layers, float min, float max);
-    void fire_layered_fan(int count, float theta, int layers, float min, float max);
+    void fire_circle(int p_count);
+    void fire_fan(int p_count, float p_theta);
+    void fire_layered(int p_layers, float p_min, float p_max);
+    void fire_layered_circle(int p_count, int p_layers, float p_min, float p_max);
+    void fire_layered_fan(int p_count, float p_theta, int p_layers, float p_min, float p_max);
 
     // Fires a custom pattern.
     // Custom patterns are implemented via the pattern's delegate.
@@ -89,16 +55,45 @@ public:
     //        pass
     // This method will be called for every shot fired, at which point you should set the speed, direction,
     // and whatever other parameters you want to initialize.
-    void fire_custom(int count, String name);
+    void fire_custom(int p_count, String p_name);
 
     // Filters by a selector, and returns an array of shots that pass. See selector.hpp
-    Array select(String selector);
+    Array select(String p_selector);
 
     // Applies an action to all shots. See action.hpp
-    void apply(String action);
+    void apply(String p_action);
 
     // Adds a mapping of a selector to an action which will be applied each frame.
-    void map(String selector_source, String action_source);
+    void map(String p_selector_source, String p_action_source);
+
+    void _enter_tree();
+    void _exit_tree();
+    void _physics_process(float p_delta);
+    void _draw();
+
+    static void _register_methods();
+    void _init();
+
+private:
+    struct Mapping {
+        ISelector* selector;
+        IAction* action;
+    };
+
+    int current_local_id;
+    Danmaku* danmaku;
+    Vector<Shot*> shots;         // Shots owned by this Pattern
+    Vector<Mapping> mappings;    // List of Selectors to test each frame, mapped to actions that should be applied if passed
+    
+    int fire_sprite;             // Sprite to use on next fire
+    float fire_radius;           // Collider radius to use on next fire (from sprite)
+    Vector2 fire_direction;      // Direction to use on next fire
+
+    bool validate_fire();
+    Shot* next_shot();
+
+    ISelector* make_selector(String p_source);
+    IAction* make_action(String p_source);
 };
 
 };

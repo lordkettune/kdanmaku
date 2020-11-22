@@ -14,11 +14,9 @@ namespace std {
 
 // Implement std::hash for godot::String
 template<>
-struct hash<godot::String>
-{
-    std::size_t operator()(const godot::String& string) const
-    {
-        return string.hash();
+struct hash<godot::String> {
+    std::size_t operator()(const godot::String& p_string) const {
+        return p_string.hash();
     }
 };
 

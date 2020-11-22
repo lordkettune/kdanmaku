@@ -24,10 +24,10 @@ public:
     Rect2 region;            // Texture region to render
     float collider_radius;   // Collider radius shots with this sprite should use
 
+    void draw_to(CanvasItem* p_canvas_item, Vector2 p_position);
+
     static void _register_methods();
     void _init();
-
-    void draw_to(CanvasItem* canvas_item, Vector2 position);
 };
 
 };

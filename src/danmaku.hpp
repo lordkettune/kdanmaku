@@ -34,22 +34,9 @@ class Hitbox;
 class Danmaku : public Node2D {
     GODOT_CLASS(Danmaku, Node2D)
 
-private:
-    // List of shots that aren't owned by Patterns
-    Shot** _free_shots;
-    int _free_count;
-    int _max_shots;
-
-    int _active_count;            // Active shot count
-    int _pattern_count;           // Active pattern count
-    Vector<ShotSprite*> _sprites; // Registered shot sprites
-    Hitbox* _hitbox;              // The player
-    
-public:
-    // Public versions of _max_shots and _sprites.
     // These can't be changed after initialization without breaking things, so they're copied to a private version in _enter_tree
     int max_shots;
-    Array sprites;
+    Array registered_sprites;
 
     Rect2 region;                 // Gameplay rectangle -- note that this is in global coordinates!
     int tolerance;                // Distance outside of gameplay rect where shots will despawn
@@ -57,43 +44,43 @@ public:
     Vector2 clear_origin;         // Clear circle -- also global coordinates
     float clear_radius;
     bool clear_enabled;
+    
+public:
+    void count_pattern();
+    void decount_pattern();
 
-    static void _register_methods();
-    void _init() {};
+    void register_hitbox(Hitbox* p_hitbox);
+    void remove_hitbox();
+    Hitbox* get_hitbox();
+
+    Shot* capture();
+    void release(Shot* p_shot);
+
+    Rect2 get_region();
+
+    bool should_clear(Vector2 p_position);
+
+    ShotSprite* get_sprite(int p_id);
+    int get_sprite_id(const String& p_key);
+
+    int get_free_shot_count();
+    int get_active_shot_count();
+    int get_pattern_count();
+
     bool is_danmaku();
-
-    Danmaku();
-    ~Danmaku();
 
     void _enter_tree();
     void _exit_tree();
+    
+    static void _register_methods();
+    void _init();
 
-    // Debug counter for patterns
-    void count_pattern()   { ++_pattern_count; }
-    void decount_pattern() { --_pattern_count; }
-
-    // Hitbox management
-    void register_hitbox(Hitbox* hitbox) { _hitbox = hitbox; }
-    void remove_hitbox() { _hitbox = nullptr; }
-    Hitbox* get_hitbox() { return _hitbox; }
-
-    // Gets the next free shot, and removes it from the free list.
-    Shot* capture();
-
-    // Puts a shot back into the free list.
-    void release(Shot* shot);
-
-    // Checks if a global position is in the clear circle.
-    bool should_clear(Vector2 position);
-
-    // Shot sprite management
-    inline ShotSprite* get_sprite(int id) { return _sprites[id]; }
-    int get_sprite_id(const String& key);
-
-    // Debug counts
-    int get_free_shot_count()   { return _free_count;    }
-    int get_active_shot_count() { return _active_count;  }
-    int get_pattern_count()     { return _pattern_count; }
+private:
+    Vector<Shot*> free_shots;    // Shots not owned by patterns
+    Vector<ShotSprite*> sprites; // Registered shot sprites
+    Hitbox* hitbox;              // The player
+    int active_shots;            // Active shot count
+    int active_patterns;         // Active pattern count
 };
 
 };

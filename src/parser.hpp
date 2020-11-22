@@ -26,59 +26,53 @@ class Shot;
 
 // Parsing functions for individual data types. Done with template specialization.
 template<typename T>
-T parse_argument(String src)
-{
+T parse_argument(String p_src) {
     return T();
 }
 
 template<>
-inline int parse_argument<int>(String src)
-{
-    return src.to_int();
+inline int parse_argument<int>(String p_src) {
+    return p_src.to_int();
 }
 
 template<>
-inline float parse_argument<float>(String src)
-{
-    return src.to_float();
+inline float parse_argument<float>(String p_src) {
+    return p_src.to_float();
 }
 
 class Parser {
 private:
-    static Parser* _singleton;
+    static Parser* singleton;
 
     // Factory base
     template<typename T>
     class IFactory {
     public:
-        virtual T* parse(PoolStringArray args) = 0;
+        virtual T* parse(PoolStringArray p_args) = 0;
     };
 
     // Factory object for selectors
     template<typename... Args>
     class SelectorFactory : public IFactory<ISelector> {
     private:
-        bool(*_function)(Shot*, Args...);
+        bool(*function)(Shot*, Args...);
 
         template<std::size_t... Indices>
-        ISelector* parse_arguments(PoolStringArray args, std::index_sequence<Indices...>)
-        {
-            return new Selector(_function, parse_argument<Args>(args[Indices])...);
+        ISelector* parse_arguments(PoolStringArray p_args, std::index_sequence<Indices...>) {
+            return new Selector(function, parse_argument<Args>(p_args[Indices])...);
         }
 
     public:
-        SelectorFactory(bool(*fn)(Shot*, Args...))
-            : _function(fn)
+        SelectorFactory(bool(*p_fn)(Shot*, Args...))
+            : function(p_fn)
         {}
 
-        ISelector* parse(PoolStringArray args) override
-        {
-            if (args.size() != sizeof...(Args)) {
-                Godot::print_error("Invalid number of parameters passed to selector!", "parse", __FILE__, __LINE__);
+        ISelector* parse(PoolStringArray p_args) override {
+            if (p_args.size() != sizeof...(Args)) {
+                ERR_PRINT("Invalid number of parameters passed to selector!");
                 return nullptr;
             }
-
-            return parse_arguments(args, std::index_sequence_for<Args...>{});
+            return parse_arguments(p_args, std::index_sequence_for<Args...>{});
         }
     };
 
@@ -86,52 +80,47 @@ private:
     template<typename... Args>
     class ActionFactory : public IFactory<IAction> {
     private:
-        void(*_function)(Shot*, Args...);
+        void(*function)(Shot*, Args...);
 
         template<std::size_t... Indices>
-        IAction* parse_arguments(PoolStringArray args, std::index_sequence<Indices...>)
-        {
-            return new Action(_function, parse_argument<Args>(args[Indices])...);
+        IAction* parse_arguments(PoolStringArray p_args, std::index_sequence<Indices...>) {
+            return new Action(function, parse_argument<Args>(p_args[Indices])...);
         }
 
     public:
-        ActionFactory(void(*fn)(Shot*, Args...))
-            : _function(fn)
+        ActionFactory(void(*p_fn)(Shot*, Args...))
+            : function(p_fn)
         {}
 
-        IAction* parse(PoolStringArray args) override
-        {
-            if (args.size() != sizeof...(Args)) {
-                Godot::print_error("Invalid number of parameters passed to action!", "parse", __FILE__, __LINE__);
+        IAction* parse(PoolStringArray p_args) override {
+            if (p_args.size() != sizeof...(Args)) {
+                ERR_PRINT("Invalid number of parameters passed to action!");
                 return nullptr;
             }
-
-            return parse_arguments(args, std::index_sequence_for<Args...>{});
+            return parse_arguments(p_args, std::index_sequence_for<Args...>{});
         }
     };
 
-    Map<IFactory<ISelector>*> _selectors;   // Map of selector keys to factory objects
-    Map<IFactory<IAction>*> _actions;       // Map of action keys to factory objects
+    Map<IFactory<ISelector>*> selectors;   // Map of selector keys to factory objects
+    Map<IFactory<IAction>*> actions;       // Map of action keys to factory objects
 
 public:
     static Parser* get_singleton();
     static void free_singleton();
 
-    ISelector* parse_selector(String src);
-    IAction* parse_action(String src);
+    ISelector* parse_selector(String p_src);
+    IAction* parse_action(String p_src);
 
     // Registers a native selector. See standard_lib.cpp
     template<typename... Args>
-    void register_selector(bool(*fn)(Shot*, Args...), String key)
-    {
-        _selectors[key] = new SelectorFactory<Args...>(fn);
+    void register_selector(bool(*p_fn)(Shot*, Args...), String p_key) {
+        selectors[p_key] = new SelectorFactory<Args...>(p_fn);
     }
 
     // Registers a native action. See standard_lib.cpp
     template<typename... Args>
-    void register_action(void(*fn)(Shot*, Args...), String key)
-    {
-        _actions[key] = new ActionFactory<Args...>(fn);
+    void register_action(void(*p_fn)(Shot*, Args...), String p_key) {
+        actions[p_key] = new ActionFactory<Args...>(p_fn);
     }
 };
 

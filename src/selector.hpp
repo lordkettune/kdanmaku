@@ -31,29 +31,27 @@ class Shot;
 class ISelector {
 public:
     virtual ~ISelector() {};
-    virtual bool select(Shot* shot) = 0;
+    virtual bool select(Shot* p_shot) = 0;
 };
 
 template<typename... Args>
 class Selector : public ISelector {
 private:
-    bool(*_function)(Shot*, Args...);
-    std::tuple<Args...> _args;
+    bool(*function)(Shot*, Args...);
+    std::tuple<Args...> args;
 
     template<std::size_t... Indices>
-    bool call(Shot* shot, std::index_sequence<Indices...>)
-    {
-        return _function(shot, std::get<Indices>(_args)...);
+    bool call(Shot* p_shot, std::index_sequence<Indices...>) {
+        return function(p_shot, std::get<Indices>(args)...);
     }
 
 public:
-    Selector(bool(*function)(Shot*, Args...), Args&&... args)
-        : _function(function), _args(args...)
+    Selector(bool(*p_function)(Shot*, Args...), Args&&... p_args)
+        : function(p_function), args(p_args...)
     {}
 
-    bool select(Shot* shot) override
-    {
-        return call(shot, std::index_sequence_for<Args...>{});
+    bool select(Shot* p_shot) override {
+        return call(p_shot, std::index_sequence_for<Args...>{});
     }
 };
 

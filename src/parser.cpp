@@ -2,35 +2,32 @@
 
 using namespace godot;
 
-Parser* Parser::_singleton = nullptr;
+Parser* Parser::singleton = nullptr;
 
-Parser* Parser::get_singleton()
-{
-    if (_singleton == nullptr) {
-        _singleton = new Parser();
+Parser* Parser::get_singleton() {
+    if (singleton == nullptr) {
+        singleton = new Parser();
     }
-    return _singleton;
+    return singleton;
 }
 
-void Parser::free_singleton()
-{
-    for (auto selector : _singleton->_selectors) {
+void Parser::free_singleton() {
+    for (auto selector : singleton->selectors) {
         delete selector.second;
     }
-    for (auto action : _singleton->_actions) {
+    for (auto action : singleton->actions) {
         delete action.second;
     }
-    delete _singleton;
-    _singleton = nullptr;
+    delete singleton;
+    singleton = nullptr;
 }
 
-ISelector* Parser::parse_selector(String src)
-{
-    PoolStringArray split = src.split(":");
+ISelector* Parser::parse_selector(String p_src) {
+    PoolStringArray split = p_src.split(":");
     
     String key = split[0].strip_edges();
     if (key.empty()) {
-        Godot::print_error("Parsing failed, expected key on left side of ':'", "parse_selector", __FILE__, __LINE__);
+        ERR_PRINT("Parsing failed, expected key on left side of ':'");
         return nullptr;
     }
 
@@ -39,26 +36,25 @@ ISelector* Parser::parse_selector(String src)
     if (split.size() > 1) {
         String args_src = split[1];
         if (args_src.empty()) {
-            Godot::print_error("Parsing failed, expected arguments on right side of ':'", "parse_selector", __FILE__, __LINE__);
+            ERR_PRINT("Parsing failed, expected arguments on right side of ':'");
             return nullptr;
         }
         args = args_src.split(",");
     }
 
-    if (_selectors.count(key) == 0) {
+    if (selectors.count(key) == 0) {
         return nullptr;
     } else {
-        return _selectors[key]->parse(args);
+        return selectors[key]->parse(args);
     }
 }
 
-IAction* Parser::parse_action(String src)
-{
-    PoolStringArray split = src.split(":");
+IAction* Parser::parse_action(String p_src) {
+    PoolStringArray split = p_src.split(":");
     
     String key = split[0].strip_edges();
     if (key.empty()) {
-        Godot::print_error("Parsing failed, expected key on left side of ':'", "parse_action", __FILE__, __LINE__);
+        ERR_PRINT("Parsing failed, expected key on left side of ':'");
         return nullptr;
     }
 
@@ -67,15 +63,15 @@ IAction* Parser::parse_action(String src)
     if (split.size() > 1) {
         String args_src = split[1];
         if (args_src.empty()) {
-            Godot::print_error("Parsing failed, expected arguments on right side of ':'", "parse_action", __FILE__, __LINE__);
+            ERR_PRINT("Parsing failed, expected arguments on right side of ':'");
             return nullptr;
         }
         args = args_src.split(",");
     }
 
-    if (_actions.count(key) == 0) {
+    if (actions.count(key) == 0) {
         return nullptr;
     } else {
-        return _actions[key]->parse(args);
+        return actions[key]->parse(args);
     }
 }

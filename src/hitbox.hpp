@@ -19,30 +19,32 @@ namespace godot {
 class Hitbox : public Node2D {
     GODOT_CLASS(Hitbox, Node2D)
 
-private:
-    Danmaku* _danmaku;
-
-    Shot* _grazing_shot;     // Last shot grazed with
-    Shot* _colliding_shot;   // Last shot collided with
+    float collision_radius;
+    float graze_radius;
+    bool invulnerable;
 
 public:
-    float collision_radius;  // Graze radius
-    float graze_radius;      // Collision radius    
-    bool invulnerable;       // Collisions won't be reported if this is set to true
+    Danmaku* get_danmaku();
 
-    Danmaku* get_danmaku() { return _danmaku; }
-    Shot* get_colliding_shot() { return _colliding_shot; }
-    Shot* get_grazing_shot() { return _grazing_shot; }
+    Shot* get_colliding_shot();
+    Shot* get_grazing_shot();
 
-    static void _register_methods();
-    void _init();
+    float get_collision_radius();
+    float get_graze_radius();
+
+    void hit(Shot* p_shot);
+    void graze(Shot* p_shot);
 
     void _enter_tree();
     void _exit_tree();
 
-    // These are called by Pattern upon a collision
-    void hit(Shot* shot);
-    void graze(Shot* shot);
+    static void _register_methods();
+    void _init();
+
+private:
+    Danmaku* danmaku;
+    Shot* grazing_shot;
+    Shot* colliding_shot;
 };
 
 };

@@ -20,27 +20,8 @@ class Shot : public Object {
     GODOT_CLASS(Shot, Object)
 
 public:
-    static void _register_methods();
-    void _init();
-
-    void reset();
-
-    Pattern* get_pattern();
-    Danmaku* get_danmaku();
-
-    int get_time() { return time; }
-
-    void set_sprite(String key);
-    String get_sprite();
-
-    void set_velocity(Vector2 velocity);
-    Vector2 get_velocity();
-
-    void set_rotation(float rotation);
-    float get_rotation();
-
-    int global_id;      // Index in Danmaku's pool array -- never changes
-    int local_id;       // Index in owner Pattern's shot array
+    int global_id;
+    int local_id;
 
     bool is_grazing;
     bool is_colliding;
@@ -55,6 +36,25 @@ public:
     Vector2 direction;
     float speed;
     float radius;
+
+    void reset();
+
+    Pattern* get_pattern();
+    Danmaku* get_danmaku();
+
+    int get_time();
+
+    void set_sprite(String p_key);
+    String get_sprite();
+
+    void set_velocity(Vector2 p_velocity);
+    Vector2 get_velocity();
+
+    void set_rotation(float p_rotation);
+    float get_rotation();
+
+    static void _register_methods();
+    void _init();
 };
 
 }
