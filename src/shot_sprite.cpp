@@ -2,15 +2,13 @@
 
 using namespace godot;
 
-void ShotSprite::draw_to(CanvasItem* p_canvas_item, Vector2 p_position) {
-    p_canvas_item->draw_texture_rect_region(texture, Rect2(p_position - region.size / 2.0f, region.size), region);
-}
-
 void ShotSprite::_register_methods() {
     register_property<ShotSprite, String>("key", &ShotSprite::key, "");
     register_property<ShotSprite, Ref<Texture>>("texture", &ShotSprite::texture, nullptr);
     register_property<ShotSprite, Rect2>("region", &ShotSprite::region, Rect2(0, 0, 0, 0));
     register_property<ShotSprite, float>("collider_radius", &ShotSprite::collider_radius, 16);
+    register_property<ShotSprite, float>("rotation_degrees", &ShotSprite::rotation_degrees, 0);
+    register_property<ShotSprite, bool>("face_motion", &ShotSprite::face_motion, false);
 }
 
 void ShotSprite::_init() {
@@ -18,4 +16,6 @@ void ShotSprite::_init() {
     texture = nullptr;
     region = Rect2(0, 0, 0, 0);
     collider_radius = 16;
+    rotation_degrees = 0;
+    face_motion = false;
 }

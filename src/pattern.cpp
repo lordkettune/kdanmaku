@@ -113,7 +113,13 @@ void Pattern::_physics_process(float p_delta) {
 void Pattern::_draw() {
     for (Shot* shot : shots) {
         ShotSprite* sprite = danmaku->get_sprite(shot->sprite_id);
-        sprite->draw_to(this, shot->position);
+        float rotation_radians = sprite->rotation_degrees * Math_PI / 180.0f;
+        if (sprite->face_motion) {
+            draw_set_transform(shot->position, shot->get_rotation() + rotation_radians, Vector2(1, 1));
+        } else {
+            draw_set_transform(shot->position, rotation_radians, Vector2(1, 1));
+        }
+        draw_texture_rect_region(sprite->texture, Rect2(sprite->region.size * -0.5f, sprite->region.size), sprite->region);
     }
 }
 

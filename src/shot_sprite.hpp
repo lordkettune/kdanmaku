@@ -23,8 +23,8 @@ public:
     Ref<Texture> texture;    // Sprite sheet that this is in -- it's a good idea to keep your bullet sprites in an atlas for performance
     Rect2 region;            // Texture region to render
     float collider_radius;   // Collider radius shots with this sprite should use
-
-    void draw_to(CanvasItem* p_canvas_item, Vector2 p_position);
+    float rotation_degrees;  // Base rotation
+    bool face_motion;        // Sprite will turn to face movement vector
 
     static void _register_methods();
     void _init();
