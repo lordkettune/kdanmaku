@@ -5,7 +5,7 @@ using namespace godot;
 void Frames::_physics_process(float p_delta) {
     if (!stopped) {
         frames_left--;
-        if (frames_left < 0) {
+        if (frames_left <= 0) {
             stop();
             emit_signal("timeout");
         }
