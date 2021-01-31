@@ -54,6 +54,9 @@ public:
     void apply(String p_action);                                // Applies an action to all shots. See action.hpp
     void map(String p_selector_source, String p_action_source); // Adds a mapping of a selector to an action which will be applied each frame.
 
+    template <typename F>
+    void clear(F p_constraint);
+
     void _enter_tree();
     void _exit_tree();
     void _physics_process(float p_delta);
@@ -81,6 +84,19 @@ private:
     ISelector* make_selector(String p_source);
     IAction* make_action(String p_source);
 };
+
+// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
+// Template method implementations
+// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
+
+template <typename F>
+void Pattern::clear(F p_constraint) {
+    for (Shot* shot : shots) {
+        if (p_constraint(shot)) {
+            shot->active = false;
+        }
+    }
+}
 
 template <typename T>
 T Pattern::param(String p_key, const Dictionary& p_override, T p_default) {

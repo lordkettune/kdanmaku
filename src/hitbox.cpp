@@ -9,7 +9,7 @@ void Hitbox::_enter_tree() {
         ERR_FAIL_COND(parent == nullptr);
     }
     danmaku = Object::cast_to<Danmaku>(parent);
-    danmaku->register_hitbox(this);
+    danmaku->add_hitbox(this);
 }
 
 void Hitbox::_exit_tree() {

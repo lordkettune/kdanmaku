@@ -29,6 +29,7 @@
 namespace godot {
 
 class Hitbox;
+class Pattern;
 
 // TODO: Maybe this shouldn't extend from Node2D since it operates in global coordinates anyway?
 class Danmaku : public Node2D {
@@ -41,15 +42,11 @@ class Danmaku : public Node2D {
     Rect2 region;                 // Gameplay rectangle -- note that this is in global coordinates!
     int tolerance;                // Distance outside of gameplay rect where shots will despawn
     
-    Vector2 clear_origin;         // Clear circle -- also global coordinates
-    float clear_radius;
-    bool clear_enabled;
-    
 public:
-    void count_pattern();
-    void decount_pattern();
+    void add_pattern(Pattern* p_pattern);
+    void remove_pattern(Pattern* p_pattern);
 
-    void register_hitbox(Hitbox* p_hitbox);
+    void add_hitbox(Hitbox* p_hitbox);
     void remove_hitbox();
     Hitbox* get_hitbox();
 
@@ -58,10 +55,10 @@ public:
 
     Rect2 get_region();
 
-    bool should_clear(Vector2 p_position);
+    void clear_circle(Vector2 p_origin, float p_radius);
 
-    Ref<ShotSprite> get_sprite(int p_id);
     int get_sprite_id(const String& p_key);
+    Ref<ShotSprite> get_sprite(int p_id);
 
     int get_free_shot_count();
     int get_active_shot_count();
@@ -76,11 +73,12 @@ public:
     void _init();
 
 private:
-    Vector<Shot*> free_shots;    // Shots not owned by patterns
     Vector<Ref<ShotSprite>> sprites; // Registered shot sprites
-    Hitbox* hitbox;              // The player
-    int active_shots;            // Active shot count
-    int active_patterns;         // Active pattern count
+
+    Vector<Shot*> free_shots;        // Shots not owned by patterns
+    Vector<Pattern*> patterns;       // Active patterns
+    
+    Hitbox* hitbox;                  // The player
 };
 
 };

@@ -17,7 +17,7 @@ void Pattern::_enter_tree() {
         }
     }
     danmaku = Object::cast_to<Danmaku>(parent);
-    danmaku->count_pattern();
+    danmaku->add_pattern(this);
     set_z_index(danmaku->get_z_index());
 }
 
@@ -26,7 +26,7 @@ void Pattern::_exit_tree() {
     for (Shot* shot : shots) {
         danmaku->release(shot);
     }
-    danmaku->decount_pattern();
+    danmaku->remove_pattern(this);
     shots.clear();
 }
 
@@ -88,7 +88,7 @@ void Pattern::_physics_process(float p_delta) {
         }
 
         // Clear shot if it's either outside the gameplay region or in clear circle
-        if (!region.has_point(shot->global_position) || danmaku->should_clear(shot->global_position)) {
+        if (!region.has_point(shot->global_position)) {
             shot->active = false;
             ++inactive;
         }

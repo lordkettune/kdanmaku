@@ -1,4 +1,7 @@
 #include "danmaku.hpp"
+#include "pattern.hpp"
+
+#include <algorithm>
 
 using namespace godot;
 
@@ -25,15 +28,15 @@ void Danmaku::_exit_tree() {
     }
 }
 
-void Danmaku::count_pattern() {
-    active_patterns++;
+void Danmaku::add_pattern(Pattern* p_pattern) {
+    patterns.push_back(p_pattern);
 }
 
-void Danmaku::decount_pattern() {
-    active_patterns--;
+void Danmaku::remove_pattern(Pattern* p_pattern) {
+    patterns.erase(std::remove(patterns.begin(), patterns.end(), p_pattern), patterns.end());
 }
 
-void Danmaku::register_hitbox(Hitbox* p_hitbox) {
+void Danmaku::add_hitbox(Hitbox* p_hitbox) {
     hitbox = p_hitbox;
 }
 
@@ -50,22 +53,20 @@ int Danmaku::get_free_shot_count() {
 }
 
 int Danmaku::get_active_shot_count() {
-    return active_shots;
+    return max_shots - (int)free_shots.size();
 }
 
 int Danmaku::get_pattern_count() {
-    return active_patterns;
+    return (int)patterns.size();
 }
 
 Shot* Danmaku::capture() {
-    active_shots++;
     Shot* shot = free_shots.back();
     free_shots.pop_back();
     return shot;
 }
 
 void Danmaku::release(Shot* p_shot) {
-    active_shots--;
     free_shots.push_back(p_shot);
 }
 
@@ -85,11 +86,12 @@ Rect2 Danmaku::get_region() {
     return region.grow(tolerance);
 }
 
-bool Danmaku::should_clear(Vector2 p_position) {
-    if (clear_enabled) {
-        return p_position.distance_to(clear_origin) <= clear_radius;
+void Danmaku::clear_circle(Vector2 p_origin, float p_radius) {
+    for (Pattern* pattern : patterns) {
+        pattern->clear([=](Shot* shot) {
+            return (shot->global_position - p_origin).length() <= p_radius;
+        });
     }
-    return false;
 }
 
 void Danmaku::_register_methods() {
@@ -98,10 +100,6 @@ void Danmaku::_register_methods() {
     register_property<Danmaku, int>("tolerance", &Danmaku::tolerance, 64);
     register_property<Danmaku, Array>("sprites", &Danmaku::registered_sprites, Array());
 
-    register_property<Danmaku, bool>("clear_enabled", &Danmaku::clear_enabled, false);
-    register_property<Danmaku, Vector2>("clear_origin", &Danmaku::clear_origin, Vector2(0, 0));
-    register_property<Danmaku, float>("clear_radius", &Danmaku::clear_radius, 0);
-
     register_method("is_danmaku", &Danmaku::is_danmaku);
     register_method("_enter_tree", &Danmaku::_enter_tree);
     register_method("_exit_tree", &Danmaku::_exit_tree);
@@ -109,16 +107,13 @@ void Danmaku::_register_methods() {
     register_method("get_free_shot_count", &Danmaku::get_free_shot_count);
     register_method("get_active_shot_count", &Danmaku::get_active_shot_count);
     register_method("get_pattern_count", &Danmaku::get_pattern_count);
+
+    register_method("clear_circle", &Danmaku::clear_circle);
 }
 
 void Danmaku::_init() {
-    active_shots = 0;
-    active_patterns = 0;
     max_shots = 0;
     hitbox = nullptr;
-    clear_radius = 0;
-    clear_origin = Vector2(0, 0);
-    clear_enabled = false;
     max_shots = 2048;
     region = Rect2(0, 0, 384, 448);
     tolerance = 64;
