@@ -15,20 +15,13 @@ void Danmaku::_enter_tree() {
     }
 
     for (int i = 0; i != registered_sprites.size(); ++i) {
-        ShotSprite* sprite = Object::cast_to<ShotSprite>(registered_sprites[i]);
-        sprite->reference();
-        sprites.push_back(sprite);
+        sprites.push_back(Object::cast_to<ShotSprite>(registered_sprites[i]));
     }
 }
 
 void Danmaku::_exit_tree() {
     for (int i = 0; i != max_shots; ++i) {
         free_shots[i]->free();
-    }
-
-    for (ShotSprite* sprite : sprites) {
-        if (sprite->unreference())
-            sprite->free();
     }
 }
 
@@ -76,7 +69,7 @@ void Danmaku::release(Shot* p_shot) {
     free_shots.push_back(p_shot);
 }
 
-ShotSprite* Danmaku::get_sprite(int p_id) {
+Ref<ShotSprite> Danmaku::get_sprite(int p_id) {
     return sprites[p_id];
 }
 
@@ -85,7 +78,7 @@ int Danmaku::get_sprite_id(const String& p_key) {
         if (sprites[i]->key == p_key)
             return i;
     }
-    return -1;
+    return 0; // Default to first sprite
 }
 
 Rect2 Danmaku::get_region() {

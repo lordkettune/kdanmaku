@@ -31,7 +31,6 @@ public:
     bool active;
     int sprite_id;
     Vector2 global_position;
-    
     Vector2 position;
     Vector2 direction;
     float speed;

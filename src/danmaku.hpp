@@ -60,7 +60,7 @@ public:
 
     bool should_clear(Vector2 p_position);
 
-    ShotSprite* get_sprite(int p_id);
+    Ref<ShotSprite> get_sprite(int p_id);
     int get_sprite_id(const String& p_key);
 
     int get_free_shot_count();
@@ -77,7 +77,7 @@ public:
 
 private:
     Vector<Shot*> free_shots;    // Shots not owned by patterns
-    Vector<ShotSprite*> sprites; // Registered shot sprites
+    Vector<Ref<ShotSprite>> sprites; // Registered shot sprites
     Hitbox* hitbox;              // The player
     int active_shots;            // Active shot count
     int active_patterns;         // Active pattern count

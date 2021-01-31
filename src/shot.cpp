@@ -20,7 +20,7 @@ int Shot::get_time() {
 }
 
 void Shot::set_sprite(String p_key) {
-    Danmaku* danmaku = owner->get_danmaku();
+    Danmaku* danmaku = get_danmaku();
     int id = danmaku->get_sprite_id(p_key);
     if (id < 0) {
         ERR_PRINT("Sprite key \"" + p_key + "\" does not exist!");

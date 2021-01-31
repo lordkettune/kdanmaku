@@ -42,13 +42,12 @@ void Pattern::_physics_process(float p_delta) {
         hitbox_pos = hitbox->get_global_transform().get_origin();
     }
 
-    // If this is set while updating we need to clean the shot array
-    bool clean = false;
+    int inactive = 0;
 
     // Update all shots
     for (Shot* shot : shots) {
         if (!shot->active) {
-            clean = true;
+            ++inactive;
             continue;
         }
 
@@ -82,7 +81,7 @@ void Pattern::_physics_process(float p_delta) {
         }
 
         // Apply mappings -- test selector then apply action if it passes
-        for (auto const& mapping : mappings) {
+        for (Mapping& mapping : mappings) {
             if (mapping.selector->select(shot)) {
                 mapping.action->apply(shot);
             }
@@ -91,12 +90,12 @@ void Pattern::_physics_process(float p_delta) {
         // Clear shot if it's either outside the gameplay region or in clear circle
         if (!region.has_point(shot->global_position) || danmaku->should_clear(shot->global_position)) {
             shot->active = false;
-            clean = true;
+            ++inactive;
         }
     }
 
     // Shots left danmaku region, release them back to Danmaku
-    if (clean) {
+    if (inactive) {
         for (int i = 0; i != shots.size();) {
             if (!shots[i]->active) {
                 danmaku->release(shots[i]);
@@ -112,13 +111,15 @@ void Pattern::_physics_process(float p_delta) {
 
 void Pattern::_draw() {
     for (Shot* shot : shots) {
-        ShotSprite* sprite = danmaku->get_sprite(shot->sprite_id);
+        Ref<ShotSprite> sprite = danmaku->get_sprite(shot->sprite_id);
         float rotation_radians = sprite->rotation_degrees * Math_PI / 180.0f;
+
         if (sprite->face_motion) {
             draw_set_transform(shot->position, shot->get_rotation() + rotation_radians, Vector2(1, 1));
         } else {
             draw_set_transform(shot->position, rotation_radians, Vector2(1, 1));
         }
+
         draw_texture_rect_region(sprite->texture, Rect2(sprite->region.size * -0.5f, sprite->region.size), sprite->region);
     }
 }
@@ -127,138 +128,58 @@ Danmaku* Pattern::get_danmaku() {
     return danmaku;
 }
 
-void Pattern::set_fire_angle(float p_angle) {
-    fire_direction = Vector2(cos(p_angle), sin(p_angle));
+void Pattern::single() {
+    pattern(1, [](Shot* p_shot) {});
 }
 
-float Pattern::get_fire_angle() {
-    return fire_direction.angle();
+void Pattern::layered(int p_layers, float p_min, float p_max) {
+    float step = (p_max - p_min) / p_layers;
+
+    pattern(p_layers, [=](Shot* p_shot) {
+        p_shot->speed = p_min + step * p_shot->local_id;
+    });
 }
 
-void Pattern::set_fire_sprite(String p_sprite) {
-    ERR_FAIL_COND(danmaku == nullptr);
-    fire_sprite = danmaku->get_sprite_id(p_sprite);
-    if (fire_sprite != -1) {
-        fire_radius = danmaku->get_sprite(fire_sprite)->collider_radius;
-    }
+void Pattern::circle(int p_count) {
+    pattern(p_count, [=](Shot* p_shot) {
+        p_shot->direction = p_shot->direction.rotated(p_shot->local_id * (Math_TAU / (float)p_count));
+    });
 }
 
-String Pattern::get_fire_sprite() {
-    if (fire_sprite != -1 && danmaku != nullptr) {
-        return danmaku->get_sprite(fire_sprite)->key;
-    }
-    return "";
+void Pattern::layered_circle(int p_count, int p_layers, float p_min, float p_max) {
+    float step = (p_max - p_min) / p_layers;
+
+    pattern(p_count * p_layers, [=](Shot* p_shot) {
+        int col = p_shot->local_id % p_count;
+        int row = p_shot->local_id / p_count;
+        p_shot->direction = p_shot->direction.rotated(col * (Math_TAU / (float)p_count));
+        p_shot->speed = p_min + step * row;
+    });
 }
 
-bool Pattern::validate_fire() {
-    if (danmaku == nullptr) {
-        ERR_PRINT("Pattern is not a descendent of a Danmaku node!");
-        return false;
-    }
+void Pattern::fan(int p_count, float p_theta) {
+    float base = -p_theta * 0.5f;
+    float step = p_theta / (p_count - 1);
 
-    if (fire_sprite == -1) {
-        ERR_PRINT("Cannot fire until fire_sprite is set!");
-        return false;
-    }
-
-    return true;
+    pattern(p_count, [=](Shot* p_shot) {
+        p_shot->direction = p_shot->direction.rotated(base + step * p_shot->local_id);
+    });
 }
 
-Shot* Pattern::next_shot() {
-    Shot* shot = danmaku->capture();
-    shot->owner = this;
-    shot->local_id = current_local_id++;
-    shot->time = 0;
-    shot->sprite_id = fire_sprite;
-    shot->direction = fire_direction;
-    shot->radius = fire_radius;
-    shot->speed = fire_speed;
-    shot->position = fire_offset;
-    shot->is_grazing = false;
-    shot->is_colliding = false;
-    shot->active = true;
-    shots.push_back(shot);
-    return shot;
+void Pattern::layered_fan(int p_count, float p_theta, int p_layers, float p_min, float p_max) {
+    float a_base = -p_theta * 0.5f;
+    float a_step = p_theta / (p_count - 1);
+    float s_step = (p_max - p_min) / p_layers;
+
+    pattern(p_count * p_layers, [=](Shot* p_shot) {
+        int col = p_shot->local_id % p_count;
+        int row = p_shot->local_id / p_count;
+        p_shot->direction = p_shot->direction.rotated(a_base + a_step * col);
+        p_shot->speed = p_min + s_step * row;
+    });
 }
 
-void Pattern::fire() {
-    if (validate_fire()) {
-        next_shot();
-    }
-}
-
-void Pattern::fire_layered(int p_layers, float p_min, float p_max) {
-    if (validate_fire()) {
-        float step = (p_max - p_min) / p_layers;
-        for (int i = 0; i != p_layers; ++i) {
-            Shot* shot = next_shot();
-            shot->speed = p_min + step * i;
-        }
-    }
-}
-
-void Pattern::fire_circle(int p_count) {
-    if (validate_fire()) {
-        float base = get_fire_angle();
-        for (int i = 0; i != p_count; ++i) {
-            Shot* shot = next_shot();
-            float angle = base + i * (Math_TAU / (float)p_count);
-            shot->direction = Vector2(cos(angle), sin(angle));
-        }
-    }
-}
-
-void Pattern::fire_layered_circle(int p_count, int p_layers, float p_min, float p_max) {
-    if (validate_fire()) {
-        float base = get_fire_angle();
-        float step = (p_min - p_max) / p_layers;
-
-        for (int i = 0; i != p_count; ++i) {
-            float angle = base + i * (Math_TAU / (float)p_count);
-            Vector2 direction = Vector2(cos(angle), sin(angle));
-
-            for (int j = 0; j != p_layers; ++j) {
-                Shot* shot = next_shot();
-                shot->direction = direction;
-                shot->speed = p_min + j * step;
-            }
-        }
-    }
-}
-
-void Pattern::fire_fan(int p_count, float p_theta) {
-    if (validate_fire()) {
-        float base = get_fire_angle() - p_theta * 0.5f;
-        float step = p_theta / (p_count - 1);
-        
-        for (int i = 0; i != p_count; ++i) {
-            Shot* shot = next_shot();
-            float angle = base + i * step;
-            shot->direction = Vector2(cos(angle), sin(angle));
-        }
-    }
-}
-
-void Pattern::fire_layered_fan(int p_count, float p_theta, int p_layers, float p_min, float p_max) {
-    if (validate_fire()) {
-        float angle_base = get_fire_angle() - p_theta * 0.5f;
-        float angle_step = p_theta / (p_count - 1);
-        float speed_step = (p_max - p_min) / p_layers;
-
-        for (int i = 0; i != p_count; ++i) {
-            float angle = angle_base + i * angle_step;
-            Vector2 direction = Vector2(cos(angle), sin(angle));
-
-            for (int j = 0; j != p_count; ++j) {
-                Shot* shot = next_shot();
-                shot->direction = direction;
-                shot->speed = p_min + j * speed_step;
-            }
-        }
-    }
-}
-
-void Pattern::fire_custom(int p_count, String p_name) {
+void Pattern::custom(int p_count, String p_name) {
     if (delegate == nullptr) {
         ERR_PRINT("Pattern does not have a delegate, can't fire custom pattern!");
         return;
@@ -269,12 +190,9 @@ void Pattern::fire_custom(int p_count, String p_name) {
         return;
     }
 
-    if (validate_fire()) {
-        for (int i = 0; i != p_count; ++i) {
-            Shot* shot = next_shot();
-            delegate->call(p_name, p_count, i, shot);
-        }
-    }
+    pattern(p_count, [=](Shot* p_shot) {
+        delegate->call(p_name, p_shot, p_count);
+    });
 }
 
 ISelector* Pattern::make_selector(String p_source) {
@@ -326,11 +244,7 @@ void Pattern::map(String p_selector_source, String p_action_source) {
 
 void Pattern::_register_methods() {
     register_property<Pattern, Ref<Reference>>("delegate", &Pattern::delegate, nullptr);
-
-    register_property<Pattern, float>("fire_speed", &Pattern::fire_speed, 0);
-    register_property<Pattern, Vector2>("fire_offset", &Pattern::fire_offset, Vector2(0, 0));
-    register_property<Pattern, String>("fire_sprite", &Pattern::set_fire_sprite, &Pattern::get_fire_sprite, "");
-    register_property<Pattern, float>("fire_angle", &Pattern::set_fire_angle, &Pattern::get_fire_angle, 0);
+    register_property<Pattern, Dictionary>("parameters", &Pattern::parameters, Dictionary());
     
     register_method("_enter_tree", &Pattern::_enter_tree);
     register_method("_exit_tree", &Pattern::_exit_tree);
@@ -339,13 +253,13 @@ void Pattern::_register_methods() {
 
     register_method("get_danmaku", &Pattern::get_danmaku);
 
-    register_method("fire", &Pattern::fire);
-    register_method("fire_layered", &Pattern::fire_layered);
-    register_method("fire_circle", &Pattern::fire_circle);
-    register_method("fire_layered_circle", &Pattern::fire_layered_circle);
-    register_method("fire_fan", &Pattern::fire_fan);
-    register_method("fire_layered_fan", &Pattern::fire_layered_fan);
-    register_method("fire_custom", &Pattern::fire_custom);
+    register_method("single", &Pattern::single);
+    register_method("layered", &Pattern::layered);
+    register_method("circle", &Pattern::circle);
+    register_method("layered_circle", &Pattern::layered_circle);
+    register_method("fan", &Pattern::fan);
+    register_method("layered_fan", &Pattern::layered_fan);
+    register_method("custom", &Pattern::custom);
 
     register_method("select", &Pattern::select);
     register_method("apply", &Pattern::apply);
@@ -354,11 +268,6 @@ void Pattern::_register_methods() {
 
 void Pattern::_init() {
     danmaku = nullptr;
-    current_local_id = 0;
-    fire_sprite = -1;
-    fire_radius = 0;
-    fire_direction = Vector2(1, 0);
     delegate = nullptr;
-    fire_offset = Vector2(0, 0);
-    fire_speed = 0;
+    parameters = Dictionary();
 }
