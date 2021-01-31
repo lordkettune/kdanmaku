@@ -128,28 +128,28 @@ Danmaku* Pattern::get_danmaku() {
     return danmaku;
 }
 
-void Pattern::single() {
-    pattern(1, [](Shot* p_shot) {});
+void Pattern::single(Dictionary p_override) {
+    pattern(1, p_override, [](Shot* p_shot) {});
 }
 
-void Pattern::layered(int p_layers, float p_min, float p_max) {
+void Pattern::layered(int p_layers, float p_min, float p_max, Dictionary p_override) {
     float step = (p_max - p_min) / p_layers;
 
-    pattern(p_layers, [=](Shot* p_shot) {
+    pattern(p_layers, p_override, [=](Shot* p_shot) {
         p_shot->speed = p_min + step * p_shot->local_id;
     });
 }
 
-void Pattern::circle(int p_count) {
-    pattern(p_count, [=](Shot* p_shot) {
+void Pattern::circle(int p_count, Dictionary p_override) {
+    pattern(p_count, p_override, [=](Shot* p_shot) {
         p_shot->direction = p_shot->direction.rotated(p_shot->local_id * (Math_TAU / (float)p_count));
     });
 }
 
-void Pattern::layered_circle(int p_count, int p_layers, float p_min, float p_max) {
+void Pattern::layered_circle(int p_count, int p_layers, float p_min, float p_max, Dictionary p_override) {
     float step = (p_max - p_min) / p_layers;
 
-    pattern(p_count * p_layers, [=](Shot* p_shot) {
+    pattern(p_count * p_layers, p_override, [=](Shot* p_shot) {
         int col = p_shot->local_id % p_count;
         int row = p_shot->local_id / p_count;
         p_shot->direction = p_shot->direction.rotated(col * (Math_TAU / (float)p_count));
@@ -157,21 +157,21 @@ void Pattern::layered_circle(int p_count, int p_layers, float p_min, float p_max
     });
 }
 
-void Pattern::fan(int p_count, float p_theta) {
+void Pattern::fan(int p_count, float p_theta, Dictionary p_override) {
     float base = -p_theta * 0.5f;
     float step = p_theta / (p_count - 1);
 
-    pattern(p_count, [=](Shot* p_shot) {
+    pattern(p_count, p_override, [=](Shot* p_shot) {
         p_shot->direction = p_shot->direction.rotated(base + step * p_shot->local_id);
     });
 }
 
-void Pattern::layered_fan(int p_count, float p_theta, int p_layers, float p_min, float p_max) {
+void Pattern::layered_fan(int p_count, float p_theta, int p_layers, float p_min, float p_max, Dictionary p_override) {
     float a_base = -p_theta * 0.5f;
     float a_step = p_theta / (p_count - 1);
     float s_step = (p_max - p_min) / p_layers;
 
-    pattern(p_count * p_layers, [=](Shot* p_shot) {
+    pattern(p_count * p_layers, p_override, [=](Shot* p_shot) {
         int col = p_shot->local_id % p_count;
         int row = p_shot->local_id / p_count;
         p_shot->direction = p_shot->direction.rotated(a_base + a_step * col);
@@ -179,7 +179,7 @@ void Pattern::layered_fan(int p_count, float p_theta, int p_layers, float p_min,
     });
 }
 
-void Pattern::custom(int p_count, String p_name) {
+void Pattern::custom(int p_count, String p_name, Dictionary p_override) {
     if (delegate == nullptr) {
         ERR_PRINT("Pattern does not have a delegate, can't fire custom pattern!");
         return;
@@ -190,7 +190,7 @@ void Pattern::custom(int p_count, String p_name) {
         return;
     }
 
-    pattern(p_count, [=](Shot* p_shot) {
+    pattern(p_count, p_override, [=](Shot* p_shot) {
         delegate->call(p_name, p_shot, p_count);
     });
 }
