@@ -24,6 +24,7 @@ public:
 
     Frames* start(int p_frames);
     void stop();
+    bool is_stopped();
 
     void _physics_process(float p_delta);
 
