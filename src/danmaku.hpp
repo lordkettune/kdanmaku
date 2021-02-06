@@ -56,6 +56,7 @@ public:
     Rect2 get_region();
 
     void clear_circle(Vector2 p_origin, float p_radius);
+    void clear_rect(Rect2 p_rect);
 
     int get_sprite_id(const String& p_key);
     Ref<ShotSprite> get_sprite(int p_id);

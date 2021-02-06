@@ -94,6 +94,14 @@ void Danmaku::clear_circle(Vector2 p_origin, float p_radius) {
     }
 }
 
+void Danmaku::clear_rect(Rect2 p_rect) {
+    for (Pattern* pattern : patterns) {
+        pattern->clear([=](Shot* shot) {
+            return p_rect.has_point(shot->global_position);
+        });
+    }
+}
+
 void Danmaku::_register_methods() {
     register_property<Danmaku, int>("max_shots", &Danmaku::max_shots, 2048);
     register_property<Danmaku, Rect2>("region", &Danmaku::region, Rect2(0, 0, 384, 448));
@@ -109,6 +117,7 @@ void Danmaku::_register_methods() {
     register_method("get_pattern_count", &Danmaku::get_pattern_count);
 
     register_method("clear_circle", &Danmaku::clear_circle);
+    register_method("clear_rect", &Danmaku::clear_rect);
 }
 
 void Danmaku::_init() {
