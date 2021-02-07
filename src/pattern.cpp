@@ -133,7 +133,7 @@ void Pattern::single(Dictionary p_override) {
 }
 
 void Pattern::layered(int p_layers, float p_min, float p_max, Dictionary p_override) {
-    float step = (p_max - p_min) / p_layers;
+    float step = (p_max - p_min) / (p_layers - 1);
 
     pattern(p_layers, p_override, [=](Shot* p_shot) {
         p_shot->speed = p_min + step * p_shot->local_id;
@@ -147,7 +147,7 @@ void Pattern::circle(int p_count, Dictionary p_override) {
 }
 
 void Pattern::layered_circle(int p_count, int p_layers, float p_min, float p_max, Dictionary p_override) {
-    float step = (p_max - p_min) / p_layers;
+    float step = (p_max - p_min) / (p_layers - 1);
 
     pattern(p_count * p_layers, p_override, [=](Shot* p_shot) {
         int col = p_shot->local_id % p_count;
@@ -169,7 +169,7 @@ void Pattern::fan(int p_count, float p_theta, Dictionary p_override) {
 void Pattern::layered_fan(int p_count, float p_theta, int p_layers, float p_min, float p_max, Dictionary p_override) {
     float a_base = -p_theta * 0.5f;
     float a_step = p_theta / (p_count - 1);
-    float s_step = (p_max - p_min) / p_layers;
+    float s_step = (p_max - p_min) / (p_layers - 1);
 
     pattern(p_count * p_layers, p_override, [=](Shot* p_shot) {
         int col = p_shot->local_id % p_count;
