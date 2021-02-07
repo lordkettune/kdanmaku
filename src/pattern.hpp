@@ -7,7 +7,6 @@
 // Pattern is the main object for this library -- all shot firing functionality is here.
 // Each Pattern keeps its own list of Shots that it owns, which it returns to its parent Danmaku
 // node upon deletion or when shots are cleared.
-// Advanced shot behavior is done via Selectors and Actions -- see their respective files for more info.
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 
 #include <Godot.hpp>
@@ -17,8 +16,6 @@
 #include "utils.hpp"
 #include "danmaku.hpp"
 #include "shot.hpp"
-#include "selector.hpp"
-#include "action.hpp"
 
 namespace godot {
 
@@ -50,10 +47,6 @@ public:
     // and whatever other parameters you want to initialize.
     void custom(int p_count, String p_name, Dictionary p_override);
 
-    Array select(String p_selector);                            // Filters by a selector, and returns an array of shots that pass. See selector.hpp
-    void apply(String p_action);                                // Applies an action to all shots. See action.hpp
-    void map(String p_selector_source, String p_action_source); // Adds a mapping of a selector to an action which will be applied each frame.
-
     template <typename F>
     void clear(F p_constraint);
 
@@ -66,23 +59,14 @@ public:
     void _init();
 
 private:
-    struct Mapping {
-        ISelector* selector;
-        IAction* action;
-    };
-
     Danmaku* danmaku;         // Parent Danmaku object
     Vector<Shot*> shots;      // Shots owned by this Pattern
-    Vector<Mapping> mappings; // List of Selectors to test each frame, mapped to actions that should be applied if passed
-
+    
     template <typename T>
     T param(String p_key, const Dictionary& p_override, T p_default);
 
     template <typename F>
     void pattern(int p_count, const Dictionary& p_override, F p_callback);
-
-    ISelector* make_selector(String p_source);
-    IAction* make_action(String p_source);
 };
 
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========

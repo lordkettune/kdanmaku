@@ -3,7 +3,6 @@
 #include <Math.hpp>
 
 #include "hitbox.hpp"
-#include "parser.hpp"
 
 using namespace godot;
 
@@ -77,13 +76,6 @@ void Pattern::_physics_process(float p_delta) {
                 }
             } else {
                 shot->is_grazing = false;
-            }
-        }
-
-        // Apply mappings -- test selector then apply action if it passes
-        for (Mapping& mapping : mappings) {
-            if (mapping.selector->select(shot)) {
-                mapping.action->apply(shot);
             }
         }
 
@@ -195,53 +187,6 @@ void Pattern::custom(int p_count, String p_name, Dictionary p_override) {
     });
 }
 
-ISelector* Pattern::make_selector(String p_source) {
-    return Parser::get_singleton()->parse_selector(p_source);
-}
-
-IAction* Pattern::make_action(String p_source) {
-    return Parser::get_singleton()->parse_action(p_source);
-}
-
-Array Pattern::select(String p_source) {
-    Array result;
-    ISelector* selector = make_selector(p_source);
-    if (selector == nullptr) {
-        return result;
-    }
-
-    for (Shot* shot : shots) {
-        if (selector->select(shot)) {
-            result.push_back(shot);
-        }
-    }
-    
-    delete selector;
-    return result;
-}
-
-void Pattern::apply(String p_source) {
-    IAction* action = make_action(p_source);
-    if (action == nullptr) {
-        return;
-    }
-
-    for (Shot* shot : shots) {
-        action->apply(shot);
-    }
-
-    delete action;
-}
-
-void Pattern::map(String p_selector_source, String p_action_source) {
-    ISelector* selector = make_selector(p_selector_source);
-    IAction* action = make_action(p_action_source);
-    if (selector == nullptr || action == nullptr) {
-        return;
-    }
-    mappings.push_back({selector, action});
-}
-
 void Pattern::_register_methods() {
     register_property<Pattern, Ref<Reference>>("delegate", &Pattern::delegate, nullptr);
     register_property<Pattern, Dictionary>("parameters", &Pattern::parameters, Dictionary());
@@ -260,10 +205,6 @@ void Pattern::_register_methods() {
     register_method("fan", &Pattern::fan);
     register_method("layered_fan", &Pattern::layered_fan);
     register_method("custom", &Pattern::custom);
-
-    register_method("select", &Pattern::select);
-    register_method("apply", &Pattern::apply);
-    register_method("map", &Pattern::map);
 }
 
 void Pattern::_init() {
