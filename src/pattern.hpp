@@ -16,6 +16,7 @@
 #include "utils.hpp"
 #include "danmaku.hpp"
 #include "shot.hpp"
+#include "shot_effect.hpp"
 
 namespace godot {
 
@@ -59,8 +60,11 @@ public:
     void _init();
 
 private:
-    Danmaku* danmaku;         // Parent Danmaku object
-    Vector<Shot*> shots;      // Shots owned by this Pattern
+    Danmaku* danmaku;                // Parent Danmaku object
+    Vector<Shot*> shots;             // Shots owned by this Pattern
+    Vector<Ref<ShotEffect>> effects; // Registered shot effects
+
+    uint32_t effect_bitmask(Array p_names);
     
     template <typename T>
     T param(String p_key, const Dictionary& p_override, T p_default);
@@ -77,7 +81,7 @@ template <typename F>
 void Pattern::clear(F p_constraint) {
     for (Shot* shot : shots) {
         if (p_constraint(shot)) {
-            shot->active = false;
+            shot->unflag(Shot::FLAG_ACTIVE);
         }
     }
 }
@@ -102,6 +106,7 @@ void Pattern::pattern(int p_count, const Dictionary& p_override, F p_callback) {
 
     int sprite_id = danmaku->get_sprite_id(param<String>("sprite", p_override, ""));
     Ref<ShotSprite> sprite = danmaku->get_sprite(sprite_id);
+    uint32_t effects = effect_bitmask(param<Array>("effects", p_override, Array()));
 
     Vector2 offset = param<Vector2>("offset", p_override, Vector2(0, 0));
     float rotation = param<float>("rotation", p_override, 0);
@@ -116,6 +121,8 @@ void Pattern::pattern(int p_count, const Dictionary& p_override, F p_callback) {
 
     for (int i = 0; i != p_count; ++i) {
         Shot* shot = danmaku->capture();
+        shot->flags = Shot::FLAG_ACTIVE;
+        shot->effects = effects;
         shot->time = 0;
         shot->owner = this;
         shot->local_id = i;
@@ -124,9 +131,6 @@ void Pattern::pattern(int p_count, const Dictionary& p_override, F p_callback) {
         shot->position = offset;
         shot->speed = speed;
         shot->direction = direction;
-        shot->is_grazing = false;
-        shot->is_colliding = false;
-        shot->active = true;
         p_callback(shot);
         shots.push_back(shot);
     }

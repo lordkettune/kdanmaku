@@ -11,6 +11,8 @@
 #include <Godot.hpp>
 #include <Object.hpp>
 
+#include <stdint.h>
+
 namespace godot {
 
 class Pattern;
@@ -20,15 +22,20 @@ class Shot : public Object {
     GODOT_CLASS(Shot, Object)
 
 public:
+    enum {
+        FLAG_ACTIVE    = 1,
+        FLAG_GRAZING   = 2,
+        FLAG_COLLIDING = 4
+    };
+
+    uint32_t effects;
+    uint32_t flags;
+
+    Pattern* owner;
     int global_id;
     int local_id;
 
-    bool is_grazing;
-    bool is_colliding;
-
-    Pattern* owner;
     int time;
-    bool active;
     int sprite_id;
     Vector2 global_position;
     Vector2 position;
@@ -36,7 +43,9 @@ public:
     float speed;
     float radius;
 
-    void reset();
+    inline void flag(int p_flag)    { flags |= p_flag;  }
+    inline void unflag(int p_flag)  { flags &= ~p_flag; }
+    inline bool flagged(int p_flag) { return flags & p_flag; }
 
     Pattern* get_pattern();
     Danmaku* get_danmaku();

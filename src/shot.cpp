@@ -39,8 +39,7 @@ void Shot::set_velocity(Vector2 p_velocity) {
     direction = p_velocity / speed;
 }
 
-Vector2 Shot::get_velocity()
-{
+Vector2 Shot::get_velocity() {
     return direction * speed;
 }
 
@@ -50,22 +49,6 @@ void Shot::set_rotation(float p_rotation) {
 
 float Shot::get_rotation() {
     return direction.angle();
-}
-
-void Shot::reset() {
-    owner = nullptr;
-    time = 0;
-    active = false;
-    global_position = Vector2(0, 0);
-    position = Vector2(0, 0);
-    direction = Vector2(0, 1);
-    speed = 0;
-    radius = 0;
-    sprite_id = 0;
-    local_id = 0;
-    global_id = 0;
-    is_grazing = false;
-    is_colliding = false;
 }
 
 void Shot::_register_methods() {
@@ -83,5 +66,16 @@ void Shot::_register_methods() {
 }
 
 void Shot::_init() {
-    reset();
+    flags = 0;
+    effects = 0;
+    owner = nullptr;
+    local_id = 0;
+    global_id = 0;
+    time = 0;
+    global_position = Vector2(0, 0);
+    position = Vector2(0, 0);
+    direction = Vector2(0, 1);
+    speed = 0;
+    radius = 0;
+    sprite_id = 0;
 }

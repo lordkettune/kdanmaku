@@ -45,7 +45,7 @@ void Pattern::_physics_process(float p_delta) {
 
     // Update all shots
     for (Shot* shot : shots) {
-        if (!shot->active) {
+        if (!shot->flagged(Shot::FLAG_ACTIVE)) {
             ++inactive;
             continue;
         }
@@ -54,6 +54,12 @@ void Pattern::_physics_process(float p_delta) {
         shot->position += shot->direction * shot->speed;
         shot->global_position = transform.xform(shot->position);
 
+        for (int i = 0; i != effects.size(); ++i) {
+            if (shot->effects & (1 << i)) {
+                effects[i]->execute(shot);
+            }
+        }
+
         ++shot->time;
 
         // Check for graze or collision
@@ -61,27 +67,27 @@ void Pattern::_physics_process(float p_delta) {
             float distance = shot->global_position.distance_to(hitbox_pos);
 
             if (distance <= hitbox->get_collision_radius() + shot->radius) {
-                if (!shot->is_colliding) {
+                if (!shot->flagged(Shot::FLAG_COLLIDING)) {
                     hitbox->hit(shot);
-                    shot->is_colliding = true;
+                    shot->flag(Shot::FLAG_COLLIDING);
                 }
             } else {
-                shot->is_colliding = false;
+                shot->unflag(Shot::FLAG_COLLIDING);
             }
 
             if (distance <= hitbox->get_graze_radius() + shot->radius) {
-                if (!shot->is_grazing) {
+                if (!shot->flagged(Shot::FLAG_GRAZING)) {
                     hitbox->graze(shot);
-                    shot->is_grazing = true;
+                    shot->flag(Shot::FLAG_GRAZING);
                 }
             } else {
-                shot->is_grazing = false;
+                shot->unflag(Shot::FLAG_GRAZING);
             }
         }
 
         // Clear shot if it's either outside the gameplay region or in clear circle
         if (!region.has_point(shot->global_position)) {
-            shot->active = false;
+            shot->unflag(Shot::FLAG_ACTIVE);
             ++inactive;
         }
     }
@@ -89,7 +95,7 @@ void Pattern::_physics_process(float p_delta) {
     // Shots left danmaku region, release them back to Danmaku
     if (inactive) {
         for (int i = 0; i != shots.size();) {
-            if (!shots[i]->active) {
+            if (!shots[i]->flagged(Shot::FLAG_ACTIVE)) {
                 danmaku->release(shots[i]);
                 shots.erase(shots.begin() + i);
             } else {
@@ -118,6 +124,16 @@ void Pattern::_draw() {
 
 Danmaku* Pattern::get_danmaku() {
     return danmaku;
+}
+
+uint32_t Pattern::effect_bitmask(Array p_names) {
+    uint32_t mask = 0;
+    for (int i = 0; i != effects.size(); ++i) {
+        if (p_names.has(effects[i]->name)) {
+            mask |= (1 << i);
+        }
+    }
+    return mask;
 }
 
 void Pattern::single(Dictionary p_override) {
