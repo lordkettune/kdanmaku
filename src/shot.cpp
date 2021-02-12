@@ -67,7 +67,6 @@ void Shot::_register_methods() {
 
 void Shot::_init() {
     flags = 0;
-    effects = 0;
     owner = nullptr;
     local_id = 0;
     global_id = 0;

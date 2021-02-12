@@ -28,7 +28,6 @@ public:
         FLAG_COLLIDING = 4
     };
 
-    uint32_t effects;
     uint32_t flags;
 
     Pattern* owner;

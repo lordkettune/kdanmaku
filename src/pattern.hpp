@@ -16,7 +16,7 @@
 #include "utils.hpp"
 #include "danmaku.hpp"
 #include "shot.hpp"
-#include "shot_effect.hpp"
+#include "command.hpp"
 
 namespace godot {
 
@@ -38,15 +38,10 @@ public:
     void layered(int p_layers, float p_min, float p_max, Dictionary p_override);
     void layered_circle(int p_count, int p_layers, float p_min, float p_max, Dictionary p_override);
     void layered_fan(int p_count, float p_theta, int p_layers, float p_min, float p_max, Dictionary p_override);
-
-    // Fires a custom pattern.
-    // Custom patterns are implemented via the pattern's delegate.
-    // The delegate method should be in the format:
-    //    func custom(count, index, shot):
-    //        pass
-    // This method will be called for every shot fired, at which point you should set the speed, direction,
-    // and whatever other parameters you want to initialize.
     void custom(int p_count, String p_name, Dictionary p_override);
+
+    template<auto Fn, typename... Args>
+    Pattern* push_command(Args... p_args);
 
     template <typename F>
     void clear(F p_constraint);
@@ -58,27 +53,32 @@ public:
 
     static void _register_methods();
     void _init();
+    ~Pattern();
 
 private:
     Danmaku* danmaku;                // Parent Danmaku object
     Vector<Shot*> shots;             // Shots owned by this Pattern
-    Vector<Ref<ShotEffect>> effects; // Registered shot effects
-
-    uint32_t effect_bitmask(Array p_names);
+    Vector<ICommand*> commands;      // Shot command queue
     
     template <typename T>
     T param(String p_key, const Dictionary& p_override, T p_default);
 
-    template <typename F>
-    void pattern(int p_count, const Dictionary& p_override, F p_callback);
+    template <typename Fn>
+    void pattern(int p_count, const Dictionary& p_override, Fn p_callback);
 };
 
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 // Template method implementations
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 
-template <typename F>
-void Pattern::clear(F p_constraint) {
+template <auto Fn, typename... Args>
+Pattern* Pattern::push_command(Args... p_args) {
+    commands.push_back(new Command<Args...>(Fn, p_args...));
+    return this;
+}
+
+template <typename Fn>
+void Pattern::clear(Fn p_constraint) {
     for (Shot* shot : shots) {
         if (p_constraint(shot)) {
             shot->unflag(Shot::FLAG_ACTIVE);
@@ -97,8 +97,8 @@ T Pattern::param(String p_key, const Dictionary& p_override, T p_default) {
     }
 }
 
-template <typename F>
-void Pattern::pattern(int p_count, const Dictionary& p_override, F p_callback) {
+template <typename Fn>
+void Pattern::pattern(int p_count, const Dictionary& p_override, Fn p_callback) {
     if (danmaku == nullptr) {
         ERR_PRINT("Pattern is not a descendent of a Danmaku node!");
         return;
@@ -106,7 +106,6 @@ void Pattern::pattern(int p_count, const Dictionary& p_override, F p_callback) {
 
     int sprite_id = danmaku->get_sprite_id(param<String>("sprite", p_override, ""));
     Ref<ShotSprite> sprite = danmaku->get_sprite(sprite_id);
-    uint32_t effects = effect_bitmask(param<Array>("effects", p_override, Array()));
 
     Vector2 offset = param<Vector2>("offset", p_override, Vector2(0, 0));
     float rotation = param<float>("rotation", p_override, 0);
@@ -122,7 +121,6 @@ void Pattern::pattern(int p_count, const Dictionary& p_override, F p_callback) {
     for (int i = 0; i != p_count; ++i) {
         Shot* shot = danmaku->capture();
         shot->flags = Shot::FLAG_ACTIVE;
-        shot->effects = effects;
         shot->time = 0;
         shot->owner = this;
         shot->local_id = i;

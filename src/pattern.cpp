@@ -54,9 +54,10 @@ void Pattern::_physics_process(float p_delta) {
         shot->position += shot->direction * shot->speed;
         shot->global_position = transform.xform(shot->position);
 
-        for (int i = 0; i != effects.size(); ++i) {
-            if (shot->effects & (1 << i)) {
-                effects[i]->execute(shot);
+        for (int i = 0; i != commands.size(); ++i) {
+            int status = commands[i]->execute(shot);
+            if (status == STATUS_EXIT) {
+                break;
             }
         }
 
@@ -126,16 +127,6 @@ Danmaku* Pattern::get_danmaku() {
     return danmaku;
 }
 
-uint32_t Pattern::effect_bitmask(Array p_names) {
-    uint32_t mask = 0;
-    for (int i = 0; i != effects.size(); ++i) {
-        if (p_names.has(effects[i]->name)) {
-            mask |= (1 << i);
-        }
-    }
-    return mask;
-}
-
 void Pattern::single(Dictionary p_override) {
     pattern(1, p_override, [](Shot* p_shot) {});
 }
@@ -203,6 +194,16 @@ void Pattern::custom(int p_count, String p_name, Dictionary p_override) {
     });
 }
 
+template<auto Fn, typename... Args>
+inline void command_proxy(const char* p_name, int(*_)(Shot*, Args...)) {
+    register_method(p_name, &Pattern::push_command<Fn, Args...>);
+}
+
+template<auto Fn>
+void register_command(const char* p_name) {
+    command_proxy<Fn>(p_name, Fn);
+}
+
 void Pattern::_register_methods() {
     register_property<Pattern, Ref<Reference>>("delegate", &Pattern::delegate, nullptr);
     register_property<Pattern, Dictionary>("parameters", &Pattern::parameters, Dictionary());
@@ -221,10 +222,19 @@ void Pattern::_register_methods() {
     register_method("fan", &Pattern::fan);
     register_method("layered_fan", &Pattern::layered_fan);
     register_method("custom", &Pattern::custom);
+
+    register_command<c_accelerate>("accelerate");
+    register_command<c_rotate>("rotate");
 }
 
 void Pattern::_init() {
     danmaku = nullptr;
     delegate = nullptr;
     parameters = Dictionary();
+}
+
+Pattern::~Pattern() {
+    for (ICommand* command : commands) {
+        delete command;
+    }
 }
