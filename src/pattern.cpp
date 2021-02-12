@@ -54,10 +54,11 @@ void Pattern::_physics_process(float p_delta) {
         shot->position += shot->direction * shot->speed;
         shot->global_position = transform.xform(shot->position);
 
-        for (int i = 0; i != commands.size(); ++i) {
-            int status = commands[i]->execute(shot);
-            if (status == STATUS_EXIT) {
-                break;
+        if (has_effects) {
+            for (int i = 0; i != MAX_EFFECTS; ++i) {
+                if (effects[i] != nullptr && shot->has_effect(i)) {
+                    effects[i]->execute(shot);
+                }
             }
         }
 
@@ -127,6 +128,18 @@ Danmaku* Pattern::get_danmaku() {
     return danmaku;
 }
 
+ShotEffect* Pattern::make_effect(int p_id) {
+    ERR_FAIL_INDEX_V(p_id, MAX_EFFECTS, nullptr);
+
+    has_effects = true;
+
+    if (effects[p_id] != nullptr) {
+        effects[p_id]->free();
+    }
+    effects[p_id] = ShotEffect::_new();
+    return effects[p_id];
+}
+
 void Pattern::single(Dictionary p_override) {
     pattern(1, p_override, [](Shot* p_shot) {});
 }
@@ -194,16 +207,6 @@ void Pattern::custom(int p_count, String p_name, Dictionary p_override) {
     });
 }
 
-template<auto Fn, typename... Args>
-inline void command_proxy(const char* p_name, int(*_)(Shot*, Args...)) {
-    register_method(p_name, &Pattern::push_command<Fn, Args...>);
-}
-
-template<auto Fn>
-void register_command(const char* p_name) {
-    command_proxy<Fn>(p_name, Fn);
-}
-
 void Pattern::_register_methods() {
     register_property<Pattern, Ref<Reference>>("delegate", &Pattern::delegate, nullptr);
     register_property<Pattern, Dictionary>("parameters", &Pattern::parameters, Dictionary());
@@ -215,6 +218,8 @@ void Pattern::_register_methods() {
 
     register_method("get_danmaku", &Pattern::get_danmaku);
 
+    register_method("make_effect", &Pattern::make_effect);
+
     register_method("single", &Pattern::single);
     register_method("layered", &Pattern::layered);
     register_method("circle", &Pattern::circle);
@@ -222,19 +227,22 @@ void Pattern::_register_methods() {
     register_method("fan", &Pattern::fan);
     register_method("layered_fan", &Pattern::layered_fan);
     register_method("custom", &Pattern::custom);
-
-    register_command<c_accelerate>("accelerate");
-    register_command<c_rotate>("rotate");
 }
 
 void Pattern::_init() {
     danmaku = nullptr;
     delegate = nullptr;
     parameters = Dictionary();
+    has_effects = false;
+    for (int i = 0; i != MAX_EFFECTS; ++i) {
+        effects[i] = nullptr;
+    }
 }
 
 Pattern::~Pattern() {
-    for (ICommand* command : commands) {
-        delete command;
+    for (int i = 0; i != MAX_EFFECTS; ++i) {
+        if (effects[i] != nullptr) {
+            effects[i]->free();
+        }
     }
 }

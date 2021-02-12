@@ -29,6 +29,7 @@ public:
     };
 
     uint32_t flags;
+    uint32_t effects;
 
     Pattern* owner;
     int global_id;
@@ -42,14 +43,17 @@ public:
     float speed;
     float radius;
 
-    inline void flag(int p_flag)    { flags |= p_flag;  }
-    inline void unflag(int p_flag)  { flags &= ~p_flag; }
-    inline bool flagged(int p_flag) { return flags & p_flag; }
+    inline void flag(int p_flag)     { flags |= p_flag;  }
+    inline void unflag(int p_flag)   { flags &= ~p_flag; }
+    inline bool flagged(int p_flag)  { return flags & p_flag; }
+    inline bool has_effect(int p_id) { return effects & (1 << p_id); }
 
     Pattern* get_pattern();
     Danmaku* get_danmaku();
 
     int get_time();
+
+    void set_effects(Array p_effects);
 
     void set_sprite(String p_key);
     String get_sprite();

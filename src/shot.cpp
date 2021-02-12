@@ -19,6 +19,10 @@ int Shot::get_time() {
     return time;
 }
 
+void Shot::set_effects(Array p_effects) {
+    effects = ShotEffect::bitmask(p_effects);
+}
+
 void Shot::set_sprite(String p_key) {
     Danmaku* danmaku = get_danmaku();
     int id = danmaku->get_sprite_id(p_key);
@@ -61,12 +65,14 @@ void Shot::_register_methods() {
     register_property<Shot, float>("rotation", &Shot::set_rotation, &Shot::get_rotation, 0);
     register_property<Shot, int>("time", nullptr, &Shot::get_time, 0);
 
+    register_method("set_effects", &Shot::set_effects);
     register_method("get_pattern", &Shot::get_pattern);
     register_method("get_danmaku", &Shot::get_danmaku);
 }
 
 void Shot::_init() {
     flags = 0;
+    effects = 0;
     owner = nullptr;
     local_id = 0;
     global_id = 0;

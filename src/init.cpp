@@ -10,6 +10,7 @@
 #include "danmaku.hpp"
 #include "pattern.hpp"
 #include "shot_sprite.hpp"
+#include "shot_effect.hpp"
 #include "hitbox.hpp"
 #include "frames.hpp"
 
@@ -28,6 +29,7 @@ extern "C" void GDN_EXPORT godot_nativescript_init(void* p_handle) {
 
     register_class<Shot>();
     register_class<ShotSprite>();
+    register_class<ShotEffect>();
     register_class<Danmaku>();
     register_class<Hitbox>();
     register_class<Pattern>();

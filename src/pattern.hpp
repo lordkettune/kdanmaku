@@ -16,7 +16,9 @@
 #include "utils.hpp"
 #include "danmaku.hpp"
 #include "shot.hpp"
-#include "command.hpp"
+#include "shot_effect.hpp"
+
+#define MAX_EFFECTS 32
 
 namespace godot {
 
@@ -32,6 +34,8 @@ class Pattern : public Node2D {
 public:
     Danmaku* get_danmaku();
 
+    ShotEffect* make_effect(int p_id);
+
     void single(Dictionary p_override);
     void circle(int p_count, Dictionary p_override);
     void fan(int p_count, float p_theta, Dictionary p_override);
@@ -39,9 +43,6 @@ public:
     void layered_circle(int p_count, int p_layers, float p_min, float p_max, Dictionary p_override);
     void layered_fan(int p_count, float p_theta, int p_layers, float p_min, float p_max, Dictionary p_override);
     void custom(int p_count, String p_name, Dictionary p_override);
-
-    template<auto Fn, typename... Args>
-    Pattern* push_command(Args... p_args);
 
     template <typename F>
     void clear(F p_constraint);
@@ -56,9 +57,10 @@ public:
     ~Pattern();
 
 private:
-    Danmaku* danmaku;                // Parent Danmaku object
-    Vector<Shot*> shots;             // Shots owned by this Pattern
-    Vector<ICommand*> commands;      // Shot command queue
+    Danmaku* danmaku;                 // Parent Danmaku object
+    Vector<Shot*> shots;              // Shots owned by this Pattern
+    ShotEffect* effects[MAX_EFFECTS]; // Registered shot effects
+    bool has_effects;
     
     template <typename T>
     T param(String p_key, const Dictionary& p_override, T p_default);
@@ -70,12 +72,6 @@ private:
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 // Template method implementations
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
-
-template <auto Fn, typename... Args>
-Pattern* Pattern::push_command(Args... p_args) {
-    commands.push_back(new Command<Args...>(Fn, p_args...));
-    return this;
-}
 
 template <typename Fn>
 void Pattern::clear(Fn p_constraint) {
@@ -106,6 +102,7 @@ void Pattern::pattern(int p_count, const Dictionary& p_override, Fn p_callback) 
 
     int sprite_id = danmaku->get_sprite_id(param<String>("sprite", p_override, ""));
     Ref<ShotSprite> sprite = danmaku->get_sprite(sprite_id);
+    uint32_t effects = ShotEffect::bitmask(param<Array>("effects", p_override, Array()));
 
     Vector2 offset = param<Vector2>("offset", p_override, Vector2(0, 0));
     float rotation = param<float>("rotation", p_override, 0);
@@ -121,6 +118,7 @@ void Pattern::pattern(int p_count, const Dictionary& p_override, Fn p_callback) 
     for (int i = 0; i != p_count; ++i) {
         Shot* shot = danmaku->capture();
         shot->flags = Shot::FLAG_ACTIVE;
+        shot->effects = effects;
         shot->time = 0;
         shot->owner = this;
         shot->local_id = i;
