@@ -40,7 +40,7 @@ class Danmaku : public Node2D {
     Array registered_sprites;
 
     Rect2 region;                 // Gameplay rectangle -- note that this is in global coordinates!
-    int tolerance;                // Distance outside of gameplay rect where shots will despawn
+    float tolerance;              // Distance outside of gameplay rect where shots will despawn
     
 public:
     void add_pattern(Pattern* p_pattern);

@@ -34,6 +34,9 @@ void Pattern::_physics_process(float p_delta) {
 
     Transform2D transform = get_global_transform();
     Rect2 region = danmaku->get_region();
+    if (despawn_distance != 0) {
+        region = region.grow(despawn_distance);
+    }
 
     Hitbox* hitbox = danmaku->get_hitbox();
     Vector2 hitbox_pos = Vector2(0, 0);
@@ -210,6 +213,7 @@ void Pattern::custom(int p_count, String p_name, Dictionary p_override) {
 void Pattern::_register_methods() {
     register_property<Pattern, Ref<Reference>>("delegate", &Pattern::delegate, nullptr);
     register_property<Pattern, Dictionary>("parameters", &Pattern::parameters, Dictionary());
+    register_property<Pattern, float>("despawn_distance", &Pattern::despawn_distance, 0);
     
     register_method("_enter_tree", &Pattern::_enter_tree);
     register_method("_exit_tree", &Pattern::_exit_tree);
@@ -232,6 +236,7 @@ void Pattern::_register_methods() {
 void Pattern::_init() {
     danmaku = nullptr;
     delegate = nullptr;
+    despawn_distance = 0;
     parameters = Dictionary();
     has_effects = false;
     for (int i = 0; i != MAX_EFFECTS; ++i) {

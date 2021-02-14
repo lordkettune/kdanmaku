@@ -28,8 +28,9 @@ namespace godot {
 class Pattern : public Node2D {
     GODOT_CLASS(Pattern, Node2D)
 
-    Dictionary parameters;        // Firing parameters
-    Ref<Reference> delegate;      // Any object set by the user that has methods for custom patterns, actions, and selectors
+    Dictionary parameters;     // Firing parameters
+    Ref<Reference> delegate;   // Any object set by the user that has methods for custom patterns, actions, and selectors
+    float despawn_distance;    // Extra distance outside of Danmaku region where shot will despawn
 
 public:
     Danmaku* get_danmaku();

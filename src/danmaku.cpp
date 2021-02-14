@@ -105,7 +105,7 @@ void Danmaku::clear_rect(Rect2 p_rect) {
 void Danmaku::_register_methods() {
     register_property<Danmaku, int>("max_shots", &Danmaku::max_shots, 2048);
     register_property<Danmaku, Rect2>("region", &Danmaku::region, Rect2(0, 0, 384, 448));
-    register_property<Danmaku, int>("tolerance", &Danmaku::tolerance, 64);
+    register_property<Danmaku, float>("tolerance", &Danmaku::tolerance, 64);
     register_property<Danmaku, Array>("sprites", &Danmaku::registered_sprites, Array());
 
     register_method("is_danmaku", &Danmaku::is_danmaku);
