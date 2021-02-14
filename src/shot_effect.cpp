@@ -8,6 +8,29 @@ using namespace godot;
 // Standard commands
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 
+int c_at(Shot* p_shot, int p_time) {
+    return p_shot->time == p_time ? STATUS_CONTINUE : STATUS_EXIT;
+}
+
+int c_after(Shot* p_shot, int p_time) {
+    return p_shot->time > p_time ? STATUS_CONTINUE : STATUS_EXIT;
+}
+
+int c_before(Shot* p_shot, int p_time) {
+    return p_shot->time < p_time ? STATUS_CONTINUE : STATUS_EXIT;
+}
+
+int c_between(Shot* p_shot, int p_start, int p_end) {
+    return p_shot->time > p_start && p_shot->time < p_end ? STATUS_CONTINUE : STATUS_EXIT;
+}
+
+int c_every(Shot* p_shot, int p_start, int p_interval) {
+    if (p_shot->time >= p_start) {
+        return (p_shot->time - p_start) % p_interval == 0 ? STATUS_CONTINUE : STATUS_EXIT;
+    }
+    return STATUS_EXIT;
+}
+
 int c_accelerate(Shot* p_shot, float p_amount) {
     p_shot->speed += p_amount;
     return STATUS_CONTINUE;
@@ -66,6 +89,12 @@ void register_command(const char* p_name) {
 }
 
 void ShotEffect::_register_methods() {
+    register_command<c_at>("at");
+    register_command<c_after>("after");
+    register_command<c_before>("before");
+    register_command<c_between>("between");
+    register_command<c_every>("every");
+
     register_command<c_accelerate>("accelerate");
     register_command<c_min_speed>("min_speed");
     register_command<c_max_speed>("max_speed");
