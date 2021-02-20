@@ -33,6 +33,37 @@ int c_every(Shot* p_shot, int p_start, int p_interval) {
 }
 
 
+int c_set_position(Shot* p_shot, Vector2 p_position) {
+    p_shot->position = p_position;
+    return STATUS_CONTINUE;
+}
+
+int c_set_speed(Shot* p_shot, float p_speed) {
+    p_shot->speed = p_speed;
+    return STATUS_CONTINUE;
+}
+
+int c_set_direction(Shot* p_shot, Vector2 p_direction) {
+    p_shot->direction = p_direction;
+    return STATUS_CONTINUE;
+}
+
+int c_set_rotation(Shot* p_shot, float p_rotation) {
+    p_shot->set_rotation(p_rotation);
+    return STATUS_CONTINUE;
+}
+
+int c_set_sprite(Shot* p_shot, String p_sprite) {
+    p_shot->set_sprite(p_sprite);
+    return STATUS_CONTINUE;
+}
+
+int c_set_effects(Shot* p_shot, Array p_effects) {
+    p_shot->set_effects(p_effects);
+    return STATUS_CONTINUE;
+}
+
+
 int c_despawn(Shot* p_shot) {
     p_shot->unflag(Shot::FLAG_ACTIVE);
     return STATUS_EXIT;
@@ -149,6 +180,13 @@ void ShotEffect::_register_methods() {
     register_command<c_before>("before");
     register_command<c_between>("between");
     register_command<c_every>("every");
+
+    register_command<c_set_position>("set_position");
+    register_command<c_set_speed>("set_speed");
+    register_command<c_set_direction>("set_direction");
+    register_command<c_set_rotation>("set_rotation");
+    register_command<c_set_sprite>("set_sprite");
+    register_command<c_set_effects>("set_effects");
 
     register_command<c_despawn>("despawn");
     register_command<c_accelerate>("accelerate");
