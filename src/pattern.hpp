@@ -105,9 +105,16 @@ void Pattern::pattern(int p_count, const Dictionary& p_override, Fn p_callback) 
     Ref<ShotSprite> sprite = danmaku->get_sprite(sprite_id);
     uint32_t effects = ShotEffect::bitmask(param<Array>("effects", p_override, Array()));
 
-    Vector2 offset = param<Vector2>("offset", p_override, Vector2(0, 0));
-    float rotation = param<float>("rotation", p_override, 0);
-    float speed = param<float>("speed", p_override, 0);
+    Vector2 offset      = param<Vector2>("offset",   p_override, Vector2(0, 0));
+    Vector2 base_offset = param<Vector2>("__offset", p_override, Vector2(0, 0));
+
+    float rotation      = param<float>("rotation",   p_override, 0);
+    float base_rotation = param<float>("__rotation", p_override, 0);
+
+    float speed         = param<float>("speed", p_override, 0);
+
+    offset += base_offset;
+    rotation += base_rotation;
 
     Vector2 direction = Vector2(1, 0);
     if (param<bool>("aim", p_override, false)) {

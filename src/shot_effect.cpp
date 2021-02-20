@@ -1,6 +1,7 @@
 #include "shot_effect.hpp"
 
 #include "shot.hpp"
+#include "pattern.hpp"
 
 using namespace godot;
 
@@ -31,6 +32,12 @@ int c_every(Shot* p_shot, int p_start, int p_interval) {
     return STATUS_EXIT;
 }
 
+
+int c_despawn(Shot* p_shot) {
+    p_shot->unflag(Shot::FLAG_ACTIVE);
+    return STATUS_EXIT;
+}
+
 int c_accelerate(Shot* p_shot, float p_amount) {
     p_shot->speed += p_amount;
     return STATUS_CONTINUE;
@@ -52,6 +59,54 @@ int c_max_speed(Shot* p_shot, float p_max) {
 
 int c_rotate(Shot* p_shot, float p_amount) {
     p_shot->direction = p_shot->direction.rotated(p_amount);
+    return STATUS_CONTINUE;
+}
+
+
+inline void sub_init(Shot* p_shot, Dictionary& p_override) {
+    p_override["__offset"] = p_shot->position;
+    p_override["__rotation"] = p_shot->get_rotation();
+}
+
+int c_sub_single(Shot* p_shot, Dictionary p_override) {
+    sub_init(p_shot, p_override);
+    p_shot->get_pattern()->single(p_override);
+    return STATUS_CONTINUE;
+}
+
+int c_sub_circle(Shot* p_shot, int p_count, Dictionary p_override) {
+    sub_init(p_shot, p_override);
+    p_shot->get_pattern()->circle(p_count, p_override);
+    return STATUS_CONTINUE;
+}
+
+int c_sub_fan(Shot* p_shot, int p_count, float p_theta, Dictionary p_override) {
+    sub_init(p_shot, p_override);
+    p_shot->get_pattern()->fan(p_count, p_theta, p_override);
+    return STATUS_CONTINUE;
+}
+
+int c_sub_layered(Shot* p_shot, int p_layers, float p_min, float p_max, Dictionary p_override) {
+    sub_init(p_shot, p_override);
+    p_shot->get_pattern()->layered(p_layers, p_min, p_max, p_override);
+    return STATUS_CONTINUE;
+}
+
+int c_sub_layered_circle(Shot* p_shot, int p_count, int p_layers, float p_min, float p_max, Dictionary p_override) {
+    sub_init(p_shot, p_override);
+    p_shot->get_pattern()->layered_circle(p_count, p_layers, p_min, p_max, p_override);
+    return STATUS_CONTINUE;
+}
+
+int c_sub_layered_fan(Shot* p_shot, int p_count, float p_theta, int p_layers, float p_min, float p_max, Dictionary p_override) {
+    sub_init(p_shot, p_override);
+    p_shot->get_pattern()->layered_fan(p_count, p_theta, p_layers, p_min, p_max, p_override);
+    return STATUS_CONTINUE;
+}
+
+int c_sub_custom(Shot* p_shot, int p_count, String p_name, Dictionary p_override) {
+    sub_init(p_shot, p_override);
+    p_shot->get_pattern()->custom(p_count, p_name, p_override);
     return STATUS_CONTINUE;
 }
 
@@ -95,10 +150,19 @@ void ShotEffect::_register_methods() {
     register_command<c_between>("between");
     register_command<c_every>("every");
 
+    register_command<c_despawn>("despawn");
     register_command<c_accelerate>("accelerate");
     register_command<c_min_speed>("min_speed");
     register_command<c_max_speed>("max_speed");
     register_command<c_rotate>("rotate");
+
+    register_command<c_sub_single>("sub_single");
+    register_command<c_sub_circle>("sub_circle");
+    register_command<c_sub_fan>("sub_fan");
+    register_command<c_sub_layered>("sub_layered");
+    register_command<c_sub_layered_circle>("sub_layered_circle");
+    register_command<c_sub_layered_fan>("sub_layered_fan");
+    register_command<c_sub_custom>("sub_custom");
 }
 
 ShotEffect::~ShotEffect() {
