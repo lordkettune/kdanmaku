@@ -32,6 +32,11 @@ void Pattern::_exit_tree() {
 void Pattern::_physics_process(float p_delta) {
     ERR_FAIL_COND(danmaku == nullptr);
 
+    if (autodelete && shots.empty()) {
+        queue_free();
+        return;
+    }
+
     Transform2D transform = get_global_transform();
     Rect2 region = danmaku->get_region();
     if (despawn_distance != 0) {
@@ -214,6 +219,7 @@ void Pattern::_register_methods() {
     register_property<Pattern, Ref<Reference>>("delegate", &Pattern::delegate, nullptr);
     register_property<Pattern, Dictionary>("parameters", &Pattern::parameters, Dictionary());
     register_property<Pattern, float>("despawn_distance", &Pattern::despawn_distance, 0);
+    register_property<Pattern, bool>("autodelete", &Pattern::autodelete, false);
     
     register_method("_enter_tree", &Pattern::_enter_tree);
     register_method("_exit_tree", &Pattern::_exit_tree);
@@ -237,6 +243,7 @@ void Pattern::_init() {
     danmaku = nullptr;
     delegate = nullptr;
     despawn_distance = 0;
+    autodelete = false;
     parameters = Dictionary();
     has_effects = false;
     for (int i = 0; i != MAX_EFFECTS; ++i) {

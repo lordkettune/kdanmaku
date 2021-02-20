@@ -31,6 +31,7 @@ class Pattern : public Node2D {
     Dictionary parameters;     // Firing parameters
     Ref<Reference> delegate;   // Any object set by the user that has methods for custom patterns, actions, and selectors
     float despawn_distance;    // Extra distance outside of Danmaku region where shot will despawn
+    bool autodelete;           // Pattern will delete itself once all of its shots have despawned
 
 public:
     Danmaku* get_danmaku();
