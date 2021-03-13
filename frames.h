@@ -21,11 +21,11 @@ protected:
     static void _bind_methods();
 
 public:
-    int get_frames_left();
+    int get_frames_left() const;
 
     Frames* start(int p_frames);
     void stop();
-    bool is_stopped();
+    bool is_stopped() const;
 
     Frames();
 };

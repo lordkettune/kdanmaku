@@ -12,10 +12,6 @@ void Frames::_notification(int p_what) {
     }
 }
 
-int Frames::get_frames_left() {
-    return frames_left;
-}
-
 Frames* Frames::start(int p_frames) {
     ERR_FAIL_COND_V(!is_inside_tree(), this);
     frames_left = p_frames;
@@ -28,7 +24,11 @@ void Frames::stop() {
     stopped = true;
 }
 
-bool Frames::is_stopped() {
+int Frames::get_frames_left() const {
+    return frames_left;
+}
+
+bool Frames::is_stopped() const {
     return frames_left == -1;
 }
 
