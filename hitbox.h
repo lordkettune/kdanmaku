@@ -1,6 +1,3 @@
-#ifndef __KD_HITBOX_HPP__
-#define __KD_HITBOX_HPP__
-
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 // *:･ﾟ✧ hitbox.hpp *:･ﾟ✧
 // 
@@ -8,16 +5,16 @@
 // This object doesn't really do much itself -- the collisions are handled by Patterns.
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 
-#include <Godot.hpp>
-#include <Node2D.hpp>
+#ifndef HITBOX_H
+#define HITBOX_H
 
-#include "danmaku.hpp"
-#include "shot.hpp"
+#include "scene/2d/node_2d.h"
 
-namespace godot {
+#include "danmaku.h"
+#include "shot.h"
 
 class Hitbox : public Node2D {
-    GODOT_CLASS(Hitbox, Node2D)
+    GDCLASS(Hitbox, Node2D);
 
     float collision_radius;
     float graze_radius;
@@ -45,8 +42,6 @@ private:
     Danmaku* danmaku;
     Shot* grazing_shot;
     Shot* colliding_shot;
-};
-
 };
 
 #endif

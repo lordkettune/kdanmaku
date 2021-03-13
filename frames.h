@@ -1,6 +1,3 @@
-#ifndef __KD_FRAMES_HPP__
-#define __KD_FRAMES_HPP__
-
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 // *:･ﾟ✧ frames.hpp *:･ﾟ✧
 // 
@@ -8,16 +5,20 @@
 // to be consistent with the way time works in the rest of the plugin.
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 
-#include <Godot.hpp>
-#include <Node.hpp>
+#ifndef FRAMES_H
+#define FRAMES_H
 
-namespace godot {
+#include "scene/main/node.h"
 
 class Frames : public Node {
-    GODOT_CLASS(Frames, Node);
+    GDCLASS(Frames, Node);
 
     int frames_left;
     bool stopped;
+
+protected:
+    void _notification(int p_what);
+    static void _bind_methods();
 
 public:
     int get_frames_left();
@@ -26,12 +27,7 @@ public:
     void stop();
     bool is_stopped();
 
-    void _physics_process(float p_delta);
-
-    static void _register_methods();
-    void _init();
-};
-
+    Frames();
 };
 
 #endif

@@ -1,6 +1,3 @@
-#ifndef __KD_PATTERN_HPP__
-#define __KD_PATTERN_HPP__
-
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 // *:･ﾟ✧ pattern.hpp *:･ﾟ✧
 // 
@@ -9,24 +6,22 @@
 // node upon deletion or when shots are cleared.
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 
-#include <Godot.hpp>
-#include <Node2D.hpp>
-#include <Reference.hpp>
+#ifndef PATTERN_H
+#define PATTERN_H
 
-#include "utils.hpp"
-#include "danmaku.hpp"
-#include "shot.hpp"
-#include "shot_effect.hpp"
+#include "scene/2d/node_2d.h"
+
+#include "danmaku.h"
+#include "shot.h"
+#include "shot_effect.h"
 
 #define MAX_EFFECTS 32
-
-namespace godot {
 
 // Note that this extends Node2D, and therefore has a transform.
 // Shots will respect this transform. Therefore, if you rotate, move, or scale a Pattern, its Shots will move 
 // respectively. This can be useful for advanced patterns in which a group of shots move together.
 class Pattern : public Node2D {
-    GODOT_CLASS(Pattern, Node2D)
+    GDCLASS(Pattern, Node2D);
 
     Dictionary parameters;     // Firing parameters
     Ref<Reference> delegate;   // Any object set by the user that has methods for custom patterns, actions, and selectors
@@ -104,7 +99,7 @@ void Pattern::pattern(int p_count, const Dictionary& p_override, Fn p_callback) 
 
     int sprite_id = danmaku->get_sprite_id(param<String>("sprite", p_override, ""));
     Ref<ShotSprite> sprite = danmaku->get_sprite(sprite_id);
-    uint32_t effects = ShotEffect::bitmask(param<Array>("effects", p_override, Array()));
+    unsigned int effects = ShotEffect::bitmask(param<Array>("effects", p_override, Array()));
 
     Vector2 offset      = param<Vector2>("offset",   p_override, Vector2(0, 0));
     Vector2 base_offset = param<Vector2>("__offset", p_override, Vector2(0, 0));
@@ -140,7 +135,5 @@ void Pattern::pattern(int p_count, const Dictionary& p_override, Fn p_callback) 
         shots.push_back(shot);
     }
 }
-
-};
 
 #endif

@@ -1,6 +1,4 @@
-#include "shot_sprite.hpp"
-
-using namespace godot;
+#include "shot_sprite.h"
 
 void ShotSprite::_register_methods() {
     register_property<ShotSprite, String>("key", &ShotSprite::key, "");

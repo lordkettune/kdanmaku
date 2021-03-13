@@ -1,10 +1,7 @@
-#include "pattern.hpp"
+#include "pattern.h"
+#include "hitbox.h"
 
 #include <Math.hpp>
-
-#include "hitbox.hpp"
-
-using namespace godot;
 
 void Pattern::_enter_tree() {
     Node* parent = get_parent();
@@ -221,22 +218,22 @@ void Pattern::_register_methods() {
     register_property<Pattern, float>("despawn_distance", &Pattern::despawn_distance, 0);
     register_property<Pattern, bool>("autodelete", &Pattern::autodelete, false);
     
-    register_method("_enter_tree", &Pattern::_enter_tree);
-    register_method("_exit_tree", &Pattern::_exit_tree);
-    register_method("_physics_process", &Pattern::_physics_process);
-    register_method("_draw", &Pattern::_draw);
+    ClassDB::bind_method(D_METHOD("_enter_tree"), &Pattern::_enter_tree);
+    ClassDB::bind_method(D_METHOD("_exit_tree"), &Pattern::_exit_tree);
+    ClassDB::bind_method(D_METHOD("_physics_process"), &Pattern::_physics_process);
+    ClassDB::bind_method(D_METHOD("_draw"), &Pattern::_draw);
 
-    register_method("get_danmaku", &Pattern::get_danmaku);
+    ClassDB::bind_method(D_METHOD("get_danmaku"), &Pattern::get_danmaku);
 
-    register_method("make_effect", &Pattern::make_effect);
+    ClassDB::bind_method(D_METHOD("make_effect"), &Pattern::make_effect);
 
-    register_method("single", &Pattern::single);
-    register_method("layered", &Pattern::layered);
-    register_method("circle", &Pattern::circle);
-    register_method("layered_circle", &Pattern::layered_circle);
-    register_method("fan", &Pattern::fan);
-    register_method("layered_fan", &Pattern::layered_fan);
-    register_method("custom", &Pattern::custom);
+    ClassDB::bind_method(D_METHOD("single"), &Pattern::single);
+    ClassDB::bind_method(D_METHOD("layered"), &Pattern::layered);
+    ClassDB::bind_method(D_METHOD("circle"), &Pattern::circle);
+    ClassDB::bind_method(D_METHOD("layered_circle"), &Pattern::layered_circle);
+    ClassDB::bind_method(D_METHOD("fan"), &Pattern::fan);
+    ClassDB::bind_method(D_METHOD("layered_fan"), &Pattern::layered_fan);
+    ClassDB::bind_method(D_METHOD("custom"), &Pattern::custom);
 }
 
 void Pattern::_init() {

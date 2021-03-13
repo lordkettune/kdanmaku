@@ -1,6 +1,3 @@
-#ifndef __KD_SHOT_HPP__
-#define __KD_SHOT_HPP__
-
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 // *:･ﾟ✧ shot.hpp *:･ﾟ✧
 // 
@@ -8,18 +5,16 @@
 // Managed by Danmaku and Pattern nodes.
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 
-#include <Godot.hpp>
-#include <Object.hpp>
+#ifndef SHOT_H
+#define SHOT_H
 
-#include <stdint.h>
-
-namespace godot {
+#include "core/object/object.h"
 
 class Pattern;
 class Danmaku;
 
 class Shot : public Object {
-    GODOT_CLASS(Shot, Object)
+    GDCLASS(Shot, Object);
 
 public:
     enum {
@@ -28,8 +23,8 @@ public:
         FLAG_COLLIDING = 4
     };
 
-    uint32_t flags;
-    uint32_t effects;
+    unsigned int flags;
+    unsigned int effects;
 
     Pattern* owner;
     int global_id;
@@ -67,7 +62,5 @@ public:
     static void _register_methods();
     void _init();
 };
-
-}
 
 #endif

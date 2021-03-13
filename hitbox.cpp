@@ -1,6 +1,4 @@
-#include "hitbox.hpp"
-
-using namespace godot;
+#include "hitbox.h"
 
 void Hitbox::_enter_tree() {
     Node* parent = get_parent();
@@ -55,12 +53,12 @@ void Hitbox::_register_methods() {
     register_property<Hitbox, float>("graze_radius", &Hitbox::graze_radius, 16);
     register_property<Hitbox, bool>("invulnerable", &Hitbox::invulnerable, false);
 
-    register_method("_enter_tree", &Hitbox::_enter_tree);
-    register_method("_exit_tree", &Hitbox::_exit_tree);
+    ClassDB::bind_method(D_METHOD("_enter_tree"), &Hitbox::_enter_tree);
+    ClassDB::bind_method(D_METHOD("_exit_tree"), &Hitbox::_exit_tree);
 
-    register_method("get_danmaku", &Hitbox::get_danmaku);
-    register_method("get_colliding_shot", &Hitbox::get_colliding_shot);
-    register_method("get_grazing_shot", &Hitbox::get_grazing_shot);
+    ClassDB::bind_method(D_METHOD("get_danmaku"), &Hitbox::get_danmaku);
+    ClassDB::bind_method(D_METHOD("get_colliding_shot"), &Hitbox::get_colliding_shot);
+    ClassDB::bind_method(D_METHOD("get_grazing_shot"), &Hitbox::get_grazing_shot);
 
     register_signal<Hitbox>("hit", Dictionary());
     register_signal<Hitbox>("graze", Dictionary());

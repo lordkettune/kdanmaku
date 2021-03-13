@@ -1,9 +1,6 @@
-#include "shot_effect.hpp"
-
-#include "shot.hpp"
-#include "pattern.hpp"
-
-using namespace godot;
+#include "shot_effect.h"
+#include "shot.h"
+#include "pattern.h"
 
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 // Standard commands
@@ -154,8 +151,8 @@ void ShotEffect::execute(Shot* p_shot) {
     }
 }
 
-uint32_t ShotEffect::bitmask(Array p_effects) {
-    uint32_t effects = 0;
+unsigned int ShotEffect::bitmask(Array p_effects) {
+    unsigned int effects = 0;
     for (int i = 0; i != p_effects.size(); ++i) {
         if (p_effects[i].get_type() == Variant::INT) {
             effects |= (1 << (int)p_effects[i]);

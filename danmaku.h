@@ -1,6 +1,3 @@
-#ifndef __KD_DANMAKU_HPP__
-#define __KD_DANMAKU_HPP__
-
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 // *:･ﾟ✧ danmaku.hpp *:･ﾟ✧
 // 
@@ -17,31 +14,43 @@
 //     4. Keep track of the player's Hitbox.
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 
-#include <Godot.hpp>
-#include <Node2D.hpp>
+#ifndef DANMAKU_H
+#define DANMAKU_H
 
-#include <vector>
+#include "scene/2d/node_2d.h"
 
-#include "shot_sprite.hpp"
-#include "shot.hpp"
-#include "utils.hpp"
-
-namespace godot {
+#include "shot_sprite.h"
+#include "shot.h"
 
 class Hitbox;
 class Pattern;
 
-// TODO: Maybe this shouldn't extend from Node2D since it operates in global coordinates anyway?
 class Danmaku : public Node2D {
-    GODOT_CLASS(Danmaku, Node2D)
+    GDCLASS(Danmaku, Node2D);
 
-    // These can't be changed after initialization without breaking things, so they're copied to a private version in _enter_tree
-    int max_shots;
-    Array registered_sprites;
-
-    Rect2 region;                 // Gameplay rectangle -- note that this is in global coordinates!
-    float tolerance;              // Distance outside of gameplay rect where shots will despawn
+    // Gameplay rectangle -- note that this is in global coordinates!
+    Rect2 region;                 
+    float tolerance;
     
+    // Registered shot sprites
+    Vector<Ref<ShotSprite>> sprites;
+    
+    // Shot pool size
+    int max_shots;
+
+    // Shots not owned by patterns
+    Vector<Shot*> free_shots;
+
+    // Active patterns
+    Vector<Pattern*> patterns;
+    
+    // Player hitbox
+    Hitbox* hitbox;
+
+protected:
+    void _notification(int p_what);
+    static void _bind_methods();
+
 public:
     void add_pattern(Pattern* p_pattern);
     void remove_pattern(Pattern* p_pattern);
@@ -65,23 +74,7 @@ public:
     int get_active_shot_count();
     int get_pattern_count();
 
-    bool is_danmaku();
-
-    void _enter_tree();
-    void _exit_tree();
-    
-    static void _register_methods();
-    void _init();
-
-private:
-    Vector<Ref<ShotSprite>> sprites; // Registered shot sprites
-
-    Vector<Shot*> free_shots;        // Shots not owned by patterns
-    Vector<Pattern*> patterns;       // Active patterns
-    
-    Hitbox* hitbox;                  // The player
-};
-
+    Danmaku();
 };
 
 #endif

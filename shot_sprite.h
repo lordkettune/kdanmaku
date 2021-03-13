@@ -1,6 +1,3 @@
-#ifndef __KD_SHOT_SPRITE_HPP__
-#define __KD_SHOT_SPRITE_HPP__
-
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 // *:･ﾟ✧ shot_sprite.hpp *:･ﾟ✧
 // 
@@ -8,15 +5,14 @@
 // These should be registered to a Danmaku node, and will be referred to by their keys.
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 
-#include <Godot.hpp>
-#include <Texture.hpp>
-#include <Resource.hpp>
-#include <CanvasItem.hpp>
+#ifndef SHOT_SPRITE_H
+#define SHOT_SPRITE_H
 
-namespace godot {
+#include "core/io/resource.h"
+#include "scene/resources/texture.h"
 
 class ShotSprite : public Resource {
-    GODOT_CLASS(ShotSprite, Resource)
+    GDCLASS(ShotSprite, Resource);
 
 public:
     String key;              // Key that this will be referred to by during gameplay
@@ -28,8 +24,6 @@ public:
 
     static void _register_methods();
     void _init();
-};
-
 };
 
 #endif

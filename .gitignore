@@ -1,7 +1,1 @@
-.sconsign.dblite
-bin/
-obj/
-vc140.idb
-vc140.pdb
-*.obj
 .vscode/

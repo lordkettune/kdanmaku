@@ -1,30 +1,22 @@
-#include "danmaku.hpp"
-#include "pattern.hpp"
+#include "danmaku.h"
 
-#include <algorithm>
+#include "pattern.h"
 
-using namespace godot;
+void Danmaku::_notification(int p_what) {
+    switch (p_what) {
+        case NOTIFICATION_ENTER_TREE: {
+            for (int i = 0; i != max_shots; ++i) {
+                Shot* shot = Shot::_new();
+                shot->global_id = i;
+                free_shots.push_back(shot);
+            }
+        } break;
 
-// Annoying workaround for there not being a good way to check if an object is a custom type. Hopefully I can fix this in Godot 4.0.
-bool Danmaku::is_danmaku() {
-    return true;
-}
-
-void Danmaku::_enter_tree() {
-    for (int i = 0; i != max_shots; ++i) {
-        Shot* shot = Shot::_new();
-        shot->global_id = i;
-        free_shots.push_back(shot);
-    }
-
-    for (int i = 0; i != registered_sprites.size(); ++i) {
-        sprites.push_back(Object::cast_to<ShotSprite>(registered_sprites[i]));
-    }
-}
-
-void Danmaku::_exit_tree() {
-    for (int i = 0; i != max_shots; ++i) {
-        free_shots[i]->free();
+        case NOTIFICATION_EXIT_TREE: {
+            for (int i = 0; i != max_shots; ++i) {
+                free_shots[i]->free();
+            }
+        } break;
     }
 }
 
@@ -102,29 +94,24 @@ void Danmaku::clear_rect(Rect2 p_rect) {
     }
 }
 
-void Danmaku::_register_methods() {
+void Danmaku::_bind_methods() {
     register_property<Danmaku, int>("max_shots", &Danmaku::max_shots, 2048);
     register_property<Danmaku, Rect2>("region", &Danmaku::region, Rect2(0, 0, 384, 448));
     register_property<Danmaku, float>("tolerance", &Danmaku::tolerance, 64);
     register_property<Danmaku, Array>("sprites", &Danmaku::registered_sprites, Array());
 
-    register_method("is_danmaku", &Danmaku::is_danmaku);
-    register_method("_enter_tree", &Danmaku::_enter_tree);
-    register_method("_exit_tree", &Danmaku::_exit_tree);
+    ClassDB::bind_method(D_METHOD("get_free_shot_count"), &Danmaku::get_free_shot_count);
+    ClassDB::bind_method(D_METHOD("get_active_shot_count"), &Danmaku::get_active_shot_count);
+    ClassDB::bind_method(D_METHOD("get_pattern_count"), &Danmaku::get_pattern_count);
 
-    register_method("get_free_shot_count", &Danmaku::get_free_shot_count);
-    register_method("get_active_shot_count", &Danmaku::get_active_shot_count);
-    register_method("get_pattern_count", &Danmaku::get_pattern_count);
-
-    register_method("clear_circle", &Danmaku::clear_circle);
-    register_method("clear_rect", &Danmaku::clear_rect);
+    ClassDB::bind_method(D_METHOD("clear_circle"), &Danmaku::clear_circle);
+    ClassDB::bind_method(D_METHOD("clear_rect"), &Danmaku::clear_rect);
 }
 
-void Danmaku::_init() {
+Danmaku::Danmaku() {
     max_shots = 0;
     hitbox = nullptr;
     max_shots = 2048;
     region = Rect2(0, 0, 384, 448);
     tolerance = 64;
-    registered_sprites = Array();
 }

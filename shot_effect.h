@@ -1,24 +1,19 @@
-#ifndef __KD_SHOT_EFFECT_HPP__
-#define __KD_SHOT_EFFECT_HPP__
-
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 // *:･ﾟ✧ shot_effect.hpp *:･ﾟ✧
 // 
 // A ShotEffect is an object containing a list of Commands that execute on a Shot each frame.
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 
-#include <Godot.hpp>
+#ifndef SHOT_EFFECT_H
+#define SHOT_EFFECT_H
+
+#include "core/object/object.h"
 
 #include <utility>
 #include <tuple>
-#include <stdint.h>
-
-#include "utils.hpp"
 
 #define STATUS_CONTINUE 0
 #define STATUS_EXIT 1
-
-namespace godot {
 
 class Shot;
 
@@ -58,7 +53,7 @@ public:
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 
 class ShotEffect : public Object {
-    GODOT_CLASS(ShotEffect, Object)
+    GDCLASS(ShotEffect, Object);
 public:
     void execute(Shot* p_shot);
 
@@ -68,7 +63,7 @@ public:
         return this;
     }
 
-    static uint32_t bitmask(Array p_effects);
+    static unsigned int bitmask(Array p_effects);
 
     static void _register_methods();
     void _init() {}
@@ -77,7 +72,5 @@ public:
 private:
     Vector<ICommand*> commands;
 };
-
-}
 
 #endif

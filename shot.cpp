@@ -1,11 +1,8 @@
-#include "shot.hpp"
-
-#include "danmaku.hpp"
-#include "pattern.hpp"
+#include "shot.h"
+#include "danmaku.h"
+#include "pattern.h"
 
 #include <Math.hpp>
-
-using namespace godot;
 
 Pattern* Shot::get_pattern() {
     return owner;
@@ -65,9 +62,9 @@ void Shot::_register_methods() {
     register_property<Shot, float>("rotation", &Shot::set_rotation, &Shot::get_rotation, 0);
     register_property<Shot, int>("time", nullptr, &Shot::get_time, 0);
 
-    register_method("set_effects", &Shot::set_effects);
-    register_method("get_pattern", &Shot::get_pattern);
-    register_method("get_danmaku", &Shot::get_danmaku);
+    ClassDB::bind_method(D_METHOD("set_effects"), &Shot::set_effects);
+    ClassDB::bind_method(D_METHOD("get_pattern"), &Shot::get_pattern);
+    ClassDB::bind_method(D_METHOD("get_danmaku"), &Shot::get_danmaku);
 }
 
 void Shot::_init() {
