@@ -4,11 +4,18 @@
 
 #include "core/math/math_funcs.h"
 
-void Shot::reset(Pattern* p_owner, int p_local_id) {
-    flags = FLAG_ACTIVE;
+void Shot::reset(Pattern* p_owner, int p_id) {
+    id = p_id;
     owner = p_owner;
-    local_id = p_local_id;
+    flags = FLAG_ACTIVE;
+    effects = 0;
+    sprite = 0;
     time = 0;
+    global_position = Vector2(0, 0);
+    position = Vector2(0, 0);
+    direction = Vector2(0, 1);
+    speed = 0;
+    radius = 0;
 }
 
 Pattern* Shot::get_pattern() const {
@@ -39,15 +46,19 @@ int Shot::get_time() const {
     return time;
 }
 
-void Shot::set_sprite(const StringName& p_key) {
+void Shot::set_sprite(const String& p_key) {
     Danmaku* danmaku = get_danmaku();
     int id = danmaku->get_sprite_id(p_key);
     radius = danmaku->get_sprite(id)->get_collider_radius();
-    sprite_id = id;
+    sprite = id;
 }
 
-StringName Shot::get_sprite() const {
-    return owner->get_danmaku()->get_sprite(sprite_id)->get_key();
+String Shot::get_sprite() const {
+    if (owner) {
+        return owner->get_danmaku()->get_sprite(sprite)->get_key();
+    } else {
+        return "";
+    }
 }
 
 void Shot::set_speed(float p_speed) {
@@ -131,16 +142,15 @@ void Shot::_bind_methods() {
 }
 
 Shot::Shot() {
-    global_id = 0;
+    id = 0;
+    owner = NULL;
     flags = 0;
     effects = 0;
-    owner = NULL;
-    local_id = 0;
+    sprite = 0;
     time = 0;
     global_position = Vector2(0, 0);
     position = Vector2(0, 0);
     direction = Vector2(0, 1);
     speed = 0;
     radius = 0;
-    sprite_id = 0;
 }

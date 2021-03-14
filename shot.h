@@ -19,12 +19,11 @@ class Shot : public Object {
     uint32_t flags;
     uint32_t effects;
 
+    int id;
     Pattern* owner;
-    int global_id;
-    int local_id;
 
     int time;
-    int sprite_id;
+    int sprite;
     Vector2 global_position;
     Vector2 position;
     Vector2 direction;
@@ -47,11 +46,10 @@ public:
     _FORCE_INLINE_ bool has_effect(int p_id) { return effects & (1 << p_id); }
     _FORCE_INLINE_ void set_effect_bitmask(uint32_t p_mask) { effects = p_mask; }
 
-    _FORCE_INLINE_ int get_local_id() { return local_id; }
-    _FORCE_INLINE_ int get_global_id() { return global_id; }
+    _FORCE_INLINE_ int get_id() { return id; }
     
-    _FORCE_INLINE_ void set_sprite_id(int p_id) { sprite_id = p_id; }
-    _FORCE_INLINE_ int get_sprite_id() { return sprite_id; }
+    _FORCE_INLINE_ void set_sprite_id(int p_sprite) { sprite = p_sprite; }
+    _FORCE_INLINE_ int get_sprite_id() { return sprite; }
 
     void reset(Pattern* p_owner, int p_local_id);
 
@@ -66,8 +64,8 @@ public:
     void set_global_position(const Vector2& p_global_position);
     Vector2 get_global_position() const;
 
-    void set_sprite(const StringName& p_key);
-    StringName get_sprite() const;
+    void set_sprite(const String& p_key);
+    String get_sprite() const;
 
     void set_speed(float p_speed);
     float get_speed() const;

@@ -1,10 +1,10 @@
 #include "shot_sprite.h"
 
-void ShotSprite::set_key(const StringName& p_key) {
+void ShotSprite::set_key(const String& p_key) {
     key = p_key;
 }
 
-StringName ShotSprite::get_key() const {
+String ShotSprite::get_key() const {
     return key;
 }
 

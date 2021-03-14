@@ -50,6 +50,7 @@ class Danmaku : public Node2D {
 protected:
     void _notification(int p_what);
     static void _bind_methods();
+    virtual void _validate_property(PropertyInfo& property) const;
 
 public:
     void add_pattern(Pattern* p_pattern);
@@ -65,7 +66,7 @@ public:
     void clear_circle(Vector2 p_origin, float p_radius);
     void clear_rect(Rect2 p_rect);
 
-    int get_sprite_id(const StringName& p_key) const;
+    int get_sprite_id(const String& p_key) const;
     Ref<ShotSprite> get_sprite(int p_id) const;
 
     int get_free_shot_count() const;

@@ -19,6 +19,10 @@ void Pattern::_notification(int p_what) {
             }
         } break;
 
+        case NOTIFICATION_READY: {
+            set_physics_process_internal(true);
+        } break;
+
         case NOTIFICATION_EXIT_TREE: {
             if (danmaku) {
                 for (int i = 0; i != shots.size(); ++i) {
@@ -29,7 +33,7 @@ void Pattern::_notification(int p_what) {
             }
         } break;
 
-        case NOTIFICATION_PHYSICS_PROCESS: {
+        case NOTIFICATION_INTERNAL_PHYSICS_PROCESS: {
             tick();
         } break;
 
@@ -69,7 +73,7 @@ void Pattern::tick() {
         }
 
         // Move shot by its direction and speed, then update its global position
-        shot->set_position(shot->get_direction() * shot->get_speed());
+        shot->set_position(shot->get_position() + shot->get_direction() * shot->get_speed());
         shot->set_global_position(transform.xform(shot->get_position()));
 
         if (has_effects) {
@@ -169,13 +173,13 @@ void Pattern::layered(int p_layers, float p_min, float p_max, Dictionary p_overr
     float step = (p_max - p_min) / (p_layers - 1);
 
     pattern(p_layers, p_override, [=](Shot* p_shot) {
-        p_shot->set_speed(p_min + step * p_shot->get_local_id());
+        p_shot->set_speed(p_min + step * p_shot->get_id());
     });
 }
 
 void Pattern::circle(int p_count, Dictionary p_override) {
     pattern(p_count, p_override, [=](Shot* p_shot) {
-        p_shot->set_direction(p_shot->get_direction().rotated(p_shot->get_local_id() * (Math_TAU / (float)p_count)));
+        p_shot->set_direction(p_shot->get_direction().rotated(p_shot->get_id() * (Math_TAU / (float)p_count)));
     });
 }
 
@@ -183,8 +187,8 @@ void Pattern::layered_circle(int p_count, int p_layers, float p_min, float p_max
     float step = (p_max - p_min) / (p_layers - 1);
 
     pattern(p_count * p_layers, p_override, [=](Shot* p_shot) {
-        int col = p_shot->get_local_id() % p_count;
-        int row = p_shot->get_local_id() / p_count;
+        int col = p_shot->get_id() % p_count;
+        int row = p_shot->get_id() / p_count;
         p_shot->set_direction(p_shot->get_direction().rotated(col * (Math_TAU / (float)p_count)));
         p_shot->set_speed(p_min + step * row);
     });
@@ -195,7 +199,7 @@ void Pattern::fan(int p_count, float p_theta, Dictionary p_override) {
     float step = p_theta / (p_count - 1);
 
     pattern(p_count, p_override, [=](Shot* p_shot) {
-        p_shot->set_direction(p_shot->get_direction().rotated(base + step * p_shot->get_local_id()));
+        p_shot->set_direction(p_shot->get_direction().rotated(base + step * p_shot->get_id()));
     });
 }
 
@@ -205,8 +209,8 @@ void Pattern::layered_fan(int p_count, float p_theta, int p_layers, float p_min,
     float s_step = (p_max - p_min) / (p_layers - 1);
 
     pattern(p_count * p_layers, p_override, [=](Shot* p_shot) {
-        int col = p_shot->get_local_id() % p_count;
-        int row = p_shot->get_local_id() / p_count;
+        int col = p_shot->get_id() % p_count;
+        int row = p_shot->get_id() / p_count;
         p_shot->set_direction(p_shot->get_direction().rotated(a_base + a_step * col));
         p_shot->set_speed(p_min + s_step * row);
     });

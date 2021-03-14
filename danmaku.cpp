@@ -54,7 +54,7 @@ Ref<ShotSprite> Danmaku::get_sprite(int p_id) const {
     return sprites[p_id];
 }
 
-int Danmaku::get_sprite_id(const StringName& p_key) const {
+int Danmaku::get_sprite_id(const String& p_key) const {
     for (int i = 0; i != sprites.size(); ++i) {
         if (sprites[i]->get_key() == p_key)
             return i;
@@ -134,6 +134,16 @@ Ref<ShotSprite> Danmaku::get_shot_sprite(int p_index) const {
     return sprites[p_index];
 }
 
+void Danmaku::_validate_property(PropertyInfo& property) const {
+	if (property.name.begins_with("shot_sprite_")) {
+		int index = property.name.get_slicec('_', 2).to_int() - 1;
+		if (index >= sprites.size()) {
+			property.usage = 0;
+			return;
+		}
+	}
+}
+
 void Danmaku::_bind_methods() {
     ClassDB::bind_method(D_METHOD("clear_circle"), &Danmaku::clear_circle);
     ClassDB::bind_method(D_METHOD("clear_rect"), &Danmaku::clear_rect);
@@ -160,17 +170,16 @@ void Danmaku::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "tolerance"), "set_tolerance", "get_tolerance");
 
     ADD_GROUP("Sprites", "shot_");
-    ADD_PROPERTY(PropertyInfo(Variant::INT, "shot_sprites"), "set_shot_sprite_count", "get_shot_sprite_count");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "shot_sprites", PROPERTY_HINT_EXP_RANGE, "0," + itos(MAX_SHOT_SPRITES) + ",1"), "set_shot_sprite_count", "get_shot_sprite_count");
     for (int i = 0; i != MAX_SHOT_SPRITES; ++i) {
         ADD_PROPERTYI(PropertyInfo(Variant::OBJECT, "shot_sprite_" + itos(i + 1), PROPERTY_HINT_RESOURCE_TYPE, "ShotSprite"), "set_shot_sprite", "get_shot_sprite", i);
     }
-
 }
 
 Danmaku::Danmaku() {
-    max_shots = 0;
     hitbox = NULL;
     max_shots = 2048;
     region = Rect2(0, 0, 384, 448);
     tolerance = 64;
+    set_shot_sprite_count(1);
 }

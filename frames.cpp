@@ -1,7 +1,7 @@
 #include "frames.h"
 
 void Frames::_notification(int p_what) {
-    if (p_what == NOTIFICATION_PHYSICS_PROCESS) {
+    if (p_what == NOTIFICATION_INTERNAL_PHYSICS_PROCESS) {
         if (!stopped) {
             frames_left--;
             if (frames_left <= 0) {
@@ -14,12 +14,14 @@ void Frames::_notification(int p_what) {
 
 Frames* Frames::start(int p_frames) {
     ERR_FAIL_COND_V(!is_inside_tree(), this);
+    set_physics_process_internal(true);
     frames_left = p_frames;
     stopped = false;
     return this;
 }
 
 void Frames::stop() {
+    set_physics_process_internal(false);
     frames_left = -1;
     stopped = true;
 }

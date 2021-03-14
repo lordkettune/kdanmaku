@@ -13,7 +13,7 @@
 class ShotSprite : public Resource {
     GDCLASS(ShotSprite, Resource);
 
-    StringName key;          // Key that this will be referred to by during gameplay
+    String key;          // Key that this will be referred to by during gameplay
 
     Ref<Texture> texture;    // Sprite sheet that this is in -- it's a good idea to keep your bullet sprites in an atlas for performance
     Rect2 region;            // Texture region to render
@@ -27,8 +27,8 @@ protected:
     static void _bind_methods();
 
 public:
-    void set_key(const StringName& p_key);
-    StringName get_key() const;
+    void set_key(const String& p_key);
+    String get_key() const;
 
     void set_texture(const Ref<Texture>& p_texture);
     Ref<Texture> get_texture() const;
