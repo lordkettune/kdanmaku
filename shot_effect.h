@@ -7,8 +7,9 @@
 #ifndef SHOT_EFFECT_H
 #define SHOT_EFFECT_H
 
-#include "core/object/object.h"
+#include "core/object.h"
 
+// TODO: No std :P
 #include <utility>
 #include <tuple>
 
@@ -54,23 +55,25 @@ public:
 
 class ShotEffect : public Object {
     GDCLASS(ShotEffect, Object);
+
+    Vector<ICommand*> commands;
+
+protected:
+    static void _bind_methods();
+
 public:
     void execute(Shot* p_shot);
 
     template <auto Fn, typename... Args>
     ShotEffect* push_command(Args... p_args) {
-        commands.push_back(new Command<Args...>(Fn, p_args...));
+        commands.push_back(memnew(Command<Args...>(Fn, p_args...)));
         return this;
     }
 
-    static unsigned int bitmask(Array p_effects);
+    static uint32_t bitmask(const Vector<int>& p_effects);
 
-    static void _register_methods();
-    void _init() {}
+    ShotEffect();
     ~ShotEffect();
-
-private:
-    Vector<ICommand*> commands;
 };
 
 #endif

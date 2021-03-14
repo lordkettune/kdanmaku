@@ -3,7 +3,9 @@ Import('env')
 src_list = [
     "register_types.cpp",
     "frames.cpp",
-    "shot_sprite.cpp"
+    "shot_sprite.cpp",
+    "shot.cpp",
+    "shot_effect.cpp"
 ]
 
 env.add_source_files(env.modules_sources, src_list)

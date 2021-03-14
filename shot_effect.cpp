@@ -7,41 +7,41 @@
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 
 int c_at(Shot* p_shot, int p_time) {
-    return p_shot->time == p_time ? STATUS_CONTINUE : STATUS_EXIT;
+    return p_shot->get_time() == p_time ? STATUS_CONTINUE : STATUS_EXIT;
 }
 
 int c_after(Shot* p_shot, int p_time) {
-    return p_shot->time > p_time ? STATUS_CONTINUE : STATUS_EXIT;
+    return p_shot->get_time() > p_time ? STATUS_CONTINUE : STATUS_EXIT;
 }
 
 int c_before(Shot* p_shot, int p_time) {
-    return p_shot->time < p_time ? STATUS_CONTINUE : STATUS_EXIT;
+    return p_shot->get_time() < p_time ? STATUS_CONTINUE : STATUS_EXIT;
 }
 
 int c_between(Shot* p_shot, int p_start, int p_end) {
-    return p_shot->time > p_start && p_shot->time < p_end ? STATUS_CONTINUE : STATUS_EXIT;
+    return p_shot->get_time() > p_start && p_shot->get_time() < p_end ? STATUS_CONTINUE : STATUS_EXIT;
 }
 
 int c_every(Shot* p_shot, int p_start, int p_interval) {
-    if (p_shot->time >= p_start) {
-        return (p_shot->time - p_start) % p_interval == 0 ? STATUS_CONTINUE : STATUS_EXIT;
+    if (p_shot->get_time() >= p_start) {
+        return (p_shot->get_time() - p_start) % p_interval == 0 ? STATUS_CONTINUE : STATUS_EXIT;
     }
     return STATUS_EXIT;
 }
 
 
 int c_set_position(Shot* p_shot, Vector2 p_position) {
-    p_shot->position = p_position;
+    p_shot->set_position(p_position);
     return STATUS_CONTINUE;
 }
 
 int c_set_speed(Shot* p_shot, float p_speed) {
-    p_shot->speed = p_speed;
+    p_shot->set_speed(p_speed);
     return STATUS_CONTINUE;
 }
 
 int c_set_direction(Shot* p_shot, Vector2 p_direction) {
-    p_shot->direction = p_direction;
+    p_shot->set_direction(p_direction);
     return STATUS_CONTINUE;
 }
 
@@ -55,7 +55,7 @@ int c_set_sprite(Shot* p_shot, String p_sprite) {
     return STATUS_CONTINUE;
 }
 
-int c_set_effects(Shot* p_shot, Array p_effects) {
+int c_set_effects(Shot* p_shot, Vector<int> p_effects) {
     p_shot->set_effects(p_effects);
     return STATUS_CONTINUE;
 }
@@ -67,32 +67,32 @@ int c_despawn(Shot* p_shot) {
 }
 
 int c_accelerate(Shot* p_shot, float p_amount) {
-    p_shot->speed += p_amount;
+    p_shot->set_speed(p_shot->get_speed() + p_amount);
     return STATUS_CONTINUE;
 }
 
 int c_min_speed(Shot* p_shot, float p_min) {
-    if (p_shot->speed < p_min) {
-        p_shot->speed = p_min;
+    if (p_shot->get_speed() < p_min) {
+        p_shot->set_speed(p_min);
     }
     return STATUS_CONTINUE;
 }
 
 int c_max_speed(Shot* p_shot, float p_max) {
-    if (p_shot->speed > p_max) {
-        p_shot->speed = p_max;
+    if (p_shot->get_speed() > p_max) {
+        p_shot->set_speed(p_max);
     }
     return STATUS_CONTINUE;
 }
 
 int c_rotate(Shot* p_shot, float p_amount) {
-    p_shot->direction = p_shot->direction.rotated(p_amount);
+    p_shot->set_direction(p_shot->get_direction().rotated(p_amount));
     return STATUS_CONTINUE;
 }
 
 
 inline void sub_init(Shot* p_shot, Dictionary& p_override) {
-    p_override["__offset"] = p_shot->position;
+    p_override["__offset"] = p_shot->get_position();
     p_override["__rotation"] = p_shot->get_rotation();
 }
 
@@ -151,57 +151,52 @@ void ShotEffect::execute(Shot* p_shot) {
     }
 }
 
-unsigned int ShotEffect::bitmask(Array p_effects) {
-    unsigned int effects = 0;
+uint32_t ShotEffect::bitmask(const Vector<int>& p_effects) {
+    uint32_t effects = 0;
     for (int i = 0; i != p_effects.size(); ++i) {
-        if (p_effects[i].get_type() == Variant::INT) {
-            effects |= (1 << (int)p_effects[i]);
-        }
+        effects |= (1 << p_effects[i]);
     }
     return effects;
 }
 
 template<auto Fn, typename... Args>
-inline void command_proxy(const char* p_name, int(*_)(Shot*, Args...)) {
-    register_method(p_name, &ShotEffect::push_command<Fn, Args...>);
+inline void bind_command(const char* p_name, int(*_)(Shot*, Args...)) {
+    ClassDB::bind_method(D_METHOD(p_name),  &ShotEffect::push_command<Fn, Args...>);
 }
 
-template<auto Fn>
-void register_command(const char* p_name) {
-    command_proxy<Fn>(p_name, Fn);
-}
+#define ADD_COMMAND(m_n, m_fn) bind_command<m_fn>(m_n, m_fn)
 
-void ShotEffect::_register_methods() {
-    register_command<c_at>("at");
-    register_command<c_after>("after");
-    register_command<c_before>("before");
-    register_command<c_between>("between");
-    register_command<c_every>("every");
+void ShotEffect::_bind_methods() {
+    ADD_COMMAND("at", c_at);
+    ADD_COMMAND("after", c_after);
+    ADD_COMMAND("before", c_before);
+    ADD_COMMAND("between", c_between);
+    ADD_COMMAND("every", c_every);
 
-    register_command<c_set_position>("set_position");
-    register_command<c_set_speed>("set_speed");
-    register_command<c_set_direction>("set_direction");
-    register_command<c_set_rotation>("set_rotation");
-    register_command<c_set_sprite>("set_sprite");
-    register_command<c_set_effects>("set_effects");
+    ADD_COMMAND("set_position", c_set_position);
+    ADD_COMMAND("set_speed", c_set_speed);
+    ADD_COMMAND("set_direction", c_set_direction);
+    ADD_COMMAND("set_rotation", c_set_rotation);
+    ADD_COMMAND("set_sprite", c_set_sprite);
+    ADD_COMMAND("set_effects", c_set_effects);
 
-    register_command<c_despawn>("despawn");
-    register_command<c_accelerate>("accelerate");
-    register_command<c_min_speed>("min_speed");
-    register_command<c_max_speed>("max_speed");
-    register_command<c_rotate>("rotate");
+    ADD_COMMAND("despawn", c_despawn);
+    ADD_COMMAND("accelerate", c_accelerate);
+    ADD_COMMAND("min_speed", c_min_speed);
+    ADD_COMMAND("max_speed", c_max_speed);
+    ADD_COMMAND("rotate", c_rotate);
 
-    register_command<c_sub_single>("sub_single");
-    register_command<c_sub_circle>("sub_circle");
-    register_command<c_sub_fan>("sub_fan");
-    register_command<c_sub_layered>("sub_layered");
-    register_command<c_sub_layered_circle>("sub_layered_circle");
-    register_command<c_sub_layered_fan>("sub_layered_fan");
-    register_command<c_sub_custom>("sub_custom");
+    ADD_COMMAND("sub_single", c_sub_single);
+    ADD_COMMAND("sub_circle", c_sub_circle);
+    ADD_COMMAND("sub_fan", c_sub_fan);
+    ADD_COMMAND("sub_layered", c_sub_layered);
+    ADD_COMMAND("sub_layered_circle", c_sub_layered_circle);
+    ADD_COMMAND("sub_layered_fan", c_sub_layered_fan);
+    ADD_COMMAND("sub_custom", c_sub_custom);
 }
 
 ShotEffect::~ShotEffect() {
-    for (ICommand* command : commands) {
-        delete command;
+    for (int i = 0; i != commands.size(); ++i) {
+        memdelete(commands[i]);
     }
 }
