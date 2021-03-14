@@ -73,7 +73,7 @@ void ShotSprite::_bind_methods() {
 
 ShotSprite::ShotSprite() {
     key = "";
-    texture = nullptr;
+    texture = Ref<Texture>();
     region = Rect2(0, 0, 0, 0);
     collider_radius = 16;
     rotation_degrees = 0;

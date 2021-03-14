@@ -64,7 +64,7 @@ protected:
 public:
     void execute(Shot* p_shot);
 
-    template <auto Fn, typename... Args>
+    template <typename T, T Fn, typename... Args>
     ShotEffect* push_command(Args... p_args) {
         commands.push_back(memnew(Command<Args...>(Fn, p_args...)));
         return this;
@@ -72,7 +72,7 @@ public:
 
     static uint32_t bitmask(const Vector<int>& p_effects);
 
-    ShotEffect();
+    ShotEffect() {}
     ~ShotEffect();
 };
 

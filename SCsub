@@ -5,7 +5,10 @@ src_list = [
     "frames.cpp",
     "shot_sprite.cpp",
     "shot.cpp",
-    "shot_effect.cpp"
+    "shot_effect.cpp",
+    "hitbox.cpp",
+    "danmaku.cpp",
+    "pattern.cpp"
 ]
 
 env.add_source_files(env.modules_sources, src_list)

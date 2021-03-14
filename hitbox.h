@@ -20,28 +20,33 @@ class Hitbox : public Node2D {
     float graze_radius;
     bool invulnerable;
 
-public:
-    Danmaku* get_danmaku();
-
-    Shot* get_colliding_shot();
-    Shot* get_grazing_shot();
-
-    float get_collision_radius();
-    float get_graze_radius();
-
-    void hit(Shot* p_shot);
-    void graze(Shot* p_shot);
-
-    void _enter_tree();
-    void _exit_tree();
-
-    static void _register_methods();
-    void _init();
-
-private:
     Danmaku* danmaku;
     Shot* grazing_shot;
     Shot* colliding_shot;
+
+protected:
+    static void _bind_methods();
+    void _notification(int p_what);
+
+public:
+    void hit(Shot* p_shot);
+    void graze(Shot* p_shot);
+
+    Danmaku* get_danmaku() const;
+
+    void set_invulnerable(bool p_invulnerable);
+    bool is_invulnerable() const;
+
+    Shot* get_colliding_shot() const;
+    Shot* get_grazing_shot() const;
+
+    void set_collision_radius(float p_collision_radius);
+    float get_collision_radius() const;
+
+    void set_graze_radius(float p_graze_radius);
+    float get_graze_radius() const;
+
+    Hitbox();
 };
 
 #endif

@@ -57,22 +57,35 @@ public:
 
     void add_hitbox(Hitbox* p_hitbox);
     void remove_hitbox();
-    Hitbox* get_hitbox();
+    Hitbox* get_hitbox() const;
 
     Shot* capture();
     void release(Shot* p_shot);
 
-    Rect2 get_region();
-
     void clear_circle(Vector2 p_origin, float p_radius);
     void clear_rect(Rect2 p_rect);
 
-    int get_sprite_id(const String& p_key);
-    Ref<ShotSprite> get_sprite(int p_id);
+    int get_sprite_id(const StringName& p_key) const;
+    Ref<ShotSprite> get_sprite(int p_id) const;
 
-    int get_free_shot_count();
-    int get_active_shot_count();
-    int get_pattern_count();
+    int get_free_shot_count() const;
+    int get_active_shot_count() const;
+    int get_pattern_count() const;
+
+    void set_region(const Rect2& p_region);
+    Rect2 get_region() const;
+
+    void set_tolerance(float p_tolerance);
+    float get_tolerance() const;
+
+    void set_max_shots(int p_max_shots);
+    int get_max_shots() const;
+
+    void set_shot_sprite_count(int p_count);
+    int get_shot_sprite_count() const;
+
+    void set_shot_sprite(int p_index, const Ref<ShotSprite>& p_sprite);
+    Ref<ShotSprite> get_shot_sprite(int p_index) const;
 
     Danmaku();
 };

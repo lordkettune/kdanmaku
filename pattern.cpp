@@ -1,79 +1,92 @@
 #include "pattern.h"
 #include "hitbox.h"
 
-#include <Math.hpp>
+#include "core/math/math_funcs.h"
+#include "core/method_bind_ext.gen.inc"
 
-void Pattern::_enter_tree() {
-    Node* parent = get_parent();
-    while ((bool)parent->call("is_danmaku") != true) {
-        parent = parent->get_parent();
-        if (parent == nullptr) {
-            Godot::print_error("Pattern is not a descendent of a Danmaku node!", "_enter_tree", __FILE__, __LINE__);
-            return;
-        }
+void Pattern::_notification(int p_what) {
+    switch (p_what) {
+        case NOTIFICATION_ENTER_TREE: {
+            Node* parent = this;
+            while (parent) {
+                danmaku = Object::cast_to<Danmaku>(parent);
+                if (danmaku) {
+                    set_z_index(danmaku->get_z_index());
+                    danmaku->add_pattern(this);
+                    break;
+                }
+                parent = parent->get_parent();
+            }
+        } break;
+
+        case NOTIFICATION_EXIT_TREE: {
+            if (danmaku) {
+                for (int i = 0; i != shots.size(); ++i) {
+                    danmaku->release(shots[i]);
+                }
+                shots.resize(0);
+                danmaku->remove_pattern(this);
+            }
+        } break;
+
+        case NOTIFICATION_PHYSICS_PROCESS: {
+            tick();
+        } break;
+
+        case NOTIFICATION_DRAW: {
+            draw();
+        } break;
     }
-    danmaku = Object::cast_to<Danmaku>(parent);
-    danmaku->add_pattern(this);
-    set_z_index(danmaku->get_z_index());
 }
 
-void Pattern::_exit_tree() {
-    // Release all shot IDs when exiting tree
-    for (Shot* shot : shots) {
-        danmaku->release(shot);
-    }
-    danmaku->remove_pattern(this);
-    shots.clear();
-}
-
-void Pattern::_physics_process(float p_delta) {
-    ERR_FAIL_COND(danmaku == nullptr);
+void Pattern::tick() {
+    ERR_FAIL_COND(danmaku == NULL);
 
     if (autodelete && shots.empty()) {
-        queue_free();
+        queue_delete();
         return;
     }
 
     Transform2D transform = get_global_transform();
     Rect2 region = danmaku->get_region();
-    if (despawn_distance != 0) {
-        region = region.grow(despawn_distance);
-    }
+    region = region.grow(despawn_distance + danmaku->get_tolerance());
 
     Hitbox* hitbox = danmaku->get_hitbox();
     Vector2 hitbox_pos = Vector2(0, 0);
-    if (hitbox != nullptr) {
+    if (hitbox != NULL) {
         hitbox_pos = hitbox->get_global_transform().get_origin();
     }
 
     int inactive = 0;
 
     // Update all shots
-    for (Shot* shot : shots) {
+    for (int i = 0; i != shots.size(); ++i) {
+        Shot* shot = shots[i];
+
         if (!shot->flagged(Shot::FLAG_ACTIVE)) {
             ++inactive;
             continue;
         }
 
         // Move shot by its direction and speed, then update its global position
-        shot->position += shot->direction * shot->speed;
-        shot->global_position = transform.xform(shot->position);
+        shot->set_position(shot->get_direction() * shot->get_speed());
+        shot->set_global_position(transform.xform(shot->get_position()));
 
         if (has_effects) {
             for (int i = 0; i != MAX_EFFECTS; ++i) {
-                if (effects[i] != nullptr && shot->has_effect(i)) {
+                if (effects[i] != NULL && shot->has_effect(i)) {
                     effects[i]->execute(shot);
                 }
             }
         }
 
-        ++shot->time;
+        shot->tick();
 
         // Check for graze or collision
-        if (hitbox != nullptr) {
-            float distance = shot->global_position.distance_to(hitbox_pos);
+        if (hitbox != NULL) {
+            float distance = shot->get_global_position().distance_to(hitbox_pos);
 
-            if (distance <= hitbox->get_collision_radius() + shot->radius) {
+            if (distance <= hitbox->get_collision_radius() + shot->get_radius()) {
                 if (!shot->flagged(Shot::FLAG_COLLIDING)) {
                     hitbox->hit(shot);
                     shot->flag(Shot::FLAG_COLLIDING);
@@ -82,7 +95,7 @@ void Pattern::_physics_process(float p_delta) {
                 shot->unflag(Shot::FLAG_COLLIDING);
             }
 
-            if (distance <= hitbox->get_graze_radius() + shot->radius) {
+            if (distance <= hitbox->get_graze_radius() + shot->get_radius()) {
                 if (!shot->flagged(Shot::FLAG_GRAZING)) {
                     hitbox->graze(shot);
                     shot->flag(Shot::FLAG_GRAZING);
@@ -93,7 +106,7 @@ void Pattern::_physics_process(float p_delta) {
         }
 
         // Clear shot if it's either outside the gameplay region or in clear circle
-        if (!region.has_point(shot->global_position)) {
+        if (!region.has_point(shot->get_global_position())) {
             shot->unflag(Shot::FLAG_ACTIVE);
             ++inactive;
         }
@@ -104,7 +117,7 @@ void Pattern::_physics_process(float p_delta) {
         for (int i = 0; i != shots.size();) {
             if (!shots[i]->flagged(Shot::FLAG_ACTIVE)) {
                 danmaku->release(shots[i]);
-                shots.erase(shots.begin() + i);
+                shots.remove(i);
             } else {
                 i++;
             }
@@ -114,34 +127,37 @@ void Pattern::_physics_process(float p_delta) {
     update();
 }
 
-void Pattern::_draw() {
-    for (Shot* shot : shots) {
-        Ref<ShotSprite> sprite = danmaku->get_sprite(shot->sprite_id);
-        float rotation_radians = sprite->rotation_degrees * Math_PI / 180.0f;
+void Pattern::draw() {
+    for (int i = 0; i != shots.size(); ++i) {
+        Shot* shot = shots[i];
 
-        if (sprite->face_motion) {
-            draw_set_transform(shot->position, shot->get_rotation() + rotation_radians, Vector2(1, 1));
+        Ref<ShotSprite> sprite = danmaku->get_sprite(shot->get_sprite_id());
+        float rotation_radians = sprite->get_rotation_degrees() * Math_PI / 180.0f;
+
+        if (sprite->get_face_motion()) {
+            draw_set_transform(shot->get_position(), shot->get_rotation() + rotation_radians, Vector2(1, 1));
         } else {
-            draw_set_transform(shot->position, rotation_radians, Vector2(1, 1));
+            draw_set_transform(shot->get_position(), rotation_radians, Vector2(1, 1));
         }
 
-        draw_texture_rect_region(sprite->texture, Rect2(sprite->region.size * -0.5f, sprite->region.size), sprite->region);
+        Rect2 region = sprite->get_region();
+        draw_texture_rect_region(sprite->get_texture(), Rect2(region.size * -0.5f, region.size), region);
     }
 }
 
-Danmaku* Pattern::get_danmaku() {
+Danmaku* Pattern::get_danmaku() const {
     return danmaku;
 }
 
 ShotEffect* Pattern::make_effect(int p_id) {
-    ERR_FAIL_INDEX_V(p_id, MAX_EFFECTS, nullptr);
+    ERR_FAIL_INDEX_V(p_id, MAX_EFFECTS, NULL);
 
     has_effects = true;
 
-    if (effects[p_id] != nullptr) {
-        effects[p_id]->free();
+    if (effects[p_id] != NULL) {
+        memdelete(effects[p_id]);
     }
-    effects[p_id] = ShotEffect::_new();
+    effects[p_id] = memnew(ShotEffect);
     return effects[p_id];
 }
 
@@ -153,13 +169,13 @@ void Pattern::layered(int p_layers, float p_min, float p_max, Dictionary p_overr
     float step = (p_max - p_min) / (p_layers - 1);
 
     pattern(p_layers, p_override, [=](Shot* p_shot) {
-        p_shot->speed = p_min + step * p_shot->local_id;
+        p_shot->set_speed(p_min + step * p_shot->get_local_id());
     });
 }
 
 void Pattern::circle(int p_count, Dictionary p_override) {
     pattern(p_count, p_override, [=](Shot* p_shot) {
-        p_shot->direction = p_shot->direction.rotated(p_shot->local_id * (Math_TAU / (float)p_count));
+        p_shot->set_direction(p_shot->get_direction().rotated(p_shot->get_local_id() * (Math_TAU / (float)p_count)));
     });
 }
 
@@ -167,10 +183,10 @@ void Pattern::layered_circle(int p_count, int p_layers, float p_min, float p_max
     float step = (p_max - p_min) / (p_layers - 1);
 
     pattern(p_count * p_layers, p_override, [=](Shot* p_shot) {
-        int col = p_shot->local_id % p_count;
-        int row = p_shot->local_id / p_count;
-        p_shot->direction = p_shot->direction.rotated(col * (Math_TAU / (float)p_count));
-        p_shot->speed = p_min + step * row;
+        int col = p_shot->get_local_id() % p_count;
+        int row = p_shot->get_local_id() / p_count;
+        p_shot->set_direction(p_shot->get_direction().rotated(col * (Math_TAU / (float)p_count)));
+        p_shot->set_speed(p_min + step * row);
     });
 }
 
@@ -179,7 +195,7 @@ void Pattern::fan(int p_count, float p_theta, Dictionary p_override) {
     float step = p_theta / (p_count - 1);
 
     pattern(p_count, p_override, [=](Shot* p_shot) {
-        p_shot->direction = p_shot->direction.rotated(base + step * p_shot->local_id);
+        p_shot->set_direction(p_shot->get_direction().rotated(base + step * p_shot->get_local_id()));
     });
 }
 
@@ -189,15 +205,15 @@ void Pattern::layered_fan(int p_count, float p_theta, int p_layers, float p_min,
     float s_step = (p_max - p_min) / (p_layers - 1);
 
     pattern(p_count * p_layers, p_override, [=](Shot* p_shot) {
-        int col = p_shot->local_id % p_count;
-        int row = p_shot->local_id / p_count;
-        p_shot->direction = p_shot->direction.rotated(a_base + a_step * col);
-        p_shot->speed = p_min + s_step * row;
+        int col = p_shot->get_local_id() % p_count;
+        int row = p_shot->get_local_id() / p_count;
+        p_shot->set_direction(p_shot->get_direction().rotated(a_base + a_step * col));
+        p_shot->set_speed(p_min + s_step * row);
     });
 }
 
 void Pattern::custom(int p_count, String p_name, Dictionary p_override) {
-    if (delegate == nullptr) {
+    if (delegate == NULL) {
         ERR_PRINT("Pattern does not have a delegate, can't fire custom pattern!");
         return;
     }
@@ -212,46 +228,83 @@ void Pattern::custom(int p_count, String p_name, Dictionary p_override) {
     });
 }
 
-void Pattern::_register_methods() {
-    register_property<Pattern, Ref<Reference>>("delegate", &Pattern::delegate, nullptr);
-    register_property<Pattern, Dictionary>("parameters", &Pattern::parameters, Dictionary());
-    register_property<Pattern, float>("despawn_distance", &Pattern::despawn_distance, 0);
-    register_property<Pattern, bool>("autodelete", &Pattern::autodelete, false);
-    
-    ClassDB::bind_method(D_METHOD("_enter_tree"), &Pattern::_enter_tree);
-    ClassDB::bind_method(D_METHOD("_exit_tree"), &Pattern::_exit_tree);
-    ClassDB::bind_method(D_METHOD("_physics_process"), &Pattern::_physics_process);
-    ClassDB::bind_method(D_METHOD("_draw"), &Pattern::_draw);
+void Pattern::set_delegate(Object* p_delegate) {
+    delegate = p_delegate;
+}
 
+Object* Pattern::get_delegate() const {
+    return delegate;
+}
+
+void Pattern::set_parameters(const Dictionary& p_parameters) {
+    parameters = p_parameters;
+}
+
+Dictionary Pattern::get_parameters() const {
+    return parameters;
+}
+
+void Pattern::set_despawn_distance(float p_despawn_distance) {
+    despawn_distance = p_despawn_distance;
+}
+
+float Pattern::get_despawn_distance() const {
+    return despawn_distance;
+}
+
+void Pattern::set_autodelete(bool p_autodelete) {
+    autodelete = p_autodelete;
+}
+
+bool Pattern::get_autodelete() const {
+    return autodelete;
+}
+
+void Pattern::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_danmaku"), &Pattern::get_danmaku);
 
     ClassDB::bind_method(D_METHOD("make_effect"), &Pattern::make_effect);
 
     ClassDB::bind_method(D_METHOD("single"), &Pattern::single);
-    ClassDB::bind_method(D_METHOD("layered"), &Pattern::layered);
     ClassDB::bind_method(D_METHOD("circle"), &Pattern::circle);
+    ClassDB::bind_method(D_METHOD("layered"), &Pattern::layered);
     ClassDB::bind_method(D_METHOD("layered_circle"), &Pattern::layered_circle);
     ClassDB::bind_method(D_METHOD("fan"), &Pattern::fan);
     ClassDB::bind_method(D_METHOD("layered_fan"), &Pattern::layered_fan);
     ClassDB::bind_method(D_METHOD("custom"), &Pattern::custom);
+
+    ClassDB::bind_method(D_METHOD("set_delegate", "delegate"), &Pattern::set_delegate);
+    ClassDB::bind_method(D_METHOD("set_parameters", "parameters"), &Pattern::set_parameters);
+    ClassDB::bind_method(D_METHOD("set_despawn_distance", "despawn_distance"), &Pattern::set_despawn_distance);
+    ClassDB::bind_method(D_METHOD("set_autodelete", "autodelete"), &Pattern::set_autodelete);
+
+    ClassDB::bind_method(D_METHOD("get_delegate"), &Pattern::get_delegate);
+    ClassDB::bind_method(D_METHOD("get_parameters"), &Pattern::get_parameters);
+    ClassDB::bind_method(D_METHOD("get_despawn_distance"), &Pattern::get_despawn_distance);
+    ClassDB::bind_method(D_METHOD("get_autodelete"), &Pattern::get_autodelete);
+
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "delegate"), "set_delegate", "get_delegate");
+    ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "parameters"), "set_parameters", "get_parameters");
+    ADD_PROPERTY(PropertyInfo(Variant::REAL, "despawn_distance"), "set_despawn_distance", "get_despawn_distance");
+    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "autodelete"), "set_autodelete", "get_autodelete");
 }
 
-void Pattern::_init() {
-    danmaku = nullptr;
-    delegate = nullptr;
+Pattern::Pattern() {
+    danmaku = NULL;
+    delegate = NULL;
     despawn_distance = 0;
     autodelete = false;
     parameters = Dictionary();
     has_effects = false;
     for (int i = 0; i != MAX_EFFECTS; ++i) {
-        effects[i] = nullptr;
+        effects[i] = NULL;
     }
 }
 
 Pattern::~Pattern() {
     for (int i = 0; i != MAX_EFFECTS; ++i) {
-        if (effects[i] != nullptr) {
-            effects[i]->free();
+        if (effects[i] != NULL) {
+            memdelete(effects[i]);
         }
     }
 }

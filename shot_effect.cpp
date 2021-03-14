@@ -2,6 +2,8 @@
 #include "shot.h"
 #include "pattern.h"
 
+#include "core/method_bind_ext.gen.inc"
+
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 // Standard commands
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
@@ -159,12 +161,12 @@ uint32_t ShotEffect::bitmask(const Vector<int>& p_effects) {
     return effects;
 }
 
-template<auto Fn, typename... Args>
+template<typename T, T Fn, typename... Args>
 inline void bind_command(const char* p_name, int(*_)(Shot*, Args...)) {
-    ClassDB::bind_method(D_METHOD(p_name),  &ShotEffect::push_command<Fn, Args...>);
+    ClassDB::bind_method(D_METHOD(p_name),  &ShotEffect::push_command<decltype(&Fn), Fn, Args...>);
 }
 
-#define ADD_COMMAND(m_n, m_fn) bind_command<m_fn>(m_n, m_fn)
+#define ADD_COMMAND(m_n, m_fn) bind_command<decltype(&m_fn), m_fn>(m_n, m_fn)
 
 void ShotEffect::_bind_methods() {
     ADD_COMMAND("at", c_at);
