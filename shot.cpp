@@ -4,13 +4,23 @@
 
 #include "core/math/math_funcs.h"
 
+enum {
+    PROP_SPEED
+};
+
+void Shot::set_property(Register p_reg, const Variant& p_value) {
+    speed = p_value;
+}
+
+Variant Shot::get_property(Register p_reg) const {
+    return speed;
+}
+
 void Shot::reset(Pattern* p_owner, int p_id) {
     id = p_id;
     owner = p_owner;
     flags = FLAG_ACTIVE;
-    effects = 0;
     sprite = 0;
-    time = 0;
     global_position = Vector2(0, 0);
     position = Vector2(0, 0);
     direction = Vector2(0, 1);
@@ -26,24 +36,12 @@ Danmaku* Shot::get_danmaku() const {
     return owner->get_danmaku();
 }
 
-void Shot::set_effects(const Vector<int>& p_effects) {
-    effects = ShotEffect::bitmask(p_effects);
-}
-
 void Shot::set_global_position(const Vector2& p_global_position) {
     global_position = p_global_position;
 }
 
 Vector2 Shot::get_global_position() const {
     return global_position;
-}
-
-void Shot::tick() {
-    ++time;
-}
-
-int Shot::get_time() const {
-    return time;
 }
 
 void Shot::set_sprite(const String& p_key) {
@@ -111,10 +109,8 @@ float Shot::get_rotation() const {
 }
 
 void Shot::_bind_methods() {
-    ClassDB::bind_method(D_METHOD("set_effects"), &Shot::set_effects);
     ClassDB::bind_method(D_METHOD("get_pattern"), &Shot::get_pattern);
     ClassDB::bind_method(D_METHOD("get_danmaku"), &Shot::get_danmaku);
-    ClassDB::bind_method(D_METHOD("get_time"), &Shot::get_time);
 
     ClassDB::bind_method(D_METHOD("set_speed", "speed"), &Shot::set_speed);
     ClassDB::bind_method(D_METHOD("set_direction", "direction"), &Shot::set_direction);
@@ -139,15 +135,15 @@ void Shot::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "rotation"), "set_rotation", "get_rotation");
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "radius"), "set_radius", "get_radius");
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "sprite"), "set_sprite", "get_sprite");
+
+    BIND_CONSTANT(SPEED);
 }
 
 Shot::Shot() {
     id = 0;
     owner = NULL;
     flags = 0;
-    effects = 0;
     sprite = 0;
-    time = 0;
     global_position = Vector2(0, 0);
     position = Vector2(0, 0);
     direction = Vector2(0, 1);

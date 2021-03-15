@@ -4,201 +4,130 @@
 
 #include "core/method_bind_ext.gen.inc"
 
-// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
-// Standard commands
-// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
+enum {
+    REG_PATTERN,
+    REG_SHOT,
+    REG_PROPERTY,
+    REG_CONSTANT
+};
 
-int c_at(Shot* p_shot, int p_time) {
-    return p_shot->get_time() == p_time ? STATUS_CONTINUE : STATUS_EXIT;
-}
+enum {
+    CMD_MOVE,
+    CMD_ADD,
+    CMD_SUBTRACT,
+    CMD_MULTIPLY,
+    CMD_DIVIDE
+};
 
-int c_after(Shot* p_shot, int p_time) {
-    return p_shot->get_time() > p_time ? STATUS_CONTINUE : STATUS_EXIT;
-}
+#define REG_SRC(reg) (reg & 0x03)
+#define REG_IDX(reg) (reg >> 2)
 
-int c_before(Shot* p_shot, int p_time) {
-    return p_shot->get_time() < p_time ? STATUS_CONTINUE : STATUS_EXIT;
-}
+#define CMD(cmd) (cmd & 0xFF)
+#define ARG_A(cmd) ((cmd >> 8) & 0xFF)
+#define ARG_B(cmd) ((cmd >> 16) & 0xFF)
+#define ARG_C(cmd) ((cmd >> 24) & 0xFF)
 
-int c_between(Shot* p_shot, int p_start, int p_end) {
-    return p_shot->get_time() > p_start && p_shot->get_time() < p_end ? STATUS_CONTINUE : STATUS_EXIT;
-}
+#define MAKE_CMD_A(cmd, a) ((cmd & 0xFF) | ((a & 0xFF) << 8))
+#define MAKE_CMD_AB(cmd, a, b) ((cmd & 0xFF) | ((a & 0xFF) << 8) | ((b & 0xFF) << 16))
+#define MAKE_CMD_ABC(cmd, a, b, c) ((cmd & 0xFF) | ((a & 0xFF) << 8) | ((b & 0xFF) << 16) | ((c & 0xFF) << 24))
 
-int c_every(Shot* p_shot, int p_start, int p_interval) {
-    if (p_shot->get_time() >= p_start) {
-        return (p_shot->get_time() - p_start) % p_interval == 0 ? STATUS_CONTINUE : STATUS_EXIT;
+void ShotEffect::set_register(Register p_reg, const Variant& p_value) {
+    switch (REG_SRC(p_reg)) {
+        case REG_SHOT:
+            shot->set_register(REG_IDX(p_reg), p_value);
+            break;
+        
+        case REG_PROPERTY:
+            shot->set_property(REG_IDX(p_reg), p_value);
+            break;
+        
+        case REG_CONSTANT:
+            ERR_FAIL_MSG("Cannot set a constant register!");
+            break;
+
+        default:
+        case REG_PATTERN:
+            pattern->set_register(REG_IDX(p_reg), p_value);
+            break;
     }
-    return STATUS_EXIT;
 }
 
-
-int c_set_position(Shot* p_shot, Vector2 p_position) {
-    p_shot->set_position(p_position);
-    return STATUS_CONTINUE;
-}
-
-int c_set_speed(Shot* p_shot, float p_speed) {
-    p_shot->set_speed(p_speed);
-    return STATUS_CONTINUE;
-}
-
-int c_set_direction(Shot* p_shot, Vector2 p_direction) {
-    p_shot->set_direction(p_direction);
-    return STATUS_CONTINUE;
-}
-
-int c_set_rotation(Shot* p_shot, float p_rotation) {
-    p_shot->set_rotation(p_rotation);
-    return STATUS_CONTINUE;
-}
-
-int c_set_sprite(Shot* p_shot, String p_sprite) {
-    p_shot->set_sprite(p_sprite);
-    return STATUS_CONTINUE;
-}
-
-int c_set_effects(Shot* p_shot, Vector<int> p_effects) {
-    p_shot->set_effects(p_effects);
-    return STATUS_CONTINUE;
-}
-
-
-int c_despawn(Shot* p_shot) {
-    p_shot->unflag(Shot::FLAG_ACTIVE);
-    return STATUS_EXIT;
-}
-
-int c_accelerate(Shot* p_shot, float p_amount) {
-    p_shot->set_speed(p_shot->get_speed() + p_amount);
-    return STATUS_CONTINUE;
-}
-
-int c_min_speed(Shot* p_shot, float p_min) {
-    if (p_shot->get_speed() < p_min) {
-        p_shot->set_speed(p_min);
+Variant ShotEffect::get_register(Register p_reg) const {
+    switch (REG_SRC(p_reg)) {
+        case REG_SHOT:
+            return shot->get_register(REG_IDX(p_reg));
+        
+        case REG_PROPERTY:
+            return shot->get_property(REG_IDX(p_reg));
+        
+        case REG_CONSTANT:
+            return constants[REG_IDX(p_reg)];
+        
+        default:
+        case REG_PATTERN:
+            return pattern->get_register(REG_IDX(p_reg));
     }
-    return STATUS_CONTINUE;
 }
 
-int c_max_speed(Shot* p_shot, float p_max) {
-    if (p_shot->get_speed() > p_max) {
-        p_shot->set_speed(p_max);
-    }
-    return STATUS_CONTINUE;
+int ShotEffect::constant(const Variant& p_value) {
+    constants.push_back(p_value);
+    return REG_CONSTANT | ((constants.size() - 1) << 2);
 }
 
-int c_rotate(Shot* p_shot, float p_amount) {
-    p_shot->set_direction(p_shot->get_direction().rotated(p_amount));
-    return STATUS_CONTINUE;
+void ShotEffect::move(int p_from, int p_to) {
+    commands.push_back(MAKE_CMD_AB(CMD_MOVE, p_from, p_to));
 }
 
-
-inline void sub_init(Shot* p_shot, Dictionary& p_override) {
-    p_override["__offset"] = p_shot->get_position();
-    p_override["__rotation"] = p_shot->get_rotation();
+void ShotEffect::add(int p_lhs, int p_rhs, int p_to) {
+    commands.push_back(MAKE_CMD_ABC(CMD_ADD, p_lhs, p_rhs, p_to));
 }
 
-int c_sub_single(Shot* p_shot, Dictionary p_override) {
-    sub_init(p_shot, p_override);
-    p_shot->get_pattern()->single(p_override);
-    return STATUS_CONTINUE;
+void ShotEffect::subtract(int p_lhs, int p_rhs, int p_to) {
+    commands.push_back(MAKE_CMD_ABC(CMD_SUBTRACT, p_lhs, p_rhs, p_to));
 }
 
-int c_sub_circle(Shot* p_shot, int p_count, Dictionary p_override) {
-    sub_init(p_shot, p_override);
-    p_shot->get_pattern()->circle(p_count, p_override);
-    return STATUS_CONTINUE;
+void ShotEffect::multiply(int p_lhs, int p_rhs, int p_to) {
+    commands.push_back(MAKE_CMD_ABC(CMD_MULTIPLY, p_lhs, p_rhs, p_to));
 }
 
-int c_sub_fan(Shot* p_shot, int p_count, float p_theta, Dictionary p_override) {
-    sub_init(p_shot, p_override);
-    p_shot->get_pattern()->fan(p_count, p_theta, p_override);
-    return STATUS_CONTINUE;
+void ShotEffect::divide(int p_lhs, int p_rhs, int p_to) {
+    commands.push_back(MAKE_CMD_ABC(CMD_DIVIDE, p_lhs, p_rhs, p_to));
 }
-
-int c_sub_layered(Shot* p_shot, int p_layers, float p_min, float p_max, Dictionary p_override) {
-    sub_init(p_shot, p_override);
-    p_shot->get_pattern()->layered(p_layers, p_min, p_max, p_override);
-    return STATUS_CONTINUE;
-}
-
-int c_sub_layered_circle(Shot* p_shot, int p_count, int p_layers, float p_min, float p_max, Dictionary p_override) {
-    sub_init(p_shot, p_override);
-    p_shot->get_pattern()->layered_circle(p_count, p_layers, p_min, p_max, p_override);
-    return STATUS_CONTINUE;
-}
-
-int c_sub_layered_fan(Shot* p_shot, int p_count, float p_theta, int p_layers, float p_min, float p_max, Dictionary p_override) {
-    sub_init(p_shot, p_override);
-    p_shot->get_pattern()->layered_fan(p_count, p_theta, p_layers, p_min, p_max, p_override);
-    return STATUS_CONTINUE;
-}
-
-int c_sub_custom(Shot* p_shot, int p_count, String p_name, Dictionary p_override) {
-    sub_init(p_shot, p_override);
-    p_shot->get_pattern()->custom(p_count, p_name, p_override);
-    return STATUS_CONTINUE;
-}
-
-// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
-// ShotEffect object
-// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 
 void ShotEffect::execute(Shot* p_shot) {
+    shot = p_shot;
+    pattern = p_shot->get_pattern();
+
     for (int i = 0; i != commands.size(); ++i) {
-        int status = commands[i]->execute(p_shot);
-        if (status == STATUS_EXIT) {
-            return;
+        Command cmd = commands[i];
+
+        switch (CMD(cmd)) {
+            case CMD_MOVE:
+                set_register(ARG_B(cmd), get_register(ARG_A(cmd)));
+                break;
+            
+            case CMD_ADD:
+                set_register(ARG_C(cmd), Variant::evaluate(Variant::OP_ADD, get_register(ARG_A(cmd)), get_register(ARG_B(cmd))));
+                break;
+            
+            case CMD_SUBTRACT:
+                set_register(ARG_C(cmd), Variant::evaluate(Variant::OP_SUBTRACT, get_register(ARG_A(cmd)), get_register(ARG_B(cmd))));
+                break;
+            
+            case CMD_MULTIPLY:
+                set_register(ARG_C(cmd), Variant::evaluate(Variant::OP_MULTIPLY, get_register(ARG_A(cmd)), get_register(ARG_B(cmd))));
+                break;
+            
+            case CMD_DIVIDE:
+                set_register(ARG_C(cmd), Variant::evaluate(Variant::OP_DIVIDE, get_register(ARG_A(cmd)), get_register(ARG_B(cmd))));
+                break;
         }
     }
 }
 
-uint32_t ShotEffect::bitmask(const Vector<int>& p_effects) {
-    uint32_t effects = 0;
-    for (int i = 0; i != p_effects.size(); ++i) {
-        effects |= (1 << p_effects[i]);
-    }
-    return effects;
-}
-
-template<typename T, T Fn, typename... Args>
-inline void bind_command(const char* p_name, int(*_)(Shot*, Args...)) {
-    ClassDB::bind_method(D_METHOD(p_name),  &ShotEffect::push_command<decltype(&Fn), Fn, Args...>);
-}
-
-#define ADD_COMMAND(m_n, m_fn) bind_command<decltype(&m_fn), m_fn>(m_n, m_fn)
-
 void ShotEffect::_bind_methods() {
-    ADD_COMMAND("at", c_at);
-    ADD_COMMAND("after", c_after);
-    ADD_COMMAND("before", c_before);
-    ADD_COMMAND("between", c_between);
-    ADD_COMMAND("every", c_every);
+    ClassDB::bind_method(D_METHOD("constant", "value"), &ShotEffect::constant);
 
-    ADD_COMMAND("set_position", c_set_position);
-    ADD_COMMAND("set_speed", c_set_speed);
-    ADD_COMMAND("set_direction", c_set_direction);
-    ADD_COMMAND("set_rotation", c_set_rotation);
-    ADD_COMMAND("set_sprite", c_set_sprite);
-    ADD_COMMAND("set_effects", c_set_effects);
-
-    ADD_COMMAND("despawn", c_despawn);
-    ADD_COMMAND("accelerate", c_accelerate);
-    ADD_COMMAND("min_speed", c_min_speed);
-    ADD_COMMAND("max_speed", c_max_speed);
-    ADD_COMMAND("rotate", c_rotate);
-
-    ADD_COMMAND("sub_single", c_sub_single);
-    ADD_COMMAND("sub_circle", c_sub_circle);
-    ADD_COMMAND("sub_fan", c_sub_fan);
-    ADD_COMMAND("sub_layered", c_sub_layered);
-    ADD_COMMAND("sub_layered_circle", c_sub_layered_circle);
-    ADD_COMMAND("sub_layered_fan", c_sub_layered_fan);
-    ADD_COMMAND("sub_custom", c_sub_custom);
-}
-
-ShotEffect::~ShotEffect() {
-    for (int i = 0; i != commands.size(); ++i) {
-        memdelete(commands[i]);
-    }
+    ClassDB::bind_method(D_METHOD("move", "from", "to"), &ShotEffect::move);
+    ClassDB::bind_method(D_METHOD("add", "lhs", "rhs", "to"), &ShotEffect::add);
 }

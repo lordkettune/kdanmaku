@@ -8,6 +8,9 @@
 #ifndef SHOT_H
 #define SHOT_H
 
+#define SHOT_REGISTERS 8
+
+#include "shot_effect.h"
 #include "core/object.h"
 
 class Pattern;
@@ -16,11 +19,11 @@ class Danmaku;
 class Shot : public Object {
     GDCLASS(Shot, Object);
 
-    uint32_t flags;
-    uint32_t effects;
-
     int id;
     Pattern* owner;
+    uint32_t flags;
+
+    Variant registers[SHOT_REGISTERS];
 
     int time;
     int sprite;
@@ -35,31 +38,38 @@ protected:
 
 public:
     enum {
+        SPEED = (2 | (0 << 2))
+    };
+
+    enum {
         FLAG_ACTIVE    = 1,
         FLAG_GRAZING   = 2,
         FLAG_COLLIDING = 4
-    };    
+    };
 
     _FORCE_INLINE_ void flag(int p_flag)     { flags |= p_flag;  }
     _FORCE_INLINE_ void unflag(int p_flag)   { flags &= ~p_flag; }
     _FORCE_INLINE_ bool flagged(int p_flag)  { return flags & p_flag; }
-    _FORCE_INLINE_ bool has_effect(int p_id) { return effects & (1 << p_id); }
-    _FORCE_INLINE_ void set_effect_bitmask(uint32_t p_mask) { effects = p_mask; }
 
     _FORCE_INLINE_ int get_id() { return id; }
     
     _FORCE_INLINE_ void set_sprite_id(int p_sprite) { sprite = p_sprite; }
     _FORCE_INLINE_ int get_sprite_id() { return sprite; }
 
+    _FORCE_INLINE_ void set_register(Register p_reg, const Variant& p_value) {
+        registers[p_reg] = p_value;
+    }
+    _FORCE_INLINE_ const Variant& get_register(Register p_reg) const {
+        return registers[p_reg];
+    }
+
+    void set_property(Register p_reg, const Variant& p_value);
+    Variant get_property(Register p_reg) const;
+
     void reset(Pattern* p_owner, int p_local_id);
 
     Pattern* get_pattern() const;
     Danmaku* get_danmaku() const;
-    
-    void tick();
-    int get_time() const;
-
-    void set_effects(const Vector<int>& p_effects);
 
     void set_global_position(const Vector2& p_global_position);
     Vector2 get_global_position() const;

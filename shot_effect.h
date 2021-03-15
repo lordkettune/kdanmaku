@@ -7,73 +7,45 @@
 #ifndef SHOT_EFFECT_H
 #define SHOT_EFFECT_H
 
-#include "core/object.h"
-
-// TODO: No std :P
-#include <utility>
-#include <tuple>
+#include "core/resource.h"
 
 #define STATUS_CONTINUE 0
-#define STATUS_EXIT 1
+#define STATUS_YIELD 1
 
 class Shot;
+class Pattern;
 
-// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
-// Command object
-// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
+typedef uint32_t Command;
+typedef uint8_t Register;
 
-class ICommand {
-public:
-    virtual ~ICommand() {}
-    virtual int execute(Shot* p_shot) = 0;
-};
+class ShotEffect : public Resource {
+    GDCLASS(ShotEffect, Resource);
 
-template<typename... Args>
-class Command : public ICommand {
-private:
-    int(*function)(Shot*, Args...);
-    std::tuple<Args...> args;
-
-    template<std::size_t... Indices>
-    inline int call(Shot* p_shot, std::index_sequence<Indices...>) {
-        return function(p_shot, std::get<Indices>(args)...);
-    }
-
-public:
-    Command(int(*p_function)(Shot*, Args...), Args... p_args)
-        : function(p_function), args(p_args...)
-    {}
-
-    int execute(Shot* p_shot) override {
-        return call(p_shot, std::index_sequence_for<Args...>{});
-    }
-};
-
-// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
-// ShotEffect object
-// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
-
-class ShotEffect : public Object {
-    GDCLASS(ShotEffect, Object);
-
-    Vector<ICommand*> commands;
+    Shot* shot;
+    Pattern* pattern;
+    
+    Vector<Command> commands;
+    Vector<Variant> constants;
 
 protected:
     static void _bind_methods();
 
 public:
+    int constant(const Variant& p_value);
+
+    void move(int p_from, int p_to);
+    void add(int p_lhs, int p_rhs, int p_to);
+    void subtract(int p_lhs, int p_rhs, int p_to);
+    void multiply(int p_lhs, int p_rhs, int p_to);
+    void divide(int p_lhs, int p_rhs, int p_to);
+
     void execute(Shot* p_shot);
 
-    template <typename T, T Fn, typename... Args>
-    ShotEffect* push_command(Args... p_args) {
-        commands.push_back(memnew(Command<Args...>(Fn, p_args...)));
-        return this;
-    }
-
-    static uint32_t bitmask(const Vector<int>& p_effects);
-
     ShotEffect() {}
-    ~ShotEffect();
+
+private:
+    void set_register(Register p_reg, const Variant& p_value);
+    Variant get_register(Register p_reg) const;
 };
 
 #endif

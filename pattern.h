@@ -9,13 +9,13 @@
 #ifndef PATTERN_H
 #define PATTERN_H
 
+#define PATTERN_REGISTERS 32
+
 #include "scene/2d/node_2d.h"
 
 #include "danmaku.h"
 #include "shot.h"
 #include "shot_effect.h"
-
-#define MAX_EFFECTS 32
 
 // Note that this extends Node2D, and therefore has a transform.
 // Shots will respect this transform. Therefore, if you rotate, move, or scale a Pattern, its Shots will move 
@@ -23,33 +23,34 @@
 class Pattern : public Node2D {
     GDCLASS(Pattern, Node2D);
 
-    Dictionary parameters;
-
-    // Any object set by the user that has methods for custom patterns, actions, and selectors
-    Object* delegate;
-
-    // Extra distance outside of Danmaku region where shot will despawn
-    float despawn_distance;
-
-    // Pattern will delete itself once all of its shots have despawned
-    bool autodelete;
-
     Danmaku* danmaku;
     Vector<Shot*> shots;
-    ShotEffect* effects[MAX_EFFECTS];
-    bool has_effects;
+
+    Dictionary parameters;
+    Object* delegate;
+
+    Ref<ShotEffect> effect;
+    Variant registers[PATTERN_REGISTERS];
+
+    float despawn_distance;
+    bool autodelete;
 
 protected:
     void _notification(int p_what);
     static void _bind_methods();
 
 public:
+    _FORCE_INLINE_ void set_register(Register p_reg, const Variant& p_value) {
+        registers[p_reg] = p_value;
+    }
+    _FORCE_INLINE_ const Variant& get_register(Register p_reg) const {
+        return registers[p_reg];
+    }
+
     template <typename F>
     void clear(F p_constraint);
 
     Danmaku* get_danmaku() const;
-
-    ShotEffect* make_effect(int p_id);
 
     void single(Dictionary p_override);
     void circle(int p_count, Dictionary p_override);
@@ -58,6 +59,9 @@ public:
     void layered_circle(int p_count, int p_layers, float p_min, float p_max, Dictionary p_override);
     void layered_fan(int p_count, float p_theta, int p_layers, float p_min, float p_max, Dictionary p_override);
     void custom(int p_count, String p_name, Dictionary p_override);
+
+    void set_effect(const Ref<ShotEffect>& p_effect);
+    Ref<ShotEffect> get_effect() const;
 
     void set_delegate(Object* p_delegate);
     Object* get_delegate() const;
@@ -72,7 +76,6 @@ public:
     bool get_autodelete() const;
 
     Pattern();
-    ~Pattern();
 
 private:
     void tick();
@@ -118,7 +121,6 @@ void Pattern::pattern(int p_count, const Dictionary& p_override, Fn p_callback) 
 
     int sprite_id = danmaku->get_sprite_id(param<String>("sprite", p_override, ""));
     Ref<ShotSprite> sprite = danmaku->get_sprite(sprite_id);
-    uint32_t effects = ShotEffect::bitmask(param<Vector<int>>("effects", p_override, Vector<int>()));
 
     Vector2 offset = param<Vector2>("offset", p_override, Vector2(0, 0));
     float rotation = param<float>("rotation", p_override, 0);
@@ -140,7 +142,6 @@ void Pattern::pattern(int p_count, const Dictionary& p_override, Fn p_callback) 
     for (int i = 0; i != p_count; ++i) {
         Shot* shot = danmaku->capture();
         shot->reset(this, i);
-        shot->set_effect_bitmask(effects);
         shot->set_sprite_id(sprite_id);
         shot->set_radius(sprite->get_collider_radius());
         shot->set_position(offset);
