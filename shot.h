@@ -8,10 +8,11 @@
 #ifndef SHOT_H
 #define SHOT_H
 
-#define SHOT_REGISTERS 8
-
 #include "shot_effect.h"
 #include "core/object.h"
+
+#define SHOT_REGISTERS 8
+#define SHOT_REG(idx) (REG_SHOT | (idx << 2))
 
 class Pattern;
 class Danmaku;
@@ -25,7 +26,6 @@ class Shot : public Object {
 
     Variant registers[SHOT_REGISTERS];
 
-    int time;
     int sprite;
     Vector2 global_position;
     Vector2 position;
@@ -38,7 +38,19 @@ protected:
 
 public:
     enum {
-        SPEED = (2 | (0 << 2))
+        REG0      = SHOT_REG(0),
+        REG1      = SHOT_REG(1),
+        REG2      = SHOT_REG(2),
+        REG3      = SHOT_REG(3),
+        REG4      = SHOT_REG(4),
+        REG5      = SHOT_REG(5),
+        REG6      = SHOT_REG(6),
+        REG7      = SHOT_REG(7),
+        POSITION  = SHOT_REG(8),
+        SPEED     = SHOT_REG(9),
+        DIRECTION = SHOT_REG(10),
+        ROTATION  = SHOT_REG(11),
+        VELOCITY  = SHOT_REG(12)
     };
 
     enum {
@@ -56,15 +68,8 @@ public:
     _FORCE_INLINE_ void set_sprite_id(int p_sprite) { sprite = p_sprite; }
     _FORCE_INLINE_ int get_sprite_id() { return sprite; }
 
-    _FORCE_INLINE_ void set_register(Register p_reg, const Variant& p_value) {
-        registers[p_reg] = p_value;
-    }
-    _FORCE_INLINE_ const Variant& get_register(Register p_reg) const {
-        return registers[p_reg];
-    }
-
-    void set_property(Register p_reg, const Variant& p_value);
-    Variant get_property(Register p_reg) const;
+    void set_register(Register p_reg, const Variant& p_value);
+    Variant get_register(Register p_reg) const;
 
     void reset(Pattern* p_owner, int p_local_id);
 

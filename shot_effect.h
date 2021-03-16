@@ -12,6 +12,12 @@
 #define STATUS_CONTINUE 0
 #define STATUS_YIELD 1
 
+enum {
+    REG_CONSTANT,
+    REG_PATTERN,
+    REG_SHOT
+};
+
 class Shot;
 class Pattern;
 
@@ -34,6 +40,7 @@ public:
     int constant(const Variant& p_value);
 
     void move(int p_from, int p_to);
+    
     void add(int p_lhs, int p_rhs, int p_to);
     void subtract(int p_lhs, int p_rhs, int p_to);
     void multiply(int p_lhs, int p_rhs, int p_to);

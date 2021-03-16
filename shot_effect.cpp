@@ -5,13 +5,6 @@
 #include "core/method_bind_ext.gen.inc"
 
 enum {
-    REG_PATTERN,
-    REG_SHOT,
-    REG_PROPERTY,
-    REG_CONSTANT
-};
-
-enum {
     CMD_MOVE,
     CMD_ADD,
     CMD_SUBTRACT,
@@ -34,20 +27,16 @@ enum {
 void ShotEffect::set_register(Register p_reg, const Variant& p_value) {
     switch (REG_SRC(p_reg)) {
         case REG_SHOT:
-            shot->set_register(REG_IDX(p_reg), p_value);
+            shot->set_register(p_reg, p_value);
             break;
         
-        case REG_PROPERTY:
-            shot->set_property(REG_IDX(p_reg), p_value);
-            break;
-        
-        case REG_CONSTANT:
-            ERR_FAIL_MSG("Cannot set a constant register!");
+        case REG_PATTERN:
+            pattern->set_register(p_reg, p_value);
             break;
 
         default:
-        case REG_PATTERN:
-            pattern->set_register(REG_IDX(p_reg), p_value);
+        case REG_CONSTANT:
+            ERR_FAIL_MSG("Cannot set a constant register!");
             break;
     }
 }
@@ -55,17 +44,14 @@ void ShotEffect::set_register(Register p_reg, const Variant& p_value) {
 Variant ShotEffect::get_register(Register p_reg) const {
     switch (REG_SRC(p_reg)) {
         case REG_SHOT:
-            return shot->get_register(REG_IDX(p_reg));
+            return shot->get_register(p_reg);
         
-        case REG_PROPERTY:
-            return shot->get_property(REG_IDX(p_reg));
-        
-        case REG_CONSTANT:
-            return constants[REG_IDX(p_reg)];
+        case REG_PATTERN:
+            return pattern->get_register(p_reg);
         
         default:
-        case REG_PATTERN:
-            return pattern->get_register(REG_IDX(p_reg));
+        case REG_CONSTANT:
+            return constants[REG_IDX(p_reg)];
     }
 }
 
@@ -129,5 +115,9 @@ void ShotEffect::_bind_methods() {
     ClassDB::bind_method(D_METHOD("constant", "value"), &ShotEffect::constant);
 
     ClassDB::bind_method(D_METHOD("move", "from", "to"), &ShotEffect::move);
+    
     ClassDB::bind_method(D_METHOD("add", "lhs", "rhs", "to"), &ShotEffect::add);
+    ClassDB::bind_method(D_METHOD("subtract", "lhs", "rhs", "to"), &ShotEffect::subtract);
+    ClassDB::bind_method(D_METHOD("multiply", "lhs", "rhs", "to"), &ShotEffect::multiply);
+    ClassDB::bind_method(D_METHOD("divide", "lhs", "rhs", "to"), &ShotEffect::divide);
 }

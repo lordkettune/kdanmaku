@@ -8,12 +8,26 @@ enum {
     PROP_SPEED
 };
 
-void Shot::set_property(Register p_reg, const Variant& p_value) {
-    speed = p_value;
+void Shot::set_register(Register p_reg, const Variant& p_value) {
+    switch (p_reg) {
+        case POSITION:  set_position(p_value);  break;
+        case SPEED:     set_speed(p_value);     break;
+        case DIRECTION: set_direction(p_value); break;
+        case ROTATION:  set_rotation(p_value);  break;
+        case VELOCITY:  set_velocity(p_value);  break;
+        default: registers[p_reg >> 2] = p_value; break;
+    }
 }
 
-Variant Shot::get_property(Register p_reg) const {
-    return speed;
+Variant Shot::get_register(Register p_reg) const {
+    switch (p_reg) {
+        case POSITION:  return get_position();
+        case SPEED:     return get_speed();
+        case DIRECTION: return get_direction();
+        case ROTATION:  return get_rotation();
+        case VELOCITY:  return get_velocity();
+        default: return registers[p_reg >> 2];
+    }
 }
 
 void Shot::reset(Pattern* p_owner, int p_id) {
@@ -136,7 +150,19 @@ void Shot::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "radius"), "set_radius", "get_radius");
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "sprite"), "set_sprite", "get_sprite");
 
+    BIND_CONSTANT(REG0);
+    BIND_CONSTANT(REG1);
+    BIND_CONSTANT(REG2);
+    BIND_CONSTANT(REG3);
+    BIND_CONSTANT(REG4);
+    BIND_CONSTANT(REG5);
+    BIND_CONSTANT(REG6);
+    BIND_CONSTANT(REG7);
+    BIND_CONSTANT(POSITION);
     BIND_CONSTANT(SPEED);
+    BIND_CONSTANT(DIRECTION);
+    BIND_CONSTANT(ROTATION);
+    BIND_CONSTANT(VELOCITY);
 }
 
 Shot::Shot() {

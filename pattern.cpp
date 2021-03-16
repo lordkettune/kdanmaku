@@ -144,6 +144,14 @@ void Pattern::draw() {
     }
 }
 
+void Pattern::set_register(Register p_reg, const Variant& p_value) {
+    registers[p_reg >> 2] = p_value;
+}
+
+Variant Pattern::get_register(Register p_reg) const {
+    return registers[p_reg >> 2];
+}
+
 Danmaku* Pattern::get_danmaku() const {
     return danmaku;
 }
@@ -283,6 +291,15 @@ void Pattern::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "despawn_distance"), "set_despawn_distance", "get_despawn_distance");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "autodelete"), "set_autodelete", "get_autodelete");
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "effect", PROPERTY_HINT_RESOURCE_TYPE, "ShotEffect"), "set_effect", "get_effect");
+
+    BIND_CONSTANT(REG0);
+    BIND_CONSTANT(REG1);
+    BIND_CONSTANT(REG2);
+    BIND_CONSTANT(REG3);
+    BIND_CONSTANT(REG4);
+    BIND_CONSTANT(REG5);
+    BIND_CONSTANT(REG6);
+    BIND_CONSTANT(REG7);
 }
 
 Pattern::Pattern() {

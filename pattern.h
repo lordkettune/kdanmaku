@@ -9,13 +9,14 @@
 #ifndef PATTERN_H
 #define PATTERN_H
 
-#define PATTERN_REGISTERS 32
-
 #include "scene/2d/node_2d.h"
 
 #include "danmaku.h"
 #include "shot.h"
 #include "shot_effect.h"
+
+#define PATTERN_REGISTERS 8
+#define PATTERN_REG(idx) (REG_PATTERN | (idx << 2))
 
 // Note that this extends Node2D, and therefore has a transform.
 // Shots will respect this transform. Therefore, if you rotate, move, or scale a Pattern, its Shots will move 
@@ -40,12 +41,19 @@ protected:
     static void _bind_methods();
 
 public:
-    _FORCE_INLINE_ void set_register(Register p_reg, const Variant& p_value) {
-        registers[p_reg] = p_value;
-    }
-    _FORCE_INLINE_ const Variant& get_register(Register p_reg) const {
-        return registers[p_reg];
-    }
+    enum {
+        REG0 = PATTERN_REG(0),
+        REG1 = PATTERN_REG(1),
+        REG2 = PATTERN_REG(2),
+        REG3 = PATTERN_REG(3),
+        REG4 = PATTERN_REG(4),
+        REG5 = PATTERN_REG(5),
+        REG6 = PATTERN_REG(6),
+        REG7 = PATTERN_REG(7)
+    };
+
+    void set_register(Register p_reg, const Variant& p_value);
+    Variant get_register(Register p_reg) const;
 
     template <typename F>
     void clear(F p_constraint);
