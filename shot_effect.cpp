@@ -7,9 +7,10 @@
 enum {
     CMD_MOVE,
     CMD_ADD,
-    CMD_SUBTRACT,
-    CMD_MULTIPLY,
-    CMD_DIVIDE
+    CMD_SUB,
+    CMD_MUL,
+    CMD_DIV,
+    CMD_MOD
 };
 
 #define REG_SRC(reg) (reg & 0x03)
@@ -68,16 +69,20 @@ void ShotEffect::add(int p_lhs, int p_rhs, int p_to) {
     commands.push_back(MAKE_CMD_ABC(CMD_ADD, p_lhs, p_rhs, p_to));
 }
 
-void ShotEffect::subtract(int p_lhs, int p_rhs, int p_to) {
-    commands.push_back(MAKE_CMD_ABC(CMD_SUBTRACT, p_lhs, p_rhs, p_to));
+void ShotEffect::sub(int p_lhs, int p_rhs, int p_to) {
+    commands.push_back(MAKE_CMD_ABC(CMD_SUB, p_lhs, p_rhs, p_to));
 }
 
-void ShotEffect::multiply(int p_lhs, int p_rhs, int p_to) {
-    commands.push_back(MAKE_CMD_ABC(CMD_MULTIPLY, p_lhs, p_rhs, p_to));
+void ShotEffect::mul(int p_lhs, int p_rhs, int p_to) {
+    commands.push_back(MAKE_CMD_ABC(CMD_MUL, p_lhs, p_rhs, p_to));
 }
 
-void ShotEffect::divide(int p_lhs, int p_rhs, int p_to) {
-    commands.push_back(MAKE_CMD_ABC(CMD_DIVIDE, p_lhs, p_rhs, p_to));
+void ShotEffect::div(int p_lhs, int p_rhs, int p_to) {
+    commands.push_back(MAKE_CMD_ABC(CMD_DIV, p_lhs, p_rhs, p_to));
+}
+
+void ShotEffect::mod(int p_lhs, int p_rhs, int p_to) {
+    commands.push_back(MAKE_CMD_ABC(CMD_MOD, p_lhs, p_rhs, p_to));
 }
 
 void ShotEffect::execute(Shot* p_shot) {
@@ -96,16 +101,20 @@ void ShotEffect::execute(Shot* p_shot) {
                 set_register(ARG_C(cmd), Variant::evaluate(Variant::OP_ADD, get_register(ARG_A(cmd)), get_register(ARG_B(cmd))));
                 break;
             
-            case CMD_SUBTRACT:
+            case CMD_SUB:
                 set_register(ARG_C(cmd), Variant::evaluate(Variant::OP_SUBTRACT, get_register(ARG_A(cmd)), get_register(ARG_B(cmd))));
                 break;
             
-            case CMD_MULTIPLY:
+            case CMD_MUL:
                 set_register(ARG_C(cmd), Variant::evaluate(Variant::OP_MULTIPLY, get_register(ARG_A(cmd)), get_register(ARG_B(cmd))));
                 break;
             
-            case CMD_DIVIDE:
+            case CMD_DIV:
                 set_register(ARG_C(cmd), Variant::evaluate(Variant::OP_DIVIDE, get_register(ARG_A(cmd)), get_register(ARG_B(cmd))));
+                break;
+            
+            case CMD_MOD:
+                set_register(ARG_C(cmd), Variant::evaluate(Variant::OP_MODULE, get_register(ARG_A(cmd)), get_register(ARG_B(cmd))));
                 break;
         }
     }
@@ -117,7 +126,8 @@ void ShotEffect::_bind_methods() {
     ClassDB::bind_method(D_METHOD("move", "from", "to"), &ShotEffect::move);
     
     ClassDB::bind_method(D_METHOD("add", "lhs", "rhs", "to"), &ShotEffect::add);
-    ClassDB::bind_method(D_METHOD("subtract", "lhs", "rhs", "to"), &ShotEffect::subtract);
-    ClassDB::bind_method(D_METHOD("multiply", "lhs", "rhs", "to"), &ShotEffect::multiply);
-    ClassDB::bind_method(D_METHOD("divide", "lhs", "rhs", "to"), &ShotEffect::divide);
+    ClassDB::bind_method(D_METHOD("sub", "lhs", "rhs", "to"), &ShotEffect::sub);
+    ClassDB::bind_method(D_METHOD("mul", "lhs", "rhs", "to"), &ShotEffect::mul);
+    ClassDB::bind_method(D_METHOD("div", "lhs", "rhs", "to"), &ShotEffect::div);
+    ClassDB::bind_method(D_METHOD("mod", "lhs", "rhs", "to"), &ShotEffect::mod);
 }

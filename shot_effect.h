@@ -42,9 +42,10 @@ public:
     void move(int p_from, int p_to);
     
     void add(int p_lhs, int p_rhs, int p_to);
-    void subtract(int p_lhs, int p_rhs, int p_to);
-    void multiply(int p_lhs, int p_rhs, int p_to);
-    void divide(int p_lhs, int p_rhs, int p_to);
+    void sub(int p_lhs, int p_rhs, int p_to);
+    void mul(int p_lhs, int p_rhs, int p_to);
+    void div(int p_lhs, int p_rhs, int p_to);
+    void mod(int p_lhs, int p_rhs, int p_to);
 
     void execute(Shot* p_shot);
 
