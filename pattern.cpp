@@ -52,29 +52,32 @@ void Pattern::tick() {
     }
 
     Transform2D transform = get_global_transform();
+
     Rect2 region = danmaku->get_region();
     region = region.grow(despawn_distance + danmaku->get_tolerance());
+    region = transform.xform_inv(region);
 
     Hitbox* hitbox = danmaku->get_hitbox();
-    Vector2 hitbox_pos = Vector2(0, 0);
+    Vector2 hitbox_position = Vector2(0, 0);
+
     if (hitbox != NULL) {
-        hitbox_pos = hitbox->get_global_transform().get_origin();
+        hitbox_position = hitbox->get_global_transform().get_origin();
+        hitbox_position = transform.xform_inv(hitbox_position);
     }
 
-    int inactive = 0;
+    bool clean = false;
 
     // Update all shots
     for (int i = 0; i != shots.size(); ++i) {
         Shot* shot = shots[i];
 
         if (!shot->flagged(Shot::FLAG_ACTIVE)) {
-            ++inactive;
+            clean = true;
             continue;
         }
 
         // Move shot by its direction and speed, then update its global position
-        shot->set_position(shot->get_position() + shot->get_direction() * shot->get_speed());
-        shot->set_global_position(transform.xform(shot->get_position()));
+        shot->set_position(shot->get_position() + shot->get_velocity());
 
         // Run effect
         if (!effect.is_null()) {
@@ -83,7 +86,7 @@ void Pattern::tick() {
 
         // Check for graze or collision
         if (hitbox != NULL) {
-            float distance = shot->get_global_position().distance_to(hitbox_pos);
+            float distance = shot->get_position().distance_to(hitbox_position);
 
             if (distance <= hitbox->get_collision_radius() + shot->get_radius()) {
                 if (!shot->flagged(Shot::FLAG_COLLIDING)) {
@@ -105,14 +108,14 @@ void Pattern::tick() {
         }
 
         // Clear shot if it's either outside the gameplay region or in clear circle
-        if (!region.has_point(shot->get_global_position())) {
+        if (!region.has_point(shot->get_position())) {
             shot->unflag(Shot::FLAG_ACTIVE);
-            ++inactive;
+            clean = true;
         }
     }
 
     // Shots left danmaku region, release them back to Danmaku
-    if (inactive) {
+    if (clean) {
         for (int i = 0; i != shots.size();) {
             if (!shots[i]->flagged(Shot::FLAG_ACTIVE)) {
                 danmaku->release(shots[i]);

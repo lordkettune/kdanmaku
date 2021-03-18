@@ -155,6 +155,7 @@ void Pattern::pattern(int p_count, const Dictionary& p_override, Fn p_callback) 
         shot->set_position(offset);
         shot->set_direction(direction);
         shot->set_speed(speed);
+        shot->flag(Shot::FLAG_ACTIVE);
         p_callback(shot);
         shots.push_back(shot);
     }

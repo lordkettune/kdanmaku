@@ -64,16 +64,18 @@ int Danmaku::get_sprite_id(const String& p_key) const {
 
 void Danmaku::clear_circle(Vector2 p_origin, float p_radius) {
     for (int i = 0; i != patterns.size(); ++i) {
+        Transform2D transform = patterns[i]->get_global_transform();
         patterns[i]->clear([=](Shot* shot) {
-            return (shot->get_global_position() - p_origin).length() <= p_radius;
+            return (transform.xform(shot->get_position()) - p_origin).length() <= p_radius;
         });
     }
 }
 
 void Danmaku::clear_rect(Rect2 p_rect) {
     for (int i = 0; i != patterns.size(); ++i) {
+        Transform2D transform = patterns[i]->get_global_transform();
         patterns[i]->clear([=](Shot* shot) {
-            return p_rect.has_point(shot->get_global_position());
+            return p_rect.has_point(transform.xform(shot->get_position()));
         });
     }
 }

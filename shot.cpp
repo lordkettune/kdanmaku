@@ -4,10 +4,6 @@
 
 #include "core/math/math_funcs.h"
 
-enum {
-    PROP_SPEED
-};
-
 void Shot::set_register(Register p_reg, const Variant& p_value) {
     switch (p_reg) {
         case POSITION:  set_position(p_value);  break;
@@ -33,13 +29,16 @@ Variant Shot::get_register(Register p_reg) const {
 void Shot::reset(Pattern* p_owner, int p_id) {
     id = p_id;
     owner = p_owner;
-    flags = FLAG_ACTIVE;
+    flags = 0;
     sprite = 0;
-    global_position = Vector2(0, 0);
+    radius = 0;
     position = Vector2(0, 0);
     direction = Vector2(0, 1);
     speed = 0;
-    radius = 0;
+
+    for (int i = 0; i != SHOT_REGISTERS; ++i) {
+        registers[i] = Variant();
+    }
 }
 
 Pattern* Shot::get_pattern() const {
@@ -50,27 +49,34 @@ Danmaku* Shot::get_danmaku() const {
     return owner->get_danmaku();
 }
 
-void Shot::set_global_position(const Vector2& p_global_position) {
-    global_position = p_global_position;
-}
-
-Vector2 Shot::get_global_position() const {
-    return global_position;
-}
-
 void Shot::set_sprite(const String& p_key) {
     Danmaku* danmaku = get_danmaku();
-    int id = danmaku->get_sprite_id(p_key);
-    radius = danmaku->get_sprite(id)->get_collider_radius();
-    sprite = id;
+    sprite = danmaku->get_sprite_id(p_key);
+    radius = danmaku->get_sprite(sprite)->get_collider_radius();
 }
 
 String Shot::get_sprite() const {
     if (owner) {
-        return owner->get_danmaku()->get_sprite(sprite)->get_key();
+        return get_danmaku()->get_sprite(sprite)->get_key();
     } else {
         return "";
     }
+}
+
+void Shot::set_radius(float p_radius) {
+    radius = p_radius;
+}
+
+float Shot::get_radius() const {
+    return radius;
+}
+
+void Shot::set_position(const Vector2& p_position) {
+    position = p_position;
+}
+
+Vector2 Shot::get_position() const {
+    return position;
 }
 
 void Shot::set_speed(float p_speed) {
@@ -89,20 +95,12 @@ Vector2 Shot::get_direction() const {
     return direction;
 }
 
-void Shot::set_position(const Vector2& p_position) {
-    position = p_position;
+void Shot::set_rotation(float p_rotation) {
+    direction = Vector2(Math::cos(p_rotation), Math::sin(p_rotation));
 }
 
-Vector2 Shot::get_position() const {
-    return position;
-}
-
-void Shot::set_radius(float p_radius) {
-    radius = p_radius;
-}
-
-float Shot::get_radius() const {
-    return radius;
+float Shot::get_rotation() const {
+    return direction.angle();
 }
 
 void Shot::set_velocity(const Vector2& p_velocity) {
@@ -112,14 +110,6 @@ void Shot::set_velocity(const Vector2& p_velocity) {
 
 Vector2 Shot::get_velocity() const {
     return direction * speed;
-}
-
-void Shot::set_rotation(float p_rotation) {
-    direction = Vector2(Math::cos(p_rotation), Math::sin(p_rotation));
-}
-
-float Shot::get_rotation() const {
-    return direction.angle();
 }
 
 void Shot::_bind_methods() {
@@ -166,13 +156,5 @@ void Shot::_bind_methods() {
 }
 
 Shot::Shot() {
-    id = 0;
-    owner = NULL;
-    flags = 0;
-    sprite = 0;
-    global_position = Vector2(0, 0);
-    position = Vector2(0, 0);
-    direction = Vector2(0, 1);
-    speed = 0;
-    radius = 0;
+    reset(NULL, 0);
 }
