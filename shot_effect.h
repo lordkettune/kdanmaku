@@ -12,6 +12,8 @@
 #define STATUS_CONTINUE 0
 #define STATUS_YIELD 1
 
+#define MAX_SHOT_EFFECTS 8
+
 enum {
     REG_CONSTANT,
     REG_PATTERN,
@@ -47,7 +49,7 @@ public:
     void div(int p_lhs, int p_rhs, int p_to);
     void mod(int p_lhs, int p_rhs, int p_to);
 
-    void execute(Shot* p_shot);
+    void execute(int p_self, Shot* p_shot);
 
     ShotEffect() {}
 

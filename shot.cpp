@@ -4,6 +4,25 @@
 
 #include "core/math/math_funcs.h"
 
+void Shot::reset(Pattern* p_owner, int p_id) {
+    id = p_id;
+    owner = p_owner;
+    flags = 0;
+    sprite = 0;
+    radius = 0;
+    position = Vector2(0, 0);
+    direction = Vector2(0, 1);
+    speed = 0;
+
+    for (int i = 0; i != SHOT_REGISTERS; ++i) {
+        registers[i] = Variant();
+    }
+
+    for (int i = 0; i != MAX_SHOT_EFFECTS; ++i) {
+        instruction_pointers[i] = -1;
+    }
+}
+
 void Shot::set_register(Register p_reg, const Variant& p_value) {
     switch (p_reg) {
         case POSITION:  set_position(p_value);  break;
@@ -26,18 +45,10 @@ Variant Shot::get_register(Register p_reg) const {
     }
 }
 
-void Shot::reset(Pattern* p_owner, int p_id) {
-    id = p_id;
-    owner = p_owner;
-    flags = 0;
-    sprite = 0;
-    radius = 0;
-    position = Vector2(0, 0);
-    direction = Vector2(0, 1);
-    speed = 0;
-
-    for (int i = 0; i != SHOT_REGISTERS; ++i) {
-        registers[i] = Variant();
+void Shot::set_effects(const Vector<int>& p_effects) {
+    for (int i = 0; i != p_effects.size(); ++i) {
+        ERR_FAIL_INDEX(p_effects[i], MAX_SHOT_EFFECTS);
+        instruction_pointers[p_effects[i]] = 0;
     }
 }
 

@@ -79,9 +79,11 @@ void Pattern::tick() {
         // Move shot by its direction and speed, then update its global position
         shot->set_position(shot->get_position() + shot->get_velocity());
 
-        // Run effect
-        if (!effect.is_null()) {
-            effect->execute(shot);
+        // Run effects
+        for (int j = 0; j != effect_count; ++j) {
+            if (!effects[j].is_null()) {
+                effects[j]->execute(j, shot);
+            }
         }
 
         // Check for graze or collision
@@ -155,6 +157,11 @@ Variant Pattern::get_register(Register p_reg) const {
     return registers[p_reg >> 2];
 }
 
+int Pattern::add_effect(const Ref<ShotEffect>& p_effect) {
+    effects[effect_count] = p_effect;
+    return effect_count++;
+}
+
 Danmaku* Pattern::get_danmaku() const {
     return danmaku;
 }
@@ -226,14 +233,6 @@ void Pattern::custom(int p_count, String p_name, Dictionary p_override) {
     });
 }
 
-void Pattern::set_effect(const Ref<ShotEffect>& p_effect) {
-    effect = p_effect;
-}
-
-Ref<ShotEffect> Pattern::get_effect() const {
-    return effect;
-}
-
 void Pattern::set_delegate(Object* p_delegate) {
     delegate = p_delegate;
 }
@@ -268,6 +267,7 @@ bool Pattern::get_autodelete() const {
 
 void Pattern::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_danmaku"), &Pattern::get_danmaku);
+    ClassDB::bind_method(D_METHOD("add_effect", "effect"), &Pattern::add_effect);
 
     ClassDB::bind_method(D_METHOD("single"), &Pattern::single);
     ClassDB::bind_method(D_METHOD("circle"), &Pattern::circle);
@@ -281,19 +281,16 @@ void Pattern::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_parameters", "parameters"), &Pattern::set_parameters);
     ClassDB::bind_method(D_METHOD("set_despawn_distance", "despawn_distance"), &Pattern::set_despawn_distance);
     ClassDB::bind_method(D_METHOD("set_autodelete", "autodelete"), &Pattern::set_autodelete);
-    ClassDB::bind_method(D_METHOD("set_effect", "effect"), &Pattern::set_effect);
 
     ClassDB::bind_method(D_METHOD("get_delegate"), &Pattern::get_delegate);
     ClassDB::bind_method(D_METHOD("get_parameters"), &Pattern::get_parameters);
     ClassDB::bind_method(D_METHOD("get_despawn_distance"), &Pattern::get_despawn_distance);
     ClassDB::bind_method(D_METHOD("get_autodelete"), &Pattern::get_autodelete);
-    ClassDB::bind_method(D_METHOD("get_effect"), &Pattern::get_effect);
 
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "delegate"), "set_delegate", "get_delegate");
     ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "parameters"), "set_parameters", "get_parameters");
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "despawn_distance"), "set_despawn_distance", "get_despawn_distance");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "autodelete"), "set_autodelete", "get_autodelete");
-    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "effect", PROPERTY_HINT_RESOURCE_TYPE, "ShotEffect"), "set_effect", "get_effect");
 
     BIND_CONSTANT(REG0);
     BIND_CONSTANT(REG1);
@@ -311,5 +308,9 @@ Pattern::Pattern() {
     despawn_distance = 0;
     autodelete = false;
     parameters = Dictionary();
-    effect = Ref<ShotEffect>();
+    effect_count = 0;
+
+    for (int i = 0; i != MAX_SHOT_EFFECTS; ++i) {
+        effects[i] = Ref<ShotEffect>();
+    }
 }

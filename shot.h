@@ -24,6 +24,7 @@ class Shot : public Object {
     Pattern* owner;
     uint32_t flags;
 
+    int instruction_pointers[MAX_SHOT_EFFECTS];
     Variant registers[SHOT_REGISTERS];
 
     int sprite;
@@ -67,11 +68,14 @@ public:
     _FORCE_INLINE_ int get_sprite_id() { return sprite; }
 
     _FORCE_INLINE_ int get_id() { return id; }
+    _FORCE_INLINE_ int* get_instruction_pointer(int p_idx) { return &instruction_pointers[p_idx]; }
+
+    void reset(Pattern* p_owner, int p_local_id);
 
     void set_register(Register p_reg, const Variant& p_value);
     Variant get_register(Register p_reg) const;
 
-    void reset(Pattern* p_owner, int p_local_id);
+    void set_effects(const Vector<int>& p_effects);
 
     Pattern* get_pattern() const;
     Danmaku* get_danmaku() const;

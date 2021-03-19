@@ -30,7 +30,8 @@ class Pattern : public Node2D {
     Dictionary parameters;
     Object* delegate;
 
-    Ref<ShotEffect> effect;
+    int effect_count;
+    Ref<ShotEffect> effects[MAX_SHOT_EFFECTS];
     Variant registers[PATTERN_REGISTERS];
 
     float despawn_distance;
@@ -55,6 +56,8 @@ public:
     void set_register(Register p_reg, const Variant& p_value);
     Variant get_register(Register p_reg) const;
 
+    int add_effect(const Ref<ShotEffect>& p_effect);
+
     template <typename F>
     void clear(F p_constraint);
 
@@ -67,9 +70,6 @@ public:
     void layered_circle(int p_count, int p_layers, float p_min, float p_max, Dictionary p_override);
     void layered_fan(int p_count, float p_theta, int p_layers, float p_min, float p_max, Dictionary p_override);
     void custom(int p_count, String p_name, Dictionary p_override);
-
-    void set_effect(const Ref<ShotEffect>& p_effect);
-    Ref<ShotEffect> get_effect() const;
 
     void set_delegate(Object* p_delegate);
     Object* get_delegate() const;
@@ -130,6 +130,8 @@ void Pattern::pattern(int p_count, const Dictionary& p_override, Fn p_callback) 
     int sprite_id = danmaku->get_sprite_id(param<String>("sprite", p_override, ""));
     Ref<ShotSprite> sprite = danmaku->get_sprite(sprite_id);
 
+    Vector<int> effects = param<Vector<int>>("effects", p_override, Vector<int>());
+
     Vector2 offset = param<Vector2>("offset", p_override, Vector2(0, 0));
     float rotation = param<float>("rotation", p_override, 0);
     Vector2 base_offset = param<Vector2>("__offset", p_override, Vector2(0, 0));
@@ -155,6 +157,7 @@ void Pattern::pattern(int p_count, const Dictionary& p_override, Fn p_callback) 
         shot->set_position(offset);
         shot->set_direction(direction);
         shot->set_speed(speed);
+        shot->set_effects(effects);
         shot->flag(Shot::FLAG_ACTIVE);
         p_callback(shot);
         shots.push_back(shot);

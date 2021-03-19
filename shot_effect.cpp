@@ -85,12 +85,17 @@ void ShotEffect::mod(int p_lhs, int p_rhs, int p_to) {
     commands.push_back(MAKE_CMD_ABC(CMD_MOD, p_lhs, p_rhs, p_to));
 }
 
-void ShotEffect::execute(Shot* p_shot) {
+void ShotEffect::execute(int p_self, Shot* p_shot) {
     shot = p_shot;
     pattern = p_shot->get_pattern();
 
-    for (int i = 0; i != commands.size(); ++i) {
-        Command cmd = commands[i];
+    int* ins = shot->get_instruction_pointer(p_self);
+    if (*ins == -1) {
+        return;
+    }
+
+    while (*ins < commands.size()) {
+        Command cmd = commands[*ins];
 
         switch (CMD(cmd)) {
             case CMD_MOVE:
@@ -117,7 +122,11 @@ void ShotEffect::execute(Shot* p_shot) {
                 set_register(ARG_C(cmd), Variant::evaluate(Variant::OP_MODULE, get_register(ARG_A(cmd)), get_register(ARG_B(cmd))));
                 break;
         }
+
+        *ins = *ins + 1;
     }
+
+    *ins = *ins % commands.size();
 }
 
 void ShotEffect::_bind_methods() {
