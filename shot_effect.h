@@ -41,15 +41,17 @@ protected:
 public:
     int constant(const Variant& p_value);
 
-    void move(int p_from, int p_to);
+    int move(int p_from, int p_to);
     
-    void add(int p_lhs, int p_rhs, int p_to);
-    void sub(int p_lhs, int p_rhs, int p_to);
-    void mul(int p_lhs, int p_rhs, int p_to);
-    void div(int p_lhs, int p_rhs, int p_to);
-    void mod(int p_lhs, int p_rhs, int p_to);
+    int add(int p_lhs, int p_rhs, int p_to);
+    int sub(int p_lhs, int p_rhs, int p_to);
+    int mul(int p_lhs, int p_rhs, int p_to);
+    int div(int p_lhs, int p_rhs, int p_to);
+    int mod(int p_lhs, int p_rhs, int p_to);
 
-    void yield();
+    int jumpif(int p_test, int p_jump);
+
+    int yield();
 
     void execute(int p_self, Shot* p_shot);
 
