@@ -49,6 +49,8 @@ public:
     void div(int p_lhs, int p_rhs, int p_to);
     void mod(int p_lhs, int p_rhs, int p_to);
 
+    void yield();
+
     void execute(int p_self, Shot* p_shot);
 
     ShotEffect() {}

@@ -10,7 +10,8 @@ enum {
     CMD_SUB,
     CMD_MUL,
     CMD_DIV,
-    CMD_MOD
+    CMD_MOD,
+    CMD_YIELD
 };
 
 #define REG_SRC(reg) (reg & 0x03)
@@ -85,6 +86,10 @@ void ShotEffect::mod(int p_lhs, int p_rhs, int p_to) {
     commands.push_back(MAKE_CMD_ABC(CMD_MOD, p_lhs, p_rhs, p_to));
 }
 
+void ShotEffect::yield() {
+    commands.push_back(CMD_YIELD);
+}
+
 void ShotEffect::execute(int p_self, Shot* p_shot) {
     shot = p_shot;
     pattern = p_shot->get_pattern();
@@ -121,6 +126,10 @@ void ShotEffect::execute(int p_self, Shot* p_shot) {
             case CMD_MOD:
                 set_register(ARG_C(cmd), Variant::evaluate(Variant::OP_MODULE, get_register(ARG_A(cmd)), get_register(ARG_B(cmd))));
                 break;
+            
+            case CMD_YIELD:
+                *ins = (*ins + 1) % commands.size();
+                return;
         }
 
         *ins = *ins + 1;
@@ -139,4 +148,6 @@ void ShotEffect::_bind_methods() {
     ClassDB::bind_method(D_METHOD("mul", "lhs", "rhs", "to"), &ShotEffect::mul);
     ClassDB::bind_method(D_METHOD("div", "lhs", "rhs", "to"), &ShotEffect::div);
     ClassDB::bind_method(D_METHOD("mod", "lhs", "rhs", "to"), &ShotEffect::mod);
+
+    ClassDB::bind_method(D_METHOD("yield"), &ShotEffect::yield);
 }
