@@ -12,7 +12,9 @@ enum {
     CMD_DIV,
     CMD_MOD,
     CMD_JUMPIF,
-    CMD_YIELD
+    CMD_YIELD,
+    CMD_END,
+    CMD_CLEAR
 };
 
 #define REG_SRC(reg) (reg & 0x03)
@@ -103,6 +105,16 @@ int ShotEffect::yield() {
     return commands.size() - 1;
 }
 
+int ShotEffect::end() {
+    commands.push_back(CMD_END);
+    return commands.size() - 1;
+}
+
+int ShotEffect::clear() {
+    commands.push_back(CMD_CLEAR);
+    return commands.size() - 1;
+}
+
 void ShotEffect::execute(int p_self, Shot* p_shot) {
     shot = p_shot;
     pattern = p_shot->get_pattern();
@@ -152,6 +164,14 @@ Begin:
             case CMD_YIELD:
                 *ins = (*ins + 1) % commands.size();
                 return;
+            
+            case CMD_END:
+                *ins = -1;
+                return;
+            
+            case CMD_CLEAR:
+                shot->unflag(Shot::FLAG_ACTIVE);
+                return;
         }
 
         *ins = *ins + 1;
@@ -174,4 +194,6 @@ void ShotEffect::_bind_methods() {
     ClassDB::bind_method(D_METHOD("jumpif", "test", "jump"), &ShotEffect::jumpif);
 
     ClassDB::bind_method(D_METHOD("yield"), &ShotEffect::yield);
+    ClassDB::bind_method(D_METHOD("end"), &ShotEffect::end);
+    ClassDB::bind_method(D_METHOD("clear"), &ShotEffect::clear);
 }

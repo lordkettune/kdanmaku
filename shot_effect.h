@@ -52,6 +52,8 @@ public:
     int jumpif(int p_test, int p_jump);
 
     int yield();
+    int end();
+    int clear();
 
     void execute(int p_self, Shot* p_shot);
 
