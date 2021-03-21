@@ -66,8 +66,7 @@ public:
     void clear_circle(Vector2 p_origin, float p_radius);
     void clear_rect(Rect2 p_rect);
 
-    int get_sprite_id(const String& p_key) const;
-    Ref<ShotSprite> get_sprite(int p_id) const;
+    Ref<ShotSprite> get_sprite(const String& p_key) const;
 
     int get_free_shot_count() const;
     int get_active_shot_count() const;

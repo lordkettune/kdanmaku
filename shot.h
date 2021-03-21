@@ -8,6 +8,7 @@
 #ifndef SHOT_H
 #define SHOT_H
 
+#include "shot_sprite.h"
 #include "shot_effect.h"
 #include "core/object.h"
 
@@ -27,7 +28,7 @@ class Shot : public Object {
     int instruction_pointers[MAX_SHOT_EFFECTS];
     Variant registers[SHOT_REGISTERS];
 
-    int sprite;
+    Ref<ShotSprite> sprite;
     float radius;
     
     Vector2 position;
@@ -63,12 +64,10 @@ public:
     _FORCE_INLINE_ void flag(int p_flag)     { flags |= p_flag;  }
     _FORCE_INLINE_ void unflag(int p_flag)   { flags &= ~p_flag; }
     _FORCE_INLINE_ bool flagged(int p_flag)  { return flags & p_flag; }
-    
-    _FORCE_INLINE_ void set_sprite_id(int p_sprite) { sprite = p_sprite; }
-    _FORCE_INLINE_ int get_sprite_id() { return sprite; }
 
     _FORCE_INLINE_ int get_id() { return id; }
     _FORCE_INLINE_ int* get_instruction_pointer(int p_idx) { return &instruction_pointers[p_idx]; }
+    _FORCE_INLINE_ float get_radius() { return radius; }
 
     void reset(Pattern* p_owner, int p_local_id);
 
@@ -80,11 +79,8 @@ public:
     Pattern* get_pattern() const;
     Danmaku* get_danmaku() const;
 
-    void set_sprite(const String& p_key);
-    String get_sprite() const;
-
-    void set_radius(float p_radius);
-    float get_radius() const;
+    void set_sprite(const Ref<ShotSprite>& p_sprite);
+    Ref<ShotSprite> get_sprite() const;
 
     void set_position(const Vector2& p_position);
     Vector2 get_position() const;

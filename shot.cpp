@@ -8,11 +8,11 @@ void Shot::reset(Pattern* p_owner, int p_id) {
     id = p_id;
     owner = p_owner;
     flags = 0;
-    sprite = 0;
+    speed = 0;
     radius = 0;
+    sprite = Ref<ShotSprite>();
     position = Vector2(0, 0);
     direction = Vector2(0, 1);
-    speed = 0;
 
     for (int i = 0; i != SHOT_REGISTERS; ++i) {
         registers[i] = Variant();
@@ -60,26 +60,13 @@ Danmaku* Shot::get_danmaku() const {
     return owner->get_danmaku();
 }
 
-void Shot::set_sprite(const String& p_key) {
-    Danmaku* danmaku = get_danmaku();
-    sprite = danmaku->get_sprite_id(p_key);
-    radius = danmaku->get_sprite(sprite)->get_collider_radius();
+void Shot::set_sprite(const Ref<ShotSprite>& p_sprite) {
+    radius = p_sprite->get_collider_radius();
+    sprite = p_sprite;
 }
 
-String Shot::get_sprite() const {
-    if (owner) {
-        return get_danmaku()->get_sprite(sprite)->get_key();
-    } else {
-        return "";
-    }
-}
-
-void Shot::set_radius(float p_radius) {
-    radius = p_radius;
-}
-
-float Shot::get_radius() const {
-    return radius;
+Ref<ShotSprite> Shot::get_sprite() const {
+    return sprite;
 }
 
 void Shot::set_position(const Vector2& p_position) {
@@ -132,7 +119,6 @@ void Shot::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_position", "position"), &Shot::set_position);
     ClassDB::bind_method(D_METHOD("set_velocity", "velocity"), &Shot::set_velocity);
     ClassDB::bind_method(D_METHOD("set_rotation", "rotation"), &Shot::set_rotation);
-    ClassDB::bind_method(D_METHOD("set_radius", "radius"), &Shot::set_radius);
     ClassDB::bind_method(D_METHOD("set_sprite", "sprite"), &Shot::set_sprite);
 
     ClassDB::bind_method(D_METHOD("get_speed"), &Shot::get_speed);
@@ -140,7 +126,6 @@ void Shot::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_position"), &Shot::get_position);
     ClassDB::bind_method(D_METHOD("get_velocity"), &Shot::get_velocity);
     ClassDB::bind_method(D_METHOD("get_rotation"), &Shot::get_rotation);
-    ClassDB::bind_method(D_METHOD("get_radius"), &Shot::get_radius);
     ClassDB::bind_method(D_METHOD("get_sprite"), &Shot::get_sprite);
 
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "speed"), "set_speed", "get_speed");
@@ -148,8 +133,7 @@ void Shot::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "position"), "set_position", "get_position");
     ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "velocity"), "set_velocity", "get_velocity");
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "rotation"), "set_rotation", "get_rotation");
-    ADD_PROPERTY(PropertyInfo(Variant::REAL, "radius"), "set_radius", "get_radius");
-    ADD_PROPERTY(PropertyInfo(Variant::STRING, "sprite"), "set_sprite", "get_sprite");
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "sprite", PROPERTY_HINT_RESOURCE_TYPE, "ShotSprite"), "set_sprite", "get_sprite");
 
     BIND_CONSTANT(REG0);
     BIND_CONSTANT(REG1);
