@@ -184,11 +184,37 @@ void Pattern::draw() {
 }
 
 void Pattern::set_register(Register p_reg, const Variant& p_value) {
-    registers[p_reg >> 2] = p_value;
+    switch (p_reg) {
+        case ROWS:     params.rows = p_value;     break;
+        case COLUMNS:  params.columns = p_value;  break;
+        case WIDTH:    params.width = p_value;    break;
+        case HEIGHT:   params.height = p_value;   break;
+        case SPRITE:   params.sprite = p_value;   break;
+        case OFFSET:   params.offset = p_value;   break;
+        case EFFECTS:  params.effects = p_value;  break;
+        case ROTATION: params.rotation = p_value; break;
+        case SPEED:    params.speed = p_value;    break;
+        case AIM:      params.aim = p_value;      break;
+        case PARAMS:   set_params(p_value);       break;
+        default: registers[p_reg >> 2] = p_value; break;
+    }
 }
 
 Variant Pattern::get_register(Register p_reg) const {
-    return registers[p_reg >> 2];
+    switch (p_reg) {
+        case ROWS:     return params.rows;
+        case COLUMNS:  return params.columns;
+        case WIDTH:    return params.width;
+        case HEIGHT:   return params.height;
+        case SPRITE:   return params.sprite;
+        case OFFSET:   return params.offset;
+        case EFFECTS:  return params.effects;
+        case ROTATION: return params.rotation;
+        case SPEED:    return params.speed;
+        case AIM:      return params.aim;
+        case PARAMS:   return get_params();
+        default: return registers[p_reg >> 2];
+    }
 }
 
 int Pattern::add_effect(const Ref<ShotEffect>& p_effect) {
@@ -204,6 +230,9 @@ void Pattern::fire() {
     ERR_FAIL_NULL(danmaku);
 
     Ref<ShotSprite> sprite = danmaku->get_sprite(params.sprite);
+    if (sprite.is_null()) {
+        ERR_FAIL_MSG("No sprite defined, cannot fire");
+    }
 
     float to_player = 0;
     if (params.aim) {
@@ -220,6 +249,7 @@ void Pattern::fire() {
             float speed = params.speed + params.height * y;
 
             Shot* shot = danmaku->capture();
+            shot->reset(this, params.rows * x + y);
             shot->set_direction(direction);
             shot->set_sprite(sprite);
             shot->set_speed(speed);
@@ -297,6 +327,14 @@ void Pattern::custom(int p_count, String p_name, Dictionary p_override) {
     // TODO
 }
 
+void Pattern::set_params(const Dictionary& p_params) {
+    params = FireParams(p_params);
+}
+
+Dictionary Pattern::get_params() const {
+    return Dictionary(); // TODO
+}
+
 void Pattern::set_delegate(Object* p_delegate) {
     delegate = p_delegate;
 }
@@ -324,6 +362,7 @@ bool Pattern::get_autodelete() const {
 void Pattern::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_danmaku"), &Pattern::get_danmaku);
     ClassDB::bind_method(D_METHOD("add_effect", "effect"), &Pattern::add_effect);
+    ClassDB::bind_method(D_METHOD("fire"), &Pattern::fire);
 
     ClassDB::bind_method(D_METHOD("single"), &Pattern::single);
     ClassDB::bind_method(D_METHOD("circle"), &Pattern::circle);
@@ -333,14 +372,17 @@ void Pattern::_bind_methods() {
     ClassDB::bind_method(D_METHOD("layered_fan"), &Pattern::layered_fan);
     ClassDB::bind_method(D_METHOD("custom"), &Pattern::custom);
 
+    ClassDB::bind_method(D_METHOD("set_params", "params"), &Pattern::set_params);
     ClassDB::bind_method(D_METHOD("set_delegate", "delegate"), &Pattern::set_delegate);
     ClassDB::bind_method(D_METHOD("set_despawn_distance", "despawn_distance"), &Pattern::set_despawn_distance);
     ClassDB::bind_method(D_METHOD("set_autodelete", "autodelete"), &Pattern::set_autodelete);
 
+    ClassDB::bind_method(D_METHOD("get_params"), &Pattern::get_params);
     ClassDB::bind_method(D_METHOD("get_delegate"), &Pattern::get_delegate);
     ClassDB::bind_method(D_METHOD("get_despawn_distance"), &Pattern::get_despawn_distance);
     ClassDB::bind_method(D_METHOD("get_autodelete"), &Pattern::get_autodelete);
 
+    ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "params"), "set_params", "get_params");
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "delegate"), "set_delegate", "get_delegate");
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "despawn_distance"), "set_despawn_distance", "get_despawn_distance");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "autodelete"), "set_autodelete", "get_autodelete");
@@ -353,6 +395,19 @@ void Pattern::_bind_methods() {
     BIND_CONSTANT(REG5);
     BIND_CONSTANT(REG6);
     BIND_CONSTANT(REG7);
+
+    BIND_CONSTANT(ROWS);
+    BIND_CONSTANT(COLUMNS);
+    BIND_CONSTANT(WIDTH);
+    BIND_CONSTANT(HEIGHT);
+    BIND_CONSTANT(SPRITE);
+    BIND_CONSTANT(OFFSET);
+    BIND_CONSTANT(EFFECTS);
+    BIND_CONSTANT(ROTATION);
+    BIND_CONSTANT(SPEED);
+    BIND_CONSTANT(AIM);
+
+    BIND_CONSTANT(PARAMS);
 }
 
 Pattern::Pattern() {

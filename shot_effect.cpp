@@ -11,6 +11,7 @@ enum {
     CMD_MUL,
     CMD_DIV,
     CMD_MOD,
+    CMD_FIRE,
     CMD_JUMPIF,
     CMD_YIELD,
     CMD_END,
@@ -95,6 +96,11 @@ int ShotEffect::mod(int p_lhs, int p_rhs, int p_to) {
     return commands.size() - 1;
 }
 
+int ShotEffect::fire() {
+    commands.push_back(CMD_FIRE);
+    return commands.size() - 1;
+}
+
 int ShotEffect::jumpif(int p_test, int p_jump) {
     commands.push_back(MAKE_CMD_AB(CMD_JUMPIF, p_test, p_jump));
     return commands.size() - 1;
@@ -153,6 +159,10 @@ Begin:
                 set_register(ARG_C(cmd), Variant::evaluate(Variant::OP_MODULE, get_register(ARG_A(cmd)), get_register(ARG_B(cmd))));
                 break;
             
+            case CMD_FIRE:
+                shot->get_pattern()->fire();
+                break;
+            
             case CMD_JUMPIF:
                 if (get_register(ARG_A(cmd))) {
                     ERR_FAIL_INDEX(ARG_B(cmd), commands.size());
@@ -190,6 +200,8 @@ void ShotEffect::_bind_methods() {
     ClassDB::bind_method(D_METHOD("mul", "lhs", "rhs", "to"), &ShotEffect::mul);
     ClassDB::bind_method(D_METHOD("div", "lhs", "rhs", "to"), &ShotEffect::div);
     ClassDB::bind_method(D_METHOD("mod", "lhs", "rhs", "to"), &ShotEffect::mod);
+
+    ClassDB::bind_method(D_METHOD("fire"), &ShotEffect::fire);
 
     ClassDB::bind_method(D_METHOD("jumpif", "test", "jump"), &ShotEffect::jumpif);
 

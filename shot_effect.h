@@ -49,6 +49,8 @@ public:
     int div(int p_lhs, int p_rhs, int p_to);
     int mod(int p_lhs, int p_rhs, int p_to);
 
+    int fire();
+
     int jumpif(int p_test, int p_jump);
 
     int yield();

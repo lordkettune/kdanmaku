@@ -73,7 +73,20 @@ public:
         REG4 = PATTERN_REG(4),
         REG5 = PATTERN_REG(5),
         REG6 = PATTERN_REG(6),
-        REG7 = PATTERN_REG(7)
+        REG7 = PATTERN_REG(7),
+
+        ROWS     = PATTERN_REG(8),
+        COLUMNS  = PATTERN_REG(9),
+        WIDTH    = PATTERN_REG(10),
+        HEIGHT   = PATTERN_REG(11),
+        SPRITE   = PATTERN_REG(12),
+        OFFSET   = PATTERN_REG(13),
+        EFFECTS  = PATTERN_REG(14),
+        ROTATION = PATTERN_REG(15),
+        SPEED    = PATTERN_REG(16),
+        AIM      = PATTERN_REG(17),
+
+        PARAMS = PATTERN_REG(18),
     };
 
     void set_register(Register p_reg, const Variant& p_value);
@@ -96,6 +109,9 @@ public:
     void layered_fan(int p_columns, int p_rows, float p_width, float p_height, Dictionary p_override);
 
     void custom(int p_count, String p_name, Dictionary p_override);
+    
+    void set_params(const Dictionary& p_params);
+    Dictionary get_params() const;
 
     void set_delegate(Object* p_delegate);
     Object* get_delegate() const;
