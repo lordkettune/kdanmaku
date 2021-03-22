@@ -60,6 +60,18 @@ Danmaku* Shot::get_danmaku() const {
     return owner->get_danmaku();
 }
 
+void Shot::set_paused(bool p_paused) {
+    if (p_paused) {
+        flag(FLAG_PAUSED);
+    } else {
+        unflag(FLAG_PAUSED);
+    }
+}
+
+bool Shot::get_paused() const {
+    return flagged(FLAG_PAUSED);
+}
+
 void Shot::set_sprite(const Ref<ShotSprite>& p_sprite) {
     radius = p_sprite->get_collider_radius();
     sprite = p_sprite;
@@ -114,6 +126,7 @@ void Shot::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_pattern"), &Shot::get_pattern);
     ClassDB::bind_method(D_METHOD("get_danmaku"), &Shot::get_danmaku);
 
+    ClassDB::bind_method(D_METHOD("set_paused", "paused"), &Shot::set_paused);
     ClassDB::bind_method(D_METHOD("set_speed", "speed"), &Shot::set_speed);
     ClassDB::bind_method(D_METHOD("set_direction", "direction"), &Shot::set_direction);
     ClassDB::bind_method(D_METHOD("set_position", "position"), &Shot::set_position);
@@ -121,6 +134,7 @@ void Shot::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_rotation", "rotation"), &Shot::set_rotation);
     ClassDB::bind_method(D_METHOD("set_sprite", "sprite"), &Shot::set_sprite);
 
+    ClassDB::bind_method(D_METHOD("get_paused"), &Shot::get_paused);
     ClassDB::bind_method(D_METHOD("get_speed"), &Shot::get_speed);
     ClassDB::bind_method(D_METHOD("get_direction"), &Shot::get_direction);
     ClassDB::bind_method(D_METHOD("get_position"), &Shot::get_position);
@@ -128,6 +142,7 @@ void Shot::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_rotation"), &Shot::get_rotation);
     ClassDB::bind_method(D_METHOD("get_sprite"), &Shot::get_sprite);
 
+    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "paused"), "set_paused", "get_paused");
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "speed"), "set_speed", "get_speed");
     ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "direction"), "set_direction", "get_direction");
     ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "position"), "set_position", "get_position");
@@ -148,6 +163,7 @@ void Shot::_bind_methods() {
     BIND_CONSTANT(DIRECTION);
     BIND_CONSTANT(ROTATION);
     BIND_CONSTANT(VELOCITY);
+    BIND_CONSTANT(PAUSED);
 }
 
 Shot::Shot() {

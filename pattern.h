@@ -37,6 +37,7 @@ struct FireParams {
     Vector<int> effects;
     float rotation;
     float speed;
+    bool paused;
     bool aim;
 };
 
@@ -84,9 +85,10 @@ public:
         EFFECTS  = PATTERN_REG(14),
         ROTATION = PATTERN_REG(15),
         SPEED    = PATTERN_REG(16),
-        AIM      = PATTERN_REG(17),
+        PAUSED   = PATTERN_REG(17),
+        AIM      = PATTERN_REG(18),
 
-        PARAMS = PATTERN_REG(18),
+        PARAMS = PATTERN_REG(19),
     };
 
     void set_register(Register p_reg, const Variant& p_value);

@@ -8,8 +8,8 @@
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 
 FireParams::FireParams() {
-    rows = 1;
     columns = 1;
+    rows = 1;
     width = 0;
     height = 0;
 
@@ -18,15 +18,22 @@ FireParams::FireParams() {
     offset = Vector2(0, 0);
     rotation = 0;
     speed = 0;
+    paused = false;
     aim = false;
 }
 
 FireParams::FireParams(const Dictionary& p_params) : FireParams() {
+    if (p_params.has("columns")) columns = p_params["columns"];
+    if (p_params.has("rows"))    rows = p_params["rows"];
+    if (p_params.has("width"))   width = p_params["width"];
+    if (p_params.has("height"))  height = p_params["height"];
+
     if (p_params.has("sprite"))   sprite = p_params["sprite"];
     if (p_params.has("effects"))  effects = p_params["effects"];
     if (p_params.has("offset"))   offset = p_params["offset"];
     if (p_params.has("rotation")) rotation = p_params["rotation"];
     if (p_params.has("speed"))    speed = p_params["speed"];
+    if (p_params.has("paused"))   paused = p_params["paused"];
     if (p_params.has("aim"))      aim = p_params["aim"];
 }
 
@@ -103,6 +110,10 @@ void Pattern::tick() {
 
         if (!shot->flagged(Shot::FLAG_ACTIVE)) {
             clean = true;
+            continue;
+        }
+
+        if (shot->flagged(Shot::FLAG_PAUSED)) {
             continue;
         }
 
@@ -194,6 +205,7 @@ void Pattern::set_register(Register p_reg, const Variant& p_value) {
         case EFFECTS:  params.effects = p_value;  break;
         case ROTATION: params.rotation = p_value; break;
         case SPEED:    params.speed = p_value;    break;
+        case PAUSED:   params.paused = p_value;   break;
         case AIM:      params.aim = p_value;      break;
         case PARAMS:   set_params(p_value);       break;
         default: registers[p_reg >> 2] = p_value; break;
@@ -211,6 +223,7 @@ Variant Pattern::get_register(Register p_reg) const {
         case EFFECTS:  return params.effects;
         case ROTATION: return params.rotation;
         case SPEED:    return params.speed;
+        case PAUSED:   return params.paused;
         case AIM:      return params.aim;
         case PARAMS:   return get_params();
         default: return registers[p_reg >> 2];
@@ -255,6 +268,7 @@ void Pattern::fire() {
             shot->set_speed(speed);
             shot->set_position(params.offset);
             shot->set_effects(params.effects);
+            shot->set_paused(params.paused);
             shot->flag(Shot::FLAG_ACTIVE);
             shots.push_back(shot);
         }

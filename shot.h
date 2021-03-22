@@ -52,18 +52,20 @@ public:
         SPEED     = SHOT_REG(9),
         DIRECTION = SHOT_REG(10),
         ROTATION  = SHOT_REG(11),
-        VELOCITY  = SHOT_REG(12)
+        VELOCITY  = SHOT_REG(12),
+        PAUSED    = SHOT_REG(13)
     };
 
     enum {
         FLAG_ACTIVE    = 1,
         FLAG_GRAZING   = 2,
-        FLAG_COLLIDING = 4
+        FLAG_COLLIDING = 4,
+        FLAG_PAUSED    = 8
     };
 
     _FORCE_INLINE_ void flag(int p_flag)     { flags |= p_flag;  }
     _FORCE_INLINE_ void unflag(int p_flag)   { flags &= ~p_flag; }
-    _FORCE_INLINE_ bool flagged(int p_flag)  { return flags & p_flag; }
+    _FORCE_INLINE_ bool flagged(int p_flag) const { return flags & p_flag; }
 
     _FORCE_INLINE_ int get_id() { return id; }
     _FORCE_INLINE_ int* get_instruction_pointer(int p_idx) { return &instruction_pointers[p_idx]; }
@@ -78,6 +80,9 @@ public:
 
     Pattern* get_pattern() const;
     Danmaku* get_danmaku() const;
+
+    void set_paused(bool p_paused);
+    bool get_paused() const;
 
     void set_sprite(const Ref<ShotSprite>& p_sprite);
     Ref<ShotSprite> get_sprite() const;
