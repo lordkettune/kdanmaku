@@ -113,17 +113,15 @@ void Pattern::tick() {
             continue;
         }
 
-        if (shot->flagged(Shot::FLAG_PAUSED)) {
-            continue;
-        }
+        if (!shot->flagged(Shot::FLAG_PAUSED)) {
+            // Move shot by its direction and speed, then update its global position
+            shot->set_position(shot->get_position() + shot->get_velocity());
 
-        // Move shot by its direction and speed, then update its global position
-        shot->set_position(shot->get_position() + shot->get_velocity());
-
-        // Run effects
-        for (int j = 0; j != effect_count; ++j) {
-            if (!effects[j].is_null()) {
-                effects[j]->execute(j, shot);
+            // Run effects
+            for (int j = 0; j != effect_count; ++j) {
+                if (!effects[j].is_null()) {
+                    effects[j]->execute(j, shot);
+                }
             }
         }
 
