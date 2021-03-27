@@ -48,16 +48,12 @@ void Pattern::_notification(int p_what) {
             while (parent) {
                 danmaku = Object::cast_to<Danmaku>(parent);
                 if (danmaku) {
-                    set_z_index(danmaku->get_z_index());
                     danmaku->add_pattern(this);
                     break;
                 }
                 parent = parent->get_parent();
             }
-        } break;
-
-        case NOTIFICATION_READY: {
-            set_physics_process_internal(true);
+            set_physics_process(true);
         } break;
 
         case NOTIFICATION_EXIT_TREE: {
@@ -70,17 +66,13 @@ void Pattern::_notification(int p_what) {
             }
         } break;
 
-        case NOTIFICATION_INTERNAL_PHYSICS_PROCESS: {
-            tick();
-        } break;
-
-        case NOTIFICATION_DRAW: {
-            draw();
+        case NOTIFICATION_PHYSICS_PROCESS: {
+            _tick();
         } break;
     }
 }
 
-void Pattern::tick() {
+void Pattern::_tick() {
     ERR_FAIL_NULL(danmaku);
 
     if (autodelete && shots.empty()) {
@@ -170,26 +162,40 @@ void Pattern::tick() {
     update();
 }
 
-void Pattern::draw() {
-    for (int i = 0; i != shots.size(); ++i) {
-        Shot* shot = shots[i];
+int Pattern::fill_buffer(real_t*& buf) {
+    ERR_FAIL_NULL_V(danmaku, 0);
 
-        Ref<ShotSprite> sprite = shot->get_sprite();
-        if (sprite.is_null()) {
-            ERR_FAIL_MSG("Shot is missing a sprite, can't render");
-        }
+    Transform2D transform = get_global_transform();
+    transform = danmaku->get_global_transform().inverse() * transform;
 
-        Rect2 region = sprite->get_region();
-        float rotation_radians = sprite->get_rotation_degrees() * Math_PI / 180.0f;
-
-        if (sprite->get_face_motion()) {
-            draw_set_transform(shot->get_position(), shot->get_rotation() + rotation_radians, Vector2(1, 1));
-        } else {
-            draw_set_transform(shot->get_position(), rotation_radians, Vector2(1, 1));
-        }
-
-        draw_texture_rect_region(sprite->get_texture(), Rect2(region.size * -0.5f, region.size), region);
+    Ref<Texture> atlas = danmaku->get_atlas();
+    if (!atlas.is_valid()) {
+        return 0;
     }
+    Size2 atlas_size = atlas->get_size();
+
+    for (int i = 0; i != shots.size(); ++i) {
+        Vector2 position = transform.xform(shots[i]->get_position());
+        Rect2 region = shots[i]->get_sprite()->get_region();
+
+        buf[0] = 1;
+        buf[1] = 0;
+        buf[2] = 0;
+        buf[3] = position.x;
+        buf[4] = 0;
+        buf[5] = 1;
+        buf[6] = 0;
+        buf[7] = position.y;
+
+        buf[8] = region.size.width / atlas_size.width;
+        buf[9] = region.size.height / atlas_size.height;
+        buf[10] = region.position.x / atlas_size.width;
+        buf[11] = region.position.y / atlas_size.height;
+
+        buf += (8 + 4);
+    }
+
+    return shots.size();
 }
 
 void Pattern::set_register(Register p_reg, const Variant& p_value) {

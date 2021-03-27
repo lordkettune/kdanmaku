@@ -18,6 +18,7 @@
 #define DANMAKU_H
 
 #include "scene/2d/node_2d.h"
+#include "scene/resources/texture.h"
 
 #include "shot_sprite.h"
 #include "shot.h"
@@ -28,24 +29,22 @@ class Pattern;
 class Danmaku : public Node2D {
     GDCLASS(Danmaku, Node2D);
 
-    // Gameplay rectangle -- note that this is in global coordinates!
     Rect2 region;                 
     float tolerance;
     
-    // Registered shot sprites
-    Vector<Ref<ShotSprite>> sprites;
-    
-    // Shot pool size
     int max_shots;
-
-    // Shots not owned by patterns
     Vector<Shot*> free_shots;
-
-    // Active patterns
     Vector<Pattern*> patterns;
-    
-    // Player hitbox
     Hitbox* hitbox;
+
+    Vector<Ref<ShotSprite>> sprites;
+    Ref<Texture> atlas;
+
+    PoolRealArray buffer;
+    RID multimesh;
+    RID mesh;
+    RID material;
+    RID shader;
 
 protected:
     void _notification(int p_what);
@@ -87,7 +86,17 @@ public:
     void set_shot_sprite(int p_index, const Ref<ShotSprite>& p_sprite);
     Ref<ShotSprite> get_shot_sprite(int p_index) const;
 
+    void set_atlas(const Ref<Texture>& p_atlas);
+    Ref<Texture> get_atlas() const;
+
+    void _update_buffer();
+
     Danmaku();
+    ~Danmaku();
+
+private:
+    void _create_mesh();
+    void _create_material();
 };
 
 #endif

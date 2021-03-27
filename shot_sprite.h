@@ -13,9 +13,8 @@
 class ShotSprite : public Resource {
     GDCLASS(ShotSprite, Resource);
 
-    String key;          // Key that this will be referred to by during gameplay
+    String key;              // Key that this will be referred to by during gameplay
 
-    Ref<Texture> texture;    // Sprite sheet that this is in -- it's a good idea to keep your bullet sprites in an atlas for performance
     Rect2 region;            // Texture region to render
     
     float collider_radius;   // Collider radius shots with this sprite should use
@@ -29,9 +28,6 @@ protected:
 public:
     void set_key(const String& p_key);
     String get_key() const;
-
-    void set_texture(const Ref<Texture>& p_texture);
-    Ref<Texture> get_texture() const;
 
     void set_region(const Rect2& p_region);
     Rect2 get_region() const;

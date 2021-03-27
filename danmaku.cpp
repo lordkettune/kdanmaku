@@ -1,6 +1,8 @@
 #include "danmaku.h"
 #include "pattern.h"
 
+#include "servers/visual_server.h"
+
 #define MAX_SHOT_SPRITES 32
 
 void Danmaku::_notification(int p_what) {
@@ -10,6 +12,21 @@ void Danmaku::_notification(int p_what) {
                 Shot* shot = memnew(Shot);
                 free_shots.push_back(shot);
             }
+            buffer.resize((8 + 4) * max_shots);
+
+            VS::get_singleton()->canvas_item_set_update_when_visible(get_canvas_item(), true);
+            VS::get_singleton()->connect("frame_pre_draw", this, "_update_buffer");
+            set_physics_process(true);
+
+            _create_mesh();
+        } break;
+
+        case NOTIFICATION_DRAW: {
+            RID atlas_rid;
+            if (atlas.is_valid()) {
+                atlas_rid = atlas->get_rid();
+            }
+            VS::get_singleton()->canvas_item_add_multimesh(get_canvas_item(), multimesh, atlas_rid);
         } break;
 
         case NOTIFICATION_EXIT_TREE: {
@@ -132,6 +149,14 @@ Ref<ShotSprite> Danmaku::get_shot_sprite(int p_index) const {
     return sprites[p_index];
 }
 
+void Danmaku::set_atlas(const Ref<Texture>& p_atlas) {
+    atlas = p_atlas;
+}
+
+Ref<Texture> Danmaku::get_atlas() const {
+    return atlas;
+}
+
 void Danmaku::_validate_property(PropertyInfo& property) const {
 	if (property.name.begins_with("shot_sprite_")) {
 		int index = property.name.get_slicec('_', 2).to_int() - 1;
@@ -142,7 +167,69 @@ void Danmaku::_validate_property(PropertyInfo& property) const {
 	}
 }
 
+void Danmaku::_update_buffer() {
+    PoolRealArray::Write write = buffer.write();
+    real_t* buf = write.ptr();
+    int visible = 0;
+
+    for (int i = 0; i != patterns.size(); ++i) {
+        visible += patterns[i]->fill_buffer(buf);
+    }
+
+    VS::get_singleton()->multimesh_set_as_bulk_array(multimesh, buffer);
+    VS::get_singleton()->multimesh_set_visible_instances(multimesh, visible);
+}
+
+void Danmaku::_create_mesh() {
+    _create_material();
+
+    Vector<Vector2> vertices;
+    vertices.push_back(Vector2(-12, 12));
+    vertices.push_back(Vector2(-12, -12));
+    vertices.push_back(Vector2(12, -12));
+    vertices.push_back(Vector2(12, 12));
+
+    Vector<Vector2> uvs;
+    uvs.push_back(Vector2(0, 1));
+    uvs.push_back(Vector2(0, 0));
+    uvs.push_back(Vector2(1, 0));
+    uvs.push_back(Vector2(1, 1));
+
+    Vector<int> indices;
+    indices.push_back(0);
+    indices.push_back(1);
+    indices.push_back(2);
+    indices.push_back(2);
+    indices.push_back(3);
+    indices.push_back(0);
+
+    Array array;
+    array.resize(VS::ARRAY_MAX);
+    array[VS::ARRAY_VERTEX] = vertices;
+    array[VS::ARRAY_TEX_UV] = uvs;
+    array[VS::ARRAY_INDEX] = indices;
+
+    VS::get_singleton()->mesh_add_surface_from_arrays(mesh, VS::PRIMITIVE_TRIANGLES, array);
+    VS::get_singleton()->multimesh_allocate(multimesh, max_shots, VS::MULTIMESH_TRANSFORM_2D, VS::MULTIMESH_COLOR_NONE, VS::MULTIMESH_CUSTOM_DATA_FLOAT);
+    VS::get_singleton()->multimesh_set_mesh(multimesh, mesh);
+}
+
+void Danmaku::_create_material() {
+    String code = "shader_type canvas_item;";
+
+    code += "void vertex() {";
+    code += "    UV *= INSTANCE_CUSTOM.xy;";
+    code += "    UV += INSTANCE_CUSTOM.zw;";
+    code += "}";
+
+    VS::get_singleton()->shader_set_code(shader, code);
+    VS::get_singleton()->material_set_shader(material, shader);
+    VS::get_singleton()->canvas_item_set_material(get_canvas_item(), material);
+}
+
 void Danmaku::_bind_methods() {
+    ClassDB::bind_method(D_METHOD("_update_buffer"), &Danmaku::_update_buffer);
+
     ClassDB::bind_method(D_METHOD("clear_circle"), &Danmaku::clear_circle);
     ClassDB::bind_method(D_METHOD("clear_rect"), &Danmaku::clear_rect);
     
@@ -153,10 +240,12 @@ void Danmaku::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_max_shots", "max_shots"), &Danmaku::set_max_shots);
     ClassDB::bind_method(D_METHOD("set_region", "region"), &Danmaku::set_region);
     ClassDB::bind_method(D_METHOD("set_tolerance", "tolerance"), &Danmaku::set_tolerance);
+    ClassDB::bind_method(D_METHOD("set_atlas", "atlas"), &Danmaku::set_atlas);
 
     ClassDB::bind_method(D_METHOD("get_max_shots"), &Danmaku::get_max_shots);
     ClassDB::bind_method(D_METHOD("get_region"), &Danmaku::get_region);
     ClassDB::bind_method(D_METHOD("get_tolerance"), &Danmaku::get_tolerance);
+    ClassDB::bind_method(D_METHOD("get_atlas"), &Danmaku::get_atlas);
 
     ClassDB::bind_method(D_METHOD("set_shot_sprite_count", "count"), &Danmaku::set_shot_sprite_count);
     ClassDB::bind_method(D_METHOD("get_shot_sprite_count"), &Danmaku::get_shot_sprite_count);
@@ -166,6 +255,7 @@ void Danmaku::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::INT, "max_shots"), "set_max_shots", "get_max_shots");
     ADD_PROPERTY(PropertyInfo(Variant::RECT2, "region"), "set_region", "get_region");
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "tolerance"), "set_tolerance", "get_tolerance");
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "atlas", PROPERTY_HINT_RESOURCE_TYPE, "Texture"), "set_atlas", "get_atlas");
 
     ADD_GROUP("Sprites", "shot_");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "shot_sprites", PROPERTY_HINT_EXP_RANGE, "0," + itos(MAX_SHOT_SPRITES) + ",1"), "set_shot_sprite_count", "get_shot_sprite_count");
@@ -180,4 +270,16 @@ Danmaku::Danmaku() {
     region = Rect2(0, 0, 384, 448);
     tolerance = 64;
     set_shot_sprite_count(1);
+
+    multimesh = VS::get_singleton()->multimesh_create();
+    material = VS::get_singleton()->material_create();
+    shader = VS::get_singleton()->shader_create();
+    mesh = VS::get_singleton()->mesh_create();
+}
+
+Danmaku::~Danmaku() {
+    VS::get_singleton()->free(multimesh);
+    VS::get_singleton()->free(mesh);
+    VS::get_singleton()->free(material);
+    VS::get_singleton()->free(shader);
 }

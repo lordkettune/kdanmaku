@@ -124,11 +124,12 @@ public:
     void set_autodelete(bool p_autodelete);
     bool get_autodelete() const;
 
+    int fill_buffer(real_t*& buf);
+
     Pattern();
 
 private:
-    void tick();
-    void draw();
+    void _tick();
 };
 
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
