@@ -176,14 +176,22 @@ int Pattern::fill_buffer(real_t*& buf) {
 
     for (int i = 0; i != shots.size(); ++i) {
         Vector2 position = transform.xform(shots[i]->get_position());
-        Rect2 region = shots[i]->get_sprite()->get_region();
+        Ref<ShotSprite> sprite = shots[i]->get_sprite();
+        Rect2 region = sprite->get_region();
 
-        buf[0] = 1;
-        buf[1] = 0;
+        Vector2 x = Vector2(1, 0);
+        Vector2 y = Vector2(0, 1);
+        if (sprite->get_face_motion()) {
+            x = shots[i]->get_direction();
+            y = Vector2(-x.y, x.x);
+        }
+
+        buf[0] = x.x * region.size.width / 2;
+        buf[1] = y.x * region.size.height / 2;
         buf[2] = 0;
         buf[3] = position.x;
-        buf[4] = 0;
-        buf[5] = 1;
+        buf[4] = x.y * region.size.width / 2;
+        buf[5] = y.y * region.size.height / 2;
         buf[6] = 0;
         buf[7] = position.y;
 

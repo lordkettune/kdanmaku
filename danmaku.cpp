@@ -184,10 +184,10 @@ void Danmaku::_create_mesh() {
     _create_material();
 
     Vector<Vector2> vertices;
-    vertices.push_back(Vector2(-12, 12));
-    vertices.push_back(Vector2(-12, -12));
-    vertices.push_back(Vector2(12, -12));
-    vertices.push_back(Vector2(12, 12));
+    vertices.push_back(Vector2(-1, 1));
+    vertices.push_back(Vector2(-1, -1));
+    vertices.push_back(Vector2(1, -1));
+    vertices.push_back(Vector2(1, 1));
 
     Vector<Vector2> uvs;
     uvs.push_back(Vector2(0, 1));

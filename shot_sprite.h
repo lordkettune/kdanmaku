@@ -14,12 +14,8 @@ class ShotSprite : public Resource {
     GDCLASS(ShotSprite, Resource);
 
     String key;              // Key that this will be referred to by during gameplay
-
     Rect2 region;            // Texture region to render
-    
     float collider_radius;   // Collider radius shots with this sprite should use
-
-    float rotation_degrees;  // Base rotation
     bool face_motion;        // Sprite will turn to face movement vector
 
 protected:
@@ -34,9 +30,6 @@ public:
 
     void set_collider_radius(float p_collider_radius);
     float get_collider_radius() const;
-
-    void set_rotation_degrees(float p_rotation_degrees);
-    float get_rotation_degrees() const;
 
     void set_face_motion(bool p_face_motion);
     bool get_face_motion() const;
