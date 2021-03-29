@@ -9,7 +9,6 @@ void Shot::reset(Pattern* p_owner, int p_id) {
     owner = p_owner;
     flags = 0;
     speed = 0;
-    radius = 0;
     sprite = Ref<ShotSprite>();
     position = Vector2(0, 0);
     direction = Vector2(0, 1);
@@ -73,7 +72,7 @@ bool Shot::get_paused() const {
 }
 
 void Shot::set_sprite(const Ref<ShotSprite>& p_sprite) {
-    radius = p_sprite->get_collider_radius();
+    frame = p_sprite->get_frame(0);
     sprite = p_sprite;
 }
 

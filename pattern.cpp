@@ -117,6 +117,12 @@ void Pattern::_tick() {
             }
         }
 
+        // Process animations
+        ShotFrame* frame = shot->get_frame();
+        if (--frame->delay <= 0) {
+            *frame = shot->get_sprite()->get_frame(frame->next);
+        }
+
         // Check for graze or collision
         if (hitbox != NULL) {
             float distance = shot->get_position().distance_to(hitbox_position);
@@ -176,15 +182,16 @@ int Pattern::fill_buffer(real_t*& buf) {
 
     for (int i = 0; i != shots.size(); ++i) {
         Vector2 position = transform.xform(shots[i]->get_position());
-        Ref<ShotSprite> sprite = shots[i]->get_sprite();
-        Rect2 region = sprite->get_region();
+        ShotFrame* frame = shots[i]->get_frame();
 
         Vector2 x = Vector2(1, 0);
         Vector2 y = Vector2(0, 1);
-        if (sprite->get_face_motion()) {
+        if (frame->face_motion) {
             x = shots[i]->get_direction();
             y = Vector2(-x.y, x.x);
         }
+
+        Rect2 region = frame->region;
 
         buf[0] = x.x * region.size.width / 2;
         buf[1] = y.x * region.size.height / 2;

@@ -29,7 +29,7 @@ class Shot : public Object {
     Variant registers[SHOT_REGISTERS];
 
     Ref<ShotSprite> sprite;
-    float radius;
+    ShotFrame frame;
     
     Vector2 position;
     Vector2 direction;
@@ -69,7 +69,8 @@ public:
 
     _FORCE_INLINE_ int get_id() { return id; }
     _FORCE_INLINE_ int* get_instruction_pointer(int p_idx) { return &instruction_pointers[p_idx]; }
-    _FORCE_INLINE_ float get_radius() { return radius; }
+    _FORCE_INLINE_ float get_radius() { return frame.radius; }
+    _FORCE_INLINE_ ShotFrame* get_frame() { return &frame; }
 
     void reset(Pattern* p_owner, int p_local_id);
 
