@@ -75,20 +75,61 @@ Ref<ShotSprite> ShotSprite::get_clear_sprite() const {
     return clear_sprite;
 }
 
-ShotFrame ShotSprite::get_frame(int p_id) const {
-    Rect2 r = region;
-    r.size.width /= x_frames;
-    r.size.height /= y_frames;
-    r.position.x += r.size.width * (p_id % x_frames);
-    r.position.y += r.size.height * (p_id / x_frames);
+ShotFrame ShotSprite::get_frame(int p_id) {
+    if (!_frames_created) {
+        _create_frames(_frames, true);
+        _frames_created = true;
+    }
+    ERR_FAIL_INDEX_V(p_id, _frames.size(), ShotFrame());
+    return _frames[p_id];
+}
 
-    ShotFrame result;
-    result.region = r;
-    result.delay = frame_delay;
-    result.face_motion = face_motion;
-    result.radius = collider_radius;
-    result.next = (p_id + 1) % (x_frames * y_frames);
-    return result;
+ShotFrame ShotSprite::get_clear_frame() {
+    return get_frame(_clear_frame);
+}
+
+void ShotSprite::_create_frames(Vector<ShotFrame>& p_buffer, bool p_root) {
+    if (p_root) {
+        if (spawn_sprite.is_valid()) {
+            spawn_sprite->_create_frames(p_buffer, false);
+        }
+    }
+
+    int loop_frame = p_buffer.size();
+
+    for (int x = 0; x != x_frames; ++x) {
+        for (int y = 0; y != y_frames; ++y) {
+            Rect2 r = region;
+            r.size.width /= x_frames;
+            r.size.height /= y_frames;
+            r.position.x += r.size.width * x;
+            r.position.y += r.size.height * y;
+
+            ShotFrame frame;
+            frame.region = r;
+            frame.delay = frame_delay;
+            frame.face_motion = face_motion;
+            frame.radius = collider_radius;
+            frame.next = p_buffer.size() + 1;
+            frame.cleared = false;
+
+            p_buffer.push_back(frame);
+        }
+    }
+
+    if (p_root) {
+        _clear_frame = loop_frame;
+        p_buffer.write[p_buffer.size() - 1].next = loop_frame;
+
+        if (clear_sprite.is_valid()) {
+            _clear_frame = p_buffer.size();
+            clear_sprite->_create_frames(p_buffer, false);
+
+            ShotFrame& last = p_buffer.write[p_buffer.size() - 1];
+            last.next = p_buffer.size() - 1;
+            last.cleared = true;
+        }
+    }
 }
 
 void ShotSprite::_bind_methods() {
@@ -135,4 +176,8 @@ ShotSprite::ShotSprite() {
 
     spawn_sprite = Ref<ShotSprite>();
     clear_sprite = Ref<ShotSprite>();
+
+    _frames = Vector<ShotFrame>();
+    _frames_created = false;
+    _clear_frame = 0;
 }

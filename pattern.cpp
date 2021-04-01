@@ -120,7 +120,12 @@ void Pattern::_tick() {
         // Process animations
         ShotFrame* frame = shot->get_frame();
         if (--frame->delay <= 0) {
-            *frame = shot->get_sprite()->get_frame(frame->next);
+            if (frame->cleared) {
+                shot->unflag(Shot::FLAG_ACTIVE);
+                clean = true;
+            } else {
+                *frame = shot->get_sprite()->get_frame(frame->next);
+            }
         }
 
         // Check for graze or collision

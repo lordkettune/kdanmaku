@@ -140,7 +140,7 @@ template <typename Fn>
 void Pattern::clear(Fn p_constraint) {
     for (int i = 0; i != shots.size(); ++i) {
         if (p_constraint(shots[i])) {
-            shots[i]->unflag(Shot::FLAG_ACTIVE);
+            shots[i]->clear();
         }
     }
 }

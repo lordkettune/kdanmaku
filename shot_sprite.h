@@ -16,6 +16,7 @@ struct ShotFrame {
     float radius;
     bool face_motion;
     Rect2 region;
+    bool cleared;
 };
 
 class ShotSprite : public Resource {
@@ -32,6 +33,10 @@ class ShotSprite : public Resource {
 
     Ref<ShotSprite> spawn_sprite;
     Ref<ShotSprite> clear_sprite;
+
+    Vector<ShotFrame> _frames;
+    bool _frames_created;
+    int _clear_frame;
 
 protected:
     static void _bind_methods();
@@ -64,7 +69,10 @@ public:
     void set_clear_sprite(const Ref<ShotSprite>& p_sprite);
     Ref<ShotSprite> get_clear_sprite() const;
 
-    ShotFrame get_frame(int p_id) const;
+    ShotFrame get_frame(int p_id);
+    ShotFrame get_clear_frame();
+
+    void _create_frames(Vector<ShotFrame>& p_buffer, bool p_root);
 
     ShotSprite();
 };

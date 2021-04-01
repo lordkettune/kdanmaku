@@ -58,9 +58,10 @@ public:
 
     enum {
         FLAG_ACTIVE    = 1,
-        FLAG_GRAZING   = 2,
-        FLAG_COLLIDING = 4,
-        FLAG_PAUSED    = 8
+        FLAG_CLEARED   = 2,
+        FLAG_GRAZING   = 4,
+        FLAG_COLLIDING = 8,
+        FLAG_PAUSED    = 16
     };
 
     _FORCE_INLINE_ void flag(int p_flag)     { flags |= p_flag;  }
@@ -73,6 +74,7 @@ public:
     _FORCE_INLINE_ ShotFrame* get_frame() { return &frame; }
 
     void reset(Pattern* p_owner, int p_local_id);
+    void clear();
 
     void set_register(Register p_reg, const Variant& p_value);
     Variant get_register(Register p_reg) const;
@@ -85,7 +87,7 @@ public:
     void set_paused(bool p_paused);
     bool get_paused() const;
 
-    void set_sprite(const Ref<ShotSprite>& p_sprite);
+    void set_sprite(Ref<ShotSprite> p_sprite);
     Ref<ShotSprite> get_sprite() const;
 
     void set_position(const Vector2& p_position);

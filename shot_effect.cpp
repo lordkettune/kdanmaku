@@ -180,7 +180,7 @@ Begin:
                 return;
             
             case CMD_CLEAR:
-                shot->unflag(Shot::FLAG_ACTIVE);
+                shot->clear();
                 return;
         }
 

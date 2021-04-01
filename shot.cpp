@@ -71,7 +71,7 @@ bool Shot::get_paused() const {
     return flagged(FLAG_PAUSED);
 }
 
-void Shot::set_sprite(const Ref<ShotSprite>& p_sprite) {
+void Shot::set_sprite(Ref<ShotSprite> p_sprite) {
     frame = p_sprite->get_frame(0);
     sprite = p_sprite;
 }
@@ -119,6 +119,14 @@ void Shot::set_velocity(const Vector2& p_velocity) {
 
 Vector2 Shot::get_velocity() const {
     return direction * speed;
+}
+
+void Shot::clear() {
+    ERR_FAIL_COND(!sprite.is_valid());
+    if (!flagged(FLAG_CLEARED)) {
+        frame = sprite->get_clear_frame();
+        flag(FLAG_CLEARED);
+    }
 }
 
 void Shot::_bind_methods() {
