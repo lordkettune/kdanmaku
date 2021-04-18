@@ -71,14 +71,14 @@ public:
     int get_active_shot_count() const;
     int get_pattern_count() const;
 
+    void set_max_shots(int p_max_shots);
+    int get_max_shots() const;
+
     void set_region(const Rect2& p_region);
     Rect2 get_region() const;
 
     void set_tolerance(float p_tolerance);
     float get_tolerance() const;
-
-    void set_max_shots(int p_max_shots);
-    int get_max_shots() const;
 
     void set_shot_sprite_count(int p_count);
     int get_shot_sprite_count() const;
@@ -90,6 +90,7 @@ public:
     Ref<Texture> get_atlas() const;
 
     void _update_buffer();
+    void _destroy();
 
     Danmaku();
     ~Danmaku();

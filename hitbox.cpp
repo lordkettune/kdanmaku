@@ -43,6 +43,11 @@ Danmaku* Hitbox::get_danmaku() const {
     return danmaku;
 }
 
+void Hitbox::remove_from_danmaku() {
+    danmaku->remove_hitbox();
+    danmaku = nullptr;
+}
+
 Shot* Hitbox::get_colliding_shot() const {
     return colliding_shot;
 }

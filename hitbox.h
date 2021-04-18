@@ -33,6 +33,7 @@ public:
     void graze(Shot* p_shot);
 
     Danmaku* get_danmaku() const;
+    void remove_from_danmaku();
 
     void set_invulnerable(bool p_invulnerable);
     bool is_invulnerable() const;

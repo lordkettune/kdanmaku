@@ -1,5 +1,6 @@
 #include "danmaku.h"
 #include "pattern.h"
+#include "hitbox.h"
 
 #include "servers/visual_server.h"
 
@@ -8,17 +9,15 @@
 void Danmaku::_notification(int p_what) {
     switch (p_what) {
         case NOTIFICATION_ENTER_TREE: {
-            for (int i = 0; i != max_shots; ++i) {
-                Shot* shot = memnew(Shot);
-                free_shots.push_back(shot);
-            }
-            buffer.resize((8 + 4) * max_shots);
-
             VS::get_singleton()->canvas_item_set_update_when_visible(get_canvas_item(), true);
             VS::get_singleton()->connect("frame_pre_draw", this, "_update_buffer");
             set_physics_process(true);
+        } break;
 
-            _create_mesh();
+        case NOTIFICATION_EXIT_TREE: {
+            VS::get_singleton()->canvas_item_set_update_when_visible(get_canvas_item(), false);
+            VS::get_singleton()->disconnect("frame_pre_draw", this, "_update_buffer");
+            set_physics_process(false);
         } break;
 
         case NOTIFICATION_DRAW: {
@@ -27,12 +26,6 @@ void Danmaku::_notification(int p_what) {
                 atlas_rid = atlas->get_rid();
             }
             VS::get_singleton()->canvas_item_add_multimesh(get_canvas_item(), multimesh, atlas_rid);
-        } break;
-
-        case NOTIFICATION_EXIT_TREE: {
-            for (int i = 0; i != max_shots; ++i) {
-                memdelete(free_shots[i]);
-            }
         } break;
     }
 }
@@ -93,6 +86,28 @@ void Danmaku::clear_rect(Rect2 p_rect) {
     }
 }
 
+void Danmaku::set_max_shots(int p_max_shots) {
+    ERR_FAIL_COND_MSG(p_max_shots < 1, "Danmaku must have at least one shot!");
+    if (patterns.size() != 0) {
+        WARN_PRINT("Changing max_shots while patterns exist!");
+    }
+    _destroy();
+
+    max_shots = p_max_shots;
+
+    free_shots.resize(max_shots);
+    for (int i = 0; i != max_shots; ++i) {
+        free_shots.write[i] = memnew(Shot);
+    }
+
+    VS::get_singleton()->multimesh_allocate(multimesh, max_shots, VS::MULTIMESH_TRANSFORM_2D, VS::MULTIMESH_COLOR_NONE, VS::MULTIMESH_CUSTOM_DATA_FLOAT);
+    buffer.resize((8 + 4) * max_shots);
+}
+
+int Danmaku::get_max_shots() const {
+    return max_shots;
+}
+
 int Danmaku::get_free_shot_count() const {
     return free_shots.size();
 }
@@ -119,14 +134,6 @@ void Danmaku::set_tolerance(float p_tolerance) {
 
 float Danmaku::get_tolerance() const {
     return tolerance;
-}
-
-void Danmaku::set_max_shots(int p_max_shots) {
-    max_shots = p_max_shots;
-}
-
-int Danmaku::get_max_shots() const {
-    return max_shots;
 }
 
 void Danmaku::set_shot_sprite_count(int p_count) {
@@ -181,8 +188,6 @@ void Danmaku::_update_buffer() {
 }
 
 void Danmaku::_create_mesh() {
-    _create_material();
-
     Vector<Vector2> vertices;
     vertices.push_back(Vector2(-1, 1));
     vertices.push_back(Vector2(-1, -1));
@@ -210,7 +215,7 @@ void Danmaku::_create_mesh() {
     array[VS::ARRAY_INDEX] = indices;
 
     VS::get_singleton()->mesh_add_surface_from_arrays(mesh, VS::PRIMITIVE_TRIANGLES, array);
-    VS::get_singleton()->multimesh_allocate(multimesh, max_shots, VS::MULTIMESH_TRANSFORM_2D, VS::MULTIMESH_COLOR_NONE, VS::MULTIMESH_CUSTOM_DATA_FLOAT);
+    VS::get_singleton()->multimesh_allocate(multimesh, 0, VS::MULTIMESH_TRANSFORM_2D, VS::MULTIMESH_COLOR_NONE, VS::MULTIMESH_CUSTOM_DATA_FLOAT);
     VS::get_singleton()->multimesh_set_mesh(multimesh, mesh);
 }
 
@@ -225,6 +230,19 @@ void Danmaku::_create_material() {
     VS::get_singleton()->shader_set_code(shader, code);
     VS::get_singleton()->material_set_shader(material, shader);
     VS::get_singleton()->canvas_item_set_material(get_canvas_item(), material);
+}
+
+void Danmaku::_destroy() {
+    if (hitbox) {
+        hitbox->remove_from_danmaku();
+    }
+    for (int i = 0; i != patterns.size(); ++i) {
+        patterns[i]->remove_from_danmaku();
+    }
+
+    for (int i = 0; i != free_shots.size(); ++i) {
+        memdelete(free_shots[i]);
+    }
 }
 
 void Danmaku::_bind_methods() {
@@ -265,19 +283,25 @@ void Danmaku::_bind_methods() {
 }
 
 Danmaku::Danmaku() {
-    hitbox = NULL;
-    max_shots = 2048;
-    region = Rect2(0, 0, 384, 448);
-    tolerance = 64;
-    set_shot_sprite_count(1);
-
     multimesh = VS::get_singleton()->multimesh_create();
     material = VS::get_singleton()->material_create();
     shader = VS::get_singleton()->shader_create();
     mesh = VS::get_singleton()->mesh_create();
+
+    _create_material();
+    _create_mesh();
+    
+    hitbox = NULL;
+    region = Rect2(0, 0, 384, 448);
+    tolerance = 64;
+    max_shots = 0;
+    set_shot_sprite_count(1);
+    set_max_shots(2048);
 }
 
 Danmaku::~Danmaku() {
+    _destroy();
+
     VS::get_singleton()->free(multimesh);
     VS::get_singleton()->free(mesh);
     VS::get_singleton()->free(material);

@@ -263,6 +263,15 @@ Danmaku* Pattern::get_danmaku() const {
     return danmaku;
 }
 
+void Pattern::remove_from_danmaku() {
+    for (int i = 0; i != shots.size(); ++i) {
+        danmaku->release(shots[i]);
+    }
+    shots.resize(0);
+    danmaku->remove_pattern(this);
+    danmaku = nullptr;
+}
+
 void Pattern::fire() {
     ERR_FAIL_NULL(danmaku);
 

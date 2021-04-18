@@ -100,6 +100,7 @@ public:
     void clear(F p_constraint);
 
     Danmaku* get_danmaku() const;
+    void remove_from_danmaku();
 
     void fire();
 
