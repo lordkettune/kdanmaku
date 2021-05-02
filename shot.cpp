@@ -124,7 +124,11 @@ Vector2 Shot::get_velocity() const {
 void Shot::clear() {
     ERR_FAIL_COND(!sprite.is_valid());
     if (!flagged(FLAG_CLEARED)) {
-        frame = sprite->get_clear_frame();
+        if (sprite->get_clear_sprite().is_valid()) {
+            frame = sprite->get_clear_frame();
+        } else {
+            unflag(FLAG_ACTIVE);
+        }
         flag(FLAG_CLEARED);
     }
 }
