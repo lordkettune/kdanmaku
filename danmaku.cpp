@@ -200,6 +200,12 @@ void Danmaku::_create_mesh() {
     uvs.push_back(Vector2(1, 0));
     uvs.push_back(Vector2(1, 1));
 
+    Vector<Color> colors;
+	colors.push_back(Color(1, 1, 1, 1));
+	colors.push_back(Color(1, 1, 1, 1));
+	colors.push_back(Color(1, 1, 1, 1));
+	colors.push_back(Color(1, 1, 1, 1));
+
     Vector<int> indices;
     indices.push_back(0);
     indices.push_back(1);
@@ -212,6 +218,7 @@ void Danmaku::_create_mesh() {
     array.resize(VS::ARRAY_MAX);
     array[VS::ARRAY_VERTEX] = vertices;
     array[VS::ARRAY_TEX_UV] = uvs;
+    array[VS::ARRAY_COLOR] = colors;
     array[VS::ARRAY_INDEX] = indices;
 
     VS::get_singleton()->mesh_add_surface_from_arrays(mesh, VS::PRIMITIVE_TRIANGLES, array);
