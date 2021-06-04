@@ -22,21 +22,6 @@ FireParams::FireParams() {
     aim = false;
 }
 
-FireParams::FireParams(const Dictionary& p_params) : FireParams() {
-    if (p_params.has("columns")) columns = p_params["columns"];
-    if (p_params.has("rows"))    rows = p_params["rows"];
-    if (p_params.has("width"))   width = p_params["width"];
-    if (p_params.has("height"))  height = p_params["height"];
-
-    if (p_params.has("sprite"))   sprite = p_params["sprite"];
-    if (p_params.has("effects"))  effects = p_params["effects"];
-    if (p_params.has("offset"))   offset = p_params["offset"];
-    if (p_params.has("rotation")) rotation = p_params["rotation"];
-    if (p_params.has("speed"))    speed = p_params["speed"];
-    if (p_params.has("paused"))   paused = p_params["paused"];
-    if (p_params.has("aim"))      aim = p_params["aim"];
-}
-
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 // Pattern object
 // ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
@@ -231,7 +216,6 @@ void Pattern::set_register(Register p_reg, const Variant& p_value) {
         case SPEED:    params.speed = p_value;    break;
         case PAUSED:   params.paused = p_value;   break;
         case AIM:      params.aim = p_value;      break;
-        case PARAMS:   set_params(p_value);       break;
         default: registers[p_reg >> 2] = p_value; break;
     }
 }
@@ -249,7 +233,6 @@ Variant Pattern::get_register(Register p_reg) const {
         case SPEED:    return params.speed;
         case PAUSED:   return params.paused;
         case AIM:      return params.aim;
-        case PARAMS:   return get_params();
         default: return registers[p_reg >> 2];
     }
 }
@@ -257,19 +240,6 @@ Variant Pattern::get_register(Register p_reg) const {
 int Pattern::add_effect(const Ref<ShotEffect>& p_effect) {
     effects[effect_count] = p_effect;
     return effect_count++;
-}
-
-Danmaku* Pattern::get_danmaku() const {
-    return danmaku;
-}
-
-void Pattern::remove_from_danmaku() {
-    for (int i = 0; i != shots.size(); ++i) {
-        danmaku->release(shots[i]);
-    }
-    shots.resize(0);
-    danmaku->remove_pattern(this);
-    danmaku = nullptr;
 }
 
 void Pattern::fire() {
@@ -308,78 +278,17 @@ void Pattern::fire() {
     }
 }
 
-void Pattern::single(Dictionary p_override) {
-    params = FireParams(p_override);
-    params.columns = 1;
-    params.rows = 1;
-    params.width = 0;
-    params.height = 0;
-    fire();
+Danmaku* Pattern::get_danmaku() const {
+    return danmaku;
 }
 
-void Pattern::layered(int p_rows, float p_height, Dictionary p_override) {
-    params = FireParams(p_override);
-    params.columns = 1;
-    params.rows = p_rows;
-    params.width = 0;
-    params.height = p_rows > 1 ? p_height / (p_rows - 1) : 0;
-    fire();
-}
-
-void Pattern::circle(int p_columns, Dictionary p_override) {
-    params = FireParams(p_override);
-    params.columns = p_columns;
-    params.rows = 1;
-    params.width = Math_TAU / p_columns;
-    params.height = 0;
-    fire();
-}
-
-void Pattern::layered_circle(int p_columns, int p_rows, float p_height, Dictionary p_override) {
-    params = FireParams(p_override);
-    params.columns = p_columns;
-    params.rows = p_rows;
-    params.width = Math_TAU / p_columns;
-    params.height = p_rows > 1 ? p_height / (p_rows - 1) : 0;
-    fire();
-}
-
-void Pattern::fan(int p_columns, float p_width, Dictionary p_override) {
-    params = FireParams(p_override);
-    params.columns = p_columns;
-    params.rows = 1;
-    params.width = p_width / p_columns;
-    params.height = 0;
-    fire();
-}
-
-void Pattern::layered_fan(int p_columns, int p_rows, float p_width, float p_height, Dictionary p_override) {
-    params = FireParams(p_override);
-    params.columns = p_columns;
-    params.rows = p_rows;
-    params.width = p_width / p_columns;
-    params.height = p_rows > 1 ? p_height / (p_rows - 1) : 0;
-    fire();
-}
-
-void Pattern::custom(int p_count, String p_name, Dictionary p_override) {
-    params = FireParams(p_override);
-    if (delegate == NULL) {
-        ERR_FAIL_MSG("Pattern does not have a delegate, can't fire custom pattern");
+void Pattern::remove_from_danmaku() {
+    for (int i = 0; i != shots.size(); ++i) {
+        danmaku->release(shots[i]);
     }
-    if (!delegate->has_method(p_name)) {
-        ERR_FAIL_MSG("Delegate has no custom pattern by name \"" + p_name + "\"");
-    }
-
-    // TODO
-}
-
-void Pattern::set_params(const Dictionary& p_params) {
-    params = FireParams(p_params);
-}
-
-Dictionary Pattern::get_params() const {
-    return Dictionary(); // TODO
+    shots.resize(0);
+    danmaku->remove_pattern(this);
+    danmaku = nullptr;
 }
 
 void Pattern::set_delegate(Object* p_delegate) {
@@ -408,28 +317,19 @@ bool Pattern::get_autodelete() const {
 
 void Pattern::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_danmaku"), &Pattern::get_danmaku);
+    ClassDB::bind_method(D_METHOD("set_register", "register", "value"), &Pattern::set_register);
+    ClassDB::bind_method(D_METHOD("get_register", "register"), &Pattern::get_register);
     ClassDB::bind_method(D_METHOD("add_effect", "effect"), &Pattern::add_effect);
     ClassDB::bind_method(D_METHOD("fire"), &Pattern::fire);
 
-    ClassDB::bind_method(D_METHOD("single"), &Pattern::single);
-    ClassDB::bind_method(D_METHOD("circle"), &Pattern::circle);
-    ClassDB::bind_method(D_METHOD("layered"), &Pattern::layered);
-    ClassDB::bind_method(D_METHOD("layered_circle"), &Pattern::layered_circle);
-    ClassDB::bind_method(D_METHOD("fan"), &Pattern::fan);
-    ClassDB::bind_method(D_METHOD("layered_fan"), &Pattern::layered_fan);
-    ClassDB::bind_method(D_METHOD("custom"), &Pattern::custom);
-
-    ClassDB::bind_method(D_METHOD("set_params", "params"), &Pattern::set_params);
     ClassDB::bind_method(D_METHOD("set_delegate", "delegate"), &Pattern::set_delegate);
     ClassDB::bind_method(D_METHOD("set_despawn_distance", "despawn_distance"), &Pattern::set_despawn_distance);
     ClassDB::bind_method(D_METHOD("set_autodelete", "autodelete"), &Pattern::set_autodelete);
 
-    ClassDB::bind_method(D_METHOD("get_params"), &Pattern::get_params);
     ClassDB::bind_method(D_METHOD("get_delegate"), &Pattern::get_delegate);
     ClassDB::bind_method(D_METHOD("get_despawn_distance"), &Pattern::get_despawn_distance);
     ClassDB::bind_method(D_METHOD("get_autodelete"), &Pattern::get_autodelete);
 
-    ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "params"), "set_params", "get_params");
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "delegate"), "set_delegate", "get_delegate");
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "despawn_distance"), "set_despawn_distance", "get_despawn_distance");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "autodelete"), "set_autodelete", "get_autodelete");
@@ -453,8 +353,6 @@ void Pattern::_bind_methods() {
     BIND_CONSTANT(ROTATION);
     BIND_CONSTANT(SPEED);
     BIND_CONSTANT(AIM);
-
-    BIND_CONSTANT(PARAMS);
 }
 
 Pattern::Pattern() {

@@ -25,7 +25,6 @@
 
 struct FireParams {
     FireParams();
-    FireParams(const Dictionary& p_params);
 
     int rows;
     int columns;
@@ -86,9 +85,7 @@ public:
         ROTATION = PATTERN_REG(15),
         SPEED    = PATTERN_REG(16),
         PAUSED   = PATTERN_REG(17),
-        AIM      = PATTERN_REG(18),
-
-        PARAMS = PATTERN_REG(19),
+        AIM      = PATTERN_REG(18)
     };
 
     void set_register(Register p_reg, const Variant& p_value);
@@ -96,25 +93,13 @@ public:
 
     int add_effect(const Ref<ShotEffect>& p_effect);
 
+    void fire();
+
     template <typename F>
     void clear(F p_constraint);
 
     Danmaku* get_danmaku() const;
     void remove_from_danmaku();
-
-    void fire();
-
-    void single(Dictionary p_override);
-    void circle(int p_columns, Dictionary p_override);
-    void fan(int p_columns, float p_width, Dictionary p_override);
-    void layered(int p_rows, float p_height, Dictionary p_override);
-    void layered_circle(int p_columns, int p_rows, float p_height, Dictionary p_override);
-    void layered_fan(int p_columns, int p_rows, float p_width, float p_height, Dictionary p_override);
-
-    void custom(int p_count, String p_name, Dictionary p_override);
-    
-    void set_params(const Dictionary& p_params);
-    Dictionary get_params() const;
 
     void set_delegate(Object* p_delegate);
     Object* get_delegate() const;
