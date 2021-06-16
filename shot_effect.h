@@ -50,6 +50,7 @@ public:
     int mod(int p_lhs, int p_rhs, int p_to);
 
     int fire();
+    int reset();
 
     int jumpif(int p_test, int p_jump);
 

@@ -16,33 +16,8 @@
 #include "shot_effect.h"
 #include "shot_sprite.h"
 
-#define PATTERN_REGISTERS 8
+#define PATTERN_REGISTERS 8 + 4
 #define PATTERN_REG(idx) (REG_PATTERN | (idx << 2))
-
-// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
-// Fire parameters utility
-// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
-
-struct FireParams {
-    FireParams();
-
-    int rows;
-    int columns;
-    float width;
-    float height;
-
-    String sprite;
-    Vector2 offset;
-    Vector<int> effects;
-    float rotation;
-    float speed;
-    bool paused;
-    bool aim;
-};
-
-// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
-// Pattern object
-// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
 
 class Pattern : public Node2D {
     GDCLASS(Pattern, Node2D);
@@ -51,7 +26,17 @@ class Pattern : public Node2D {
     Vector<Shot*> shots;
     Object* delegate;
 
-    FireParams params;
+    struct {
+        int count;
+        String shape;
+        String sprite;
+        Vector2 offset;
+        Vector<int> effects;
+        float rotation;
+        float speed;
+        bool paused;
+        bool aim;
+    } params;
 
     int effect_count;
     Ref<ShotEffect> effects[MAX_SHOT_EFFECTS];
@@ -75,17 +60,20 @@ public:
         REG6 = PATTERN_REG(6),
         REG7 = PATTERN_REG(7),
 
-        ROWS     = PATTERN_REG(8),
-        COLUMNS  = PATTERN_REG(9),
-        WIDTH    = PATTERN_REG(10),
-        HEIGHT   = PATTERN_REG(11),
-        SPRITE   = PATTERN_REG(12),
-        OFFSET   = PATTERN_REG(13),
-        EFFECTS  = PATTERN_REG(14),
-        ROTATION = PATTERN_REG(15),
-        SPEED    = PATTERN_REG(16),
-        PAUSED   = PATTERN_REG(17),
-        AIM      = PATTERN_REG(18)
+        SHAPE0 = PATTERN_REG(8),
+        SHAPE1 = PATTERN_REG(9),
+        SHAPE2 = PATTERN_REG(10),
+        SHAPE3 = PATTERN_REG(11),
+
+        COUNT    = PATTERN_REG(12),
+        SHAPE    = PATTERN_REG(13),
+        SPRITE   = PATTERN_REG(14),
+        OFFSET   = PATTERN_REG(15),
+        EFFECTS  = PATTERN_REG(16),
+        ROTATION = PATTERN_REG(17),
+        SPEED    = PATTERN_REG(18),
+        PAUSED   = PATTERN_REG(19),
+        AIM      = PATTERN_REG(20)
     };
 
     void set_register(Register p_reg, const Variant& p_value);
@@ -94,6 +82,15 @@ public:
     int add_effect(const Ref<ShotEffect>& p_effect);
 
     void fire();
+    void reset();
+
+    void shape_single(Shot* p_shot);
+    void shape_circle(Shot* p_shot);
+    void shape_fan(Shot* p_shot);
+    void shape_single_layered(Shot* p_shot);
+    void shape_circle_layered(Shot* p_shot);
+    void shape_fan_layered(Shot* p_shot);
+    void shape_custom(Shot* p_shot);
 
     template <typename F>
     void clear(F p_constraint);

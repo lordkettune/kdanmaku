@@ -12,6 +12,7 @@ enum {
     CMD_DIV,
     CMD_MOD,
     CMD_FIRE,
+    CMD_RESET,
     CMD_JUMPIF,
     CMD_YIELD,
     CMD_END,
@@ -101,6 +102,11 @@ int ShotEffect::fire() {
     return commands.size() - 1;
 }
 
+int ShotEffect::reset() {
+    commands.push_back(CMD_RESET);
+    return commands.size() - 1;
+}
+
 int ShotEffect::jumpif(int p_test, int p_jump) {
     commands.push_back(MAKE_CMD_AB(CMD_JUMPIF, p_test, p_jump));
     return commands.size() - 1;
@@ -161,6 +167,10 @@ Begin:
             
             case CMD_FIRE:
                 shot->get_pattern()->fire();
+                break;
+            
+            case CMD_RESET:
+                shot->get_pattern()->reset();
                 break;
             
             case CMD_JUMPIF:

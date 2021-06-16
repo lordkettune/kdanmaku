@@ -3,29 +3,6 @@
 
 #include "core/math/math_funcs.h"
 
-// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
-// Fire parameters utility
-// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
-
-FireParams::FireParams() {
-    columns = 1;
-    rows = 1;
-    width = 0;
-    height = 0;
-
-    sprite = "";
-    effects = Vector<int>();
-    offset = Vector2(0, 0);
-    rotation = 0;
-    speed = 0;
-    paused = false;
-    aim = false;
-}
-
-// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
-// Pattern object
-// ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ======== ========
-
 void Pattern::_notification(int p_what) {
     switch (p_what) {
         case NOTIFICATION_ENTER_TREE: {
@@ -203,80 +180,11 @@ int Pattern::fill_buffer(real_t*& buf) {
     return shots.size();
 }
 
-void Pattern::set_register(Register p_reg, const Variant& p_value) {
-    switch (p_reg) {
-        case ROWS:     params.rows = p_value;     break;
-        case COLUMNS:  params.columns = p_value;  break;
-        case WIDTH:    params.width = p_value;    break;
-        case HEIGHT:   params.height = p_value;   break;
-        case SPRITE:   params.sprite = p_value;   break;
-        case OFFSET:   params.offset = p_value;   break;
-        case EFFECTS:  params.effects = p_value;  break;
-        case ROTATION: params.rotation = p_value; break;
-        case SPEED:    params.speed = p_value;    break;
-        case PAUSED:   params.paused = p_value;   break;
-        case AIM:      params.aim = p_value;      break;
-        default: registers[p_reg >> 2] = p_value; break;
-    }
-}
-
-Variant Pattern::get_register(Register p_reg) const {
-    switch (p_reg) {
-        case ROWS:     return params.rows;
-        case COLUMNS:  return params.columns;
-        case WIDTH:    return params.width;
-        case HEIGHT:   return params.height;
-        case SPRITE:   return params.sprite;
-        case OFFSET:   return params.offset;
-        case EFFECTS:  return params.effects;
-        case ROTATION: return params.rotation;
-        case SPEED:    return params.speed;
-        case PAUSED:   return params.paused;
-        case AIM:      return params.aim;
-        default: return registers[p_reg >> 2];
-    }
-}
-
 int Pattern::add_effect(const Ref<ShotEffect>& p_effect) {
     effects[effect_count] = p_effect;
     return effect_count++;
 }
 
-void Pattern::fire() {
-    ERR_FAIL_NULL(danmaku);
-
-    Ref<ShotSprite> sprite = danmaku->get_sprite(params.sprite);
-    if (sprite.is_null()) {
-        ERR_FAIL_MSG("No sprite defined, cannot fire");
-    }
-
-    float to_player = 0;
-    if (params.aim) {
-        Hitbox* hitbox = danmaku->get_hitbox();
-        ERR_FAIL_NULL(hitbox);
-        to_player = (hitbox->get_global_position() - get_global_position()).angle();
-    }
-
-    for (int x = 0; x != params.columns; ++x) {
-        float rotation = to_player + params.rotation + params.width * x;
-        Vector2 direction = Vector2(Math::cos(rotation), Math::sin(rotation));
-
-        for (int y = 0; y != params.rows; ++y) {
-            float speed = params.speed + params.height * y;
-
-            Shot* shot = danmaku->capture();
-            shot->reset(this, params.rows * x + y);
-            shot->set_direction(direction);
-            shot->set_sprite(sprite);
-            shot->set_speed(speed);
-            shot->set_position(params.offset);
-            shot->set_effects(params.effects);
-            shot->set_paused(params.paused);
-            shot->flag(Shot::FLAG_ACTIVE);
-            shots.push_back(shot);
-        }
-    }
-}
 
 Danmaku* Pattern::get_danmaku() const {
     return danmaku;
@@ -315,11 +223,153 @@ bool Pattern::get_autodelete() const {
     return autodelete;
 }
 
+void Pattern::set_register(Register p_reg, const Variant& p_value) {
+    switch (p_reg) {
+        case COUNT:    params.count = p_value;    break;
+        case SHAPE:    params.shape = p_value;    break;
+        case SPRITE:   params.sprite = p_value;   break;
+        case OFFSET:   params.offset = p_value;   break;
+        case EFFECTS:  params.effects = p_value;  break;
+        case ROTATION: params.rotation = p_value; break;
+        case SPEED:    params.speed = p_value;    break;
+        case PAUSED:   params.paused = p_value;   break;
+        case AIM:      params.aim = p_value;      break;
+        default: registers[p_reg >> 2] = p_value; break;
+    }
+}
+
+Variant Pattern::get_register(Register p_reg) const {
+    switch (p_reg) {
+        case COUNT:    return params.count;
+        case SHAPE:    return params.shape;
+        case SPRITE:   return params.sprite;
+        case OFFSET:   return params.offset;
+        case EFFECTS:  return params.effects;
+        case ROTATION: return params.rotation;
+        case SPEED:    return params.speed;
+        case PAUSED:   return params.paused;
+        case AIM:      return params.aim;
+        default: return registers[p_reg >> 2];
+    }
+}
+
+void Pattern::reset() {
+    params.count = 1;
+    params.shape = "";
+    params.sprite = "";
+    params.effects = Vector<int>();
+    params.offset = Vector2(0, 0);
+    params.rotation = 0;
+    params.speed = 0;
+    params.paused = false;
+    params.aim = false;
+}
+
+void Pattern::fire() {
+    ERR_FAIL_NULL(danmaku);
+
+    void(Pattern::*shape)(Shot*) = &Pattern::shape_custom;
+    if (params.shape.length()) {
+        switch ((char)params.shape[0]) {
+            case 's':
+                if (params.shape == "single" ) shape = &Pattern::shape_single;
+                if (params.shape == "single_layered") shape = &Pattern::shape_single_layered;
+                break;
+            case 'c':
+                if (params.shape == "circle") shape = &Pattern::shape_circle;
+                if (params.shape == "circle_layered") shape = &Pattern::shape_circle_layered;
+                break;
+            case 'f':
+                if (params.shape == "fan") shape = &Pattern::shape_fan;
+                if (params.shape == "fan_layered") shape = &Pattern::shape_fan_layered;
+                break;
+        }
+    }
+
+    Ref<ShotSprite> sprite = danmaku->get_sprite(params.sprite);
+    if (sprite.is_null()) {
+        ERR_FAIL_MSG("No sprite defined, cannot fire");
+    }
+
+    float rotation = params.rotation;
+    if (params.aim) {
+        Hitbox* hitbox = danmaku->get_hitbox();
+        ERR_FAIL_NULL(hitbox);
+        rotation += (hitbox->get_global_position() - get_global_position()).angle();
+    }
+    Vector2 direction = Vector2(Math::cos(rotation), Math::sin(rotation));
+
+    for (int i = 0; i != params.count; ++i) {
+        Shot* shot = danmaku->capture();
+        shot->reset(this, i);
+        shot->set_direction(direction);
+        shot->set_sprite(sprite);
+        shot->set_speed(params.speed);
+        shot->set_position(params.offset);
+        shot->set_effects(params.effects);
+        shot->set_paused(params.paused);
+        shot->flag(Shot::FLAG_ACTIVE);
+        shots.push_back(shot);
+        (this->*shape)(shot);
+    }
+}
+
+void Pattern::shape_single(Shot* p_shot) {}
+
+void Pattern::shape_circle(Shot* p_shot) {
+    p_shot->set_rotation(p_shot->get_rotation() + p_shot->get_id() * (2 * Math_PI / params.count));
+}
+
+void Pattern::shape_fan(Shot* p_shot) {
+    float angle = get_register(SHAPE0);
+    float base = p_shot->get_rotation() - angle / 2;
+    float theta = angle / (params.count - 1);
+
+    p_shot->set_rotation(base + p_shot->get_id() * theta);
+}
+
+void Pattern::shape_single_layered(Shot* p_shot) {
+    float step = get_register(SHAPE0);
+
+    p_shot->set_speed(p_shot->get_speed() + step * p_shot->get_id());
+}
+
+void Pattern::shape_circle_layered(Shot* p_shot) {
+    int layers = get_register(SHAPE0);
+    float step = get_register(SHAPE1);
+
+    int row = p_shot->get_id() % layers;
+    int col = p_shot->get_id() / layers;
+
+    p_shot->set_speed(p_shot->get_speed() + step * row);
+    p_shot->set_rotation(p_shot->get_rotation() + col * (2 * Math_PI / (params.count / layers)));
+}
+
+void Pattern::shape_fan_layered(Shot* p_shot) {
+    float angle = get_register(SHAPE0);
+    float base = p_shot->get_rotation() - angle / 2;
+
+    int layers = get_register(SHAPE1);
+    float step = get_register(SHAPE2);
+
+    float theta = angle / (params.count / layers - 1);
+    int row = p_shot->get_id() % layers;
+    int col = p_shot->get_id() / layers;
+
+    p_shot->set_speed(p_shot->get_speed() + step * row);
+    p_shot->set_rotation(base + col * theta);
+}
+
+void Pattern::shape_custom(Shot* p_shot) {
+    // TODO
+}
+
 void Pattern::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_danmaku"), &Pattern::get_danmaku);
     ClassDB::bind_method(D_METHOD("set_register", "register", "value"), &Pattern::set_register);
     ClassDB::bind_method(D_METHOD("get_register", "register"), &Pattern::get_register);
     ClassDB::bind_method(D_METHOD("add_effect", "effect"), &Pattern::add_effect);
+    ClassDB::bind_method(D_METHOD("reset"), &Pattern::reset);
     ClassDB::bind_method(D_METHOD("fire"), &Pattern::fire);
 
     ClassDB::bind_method(D_METHOD("set_delegate", "delegate"), &Pattern::set_delegate);
@@ -343,10 +393,13 @@ void Pattern::_bind_methods() {
     BIND_CONSTANT(REG6);
     BIND_CONSTANT(REG7);
 
-    BIND_CONSTANT(ROWS);
-    BIND_CONSTANT(COLUMNS);
-    BIND_CONSTANT(WIDTH);
-    BIND_CONSTANT(HEIGHT);
+    BIND_CONSTANT(SHAPE0);
+    BIND_CONSTANT(SHAPE1);
+    BIND_CONSTANT(SHAPE2);
+    BIND_CONSTANT(SHAPE3);
+
+    BIND_CONSTANT(COUNT);
+    BIND_CONSTANT(SHAPE);
     BIND_CONSTANT(SPRITE);
     BIND_CONSTANT(OFFSET);
     BIND_CONSTANT(EFFECTS);
@@ -361,7 +414,7 @@ Pattern::Pattern() {
     despawn_distance = 0;
     autodelete = false;
     effect_count = 0;
-    params = FireParams();
+    reset();
 
     for (int i = 0; i != MAX_SHOT_EFFECTS; ++i) {
         effects[i] = Ref<ShotEffect>();
