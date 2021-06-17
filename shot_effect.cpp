@@ -16,7 +16,8 @@ enum {
     CMD_JUMPIF,
     CMD_YIELD,
     CMD_END,
-    CMD_CLEAR
+    CMD_CLEAR,
+    CMD_SFX
 };
 
 #define REG_SRC(reg) (reg & 0x03)
@@ -62,7 +63,7 @@ Variant ShotEffect::get_register(Register p_reg) const {
     }
 }
 
-int ShotEffect::constant(const Variant& p_value) {
+int ShotEffect::val(const Variant& p_value) {
     constants.push_back(p_value);
     return REG_CONSTANT | ((constants.size() - 1) << 2);
 }
@@ -124,6 +125,11 @@ int ShotEffect::end() {
 
 int ShotEffect::clear() {
     commands.push_back(CMD_CLEAR);
+    return commands.size() - 1;
+}
+
+int ShotEffect::sfx(int p_from) {
+    commands.push_back(MAKE_CMD_A(CMD_SFX, p_from));
     return commands.size() - 1;
 }
 
@@ -192,6 +198,10 @@ Begin:
             case CMD_CLEAR:
                 shot->clear();
                 return;
+            
+            case CMD_SFX:
+                shot->get_pattern()->play_sfx(get_register(ARG_A(cmd)));
+                break;
         }
 
         *ins = *ins + 1;
@@ -201,7 +211,7 @@ Begin:
 }
 
 void ShotEffect::_bind_methods() {
-    ClassDB::bind_method(D_METHOD("constant", "value"), &ShotEffect::constant);
+    ClassDB::bind_method(D_METHOD("val", "value"), &ShotEffect::val);
 
     ClassDB::bind_method(D_METHOD("move", "from", "to"), &ShotEffect::move);
     
@@ -218,4 +228,6 @@ void ShotEffect::_bind_methods() {
     ClassDB::bind_method(D_METHOD("yield"), &ShotEffect::yield);
     ClassDB::bind_method(D_METHOD("end"), &ShotEffect::end);
     ClassDB::bind_method(D_METHOD("clear"), &ShotEffect::clear);
+
+    ClassDB::bind_method(D_METHOD("sfx", "from"), &ShotEffect::sfx);
 }

@@ -185,12 +185,17 @@ int Pattern::add_effect(const Ref<ShotEffect>& p_effect) {
     return effect_count++;
 }
 
+void Pattern::play_sfx(const StringName& p_key) {
+    ERR_FAIL_NULL(danmaku);
+    danmaku->play_sfx(p_key);
+}
 
 Danmaku* Pattern::get_danmaku() const {
     return danmaku;
 }
 
 void Pattern::remove_from_danmaku() {
+    ERR_FAIL_NULL(danmaku);
     for (int i = 0; i != shots.size(); ++i) {
         danmaku->release(shots[i]);
     }
@@ -366,6 +371,7 @@ void Pattern::shape_custom(Shot* p_shot) {
 
 void Pattern::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_danmaku"), &Pattern::get_danmaku);
+    ClassDB::bind_method(D_METHOD("play_sfx", "key"), &Pattern::play_sfx);
     ClassDB::bind_method(D_METHOD("set_register", "register", "value"), &Pattern::set_register);
     ClassDB::bind_method(D_METHOD("get_register", "register"), &Pattern::get_register);
     ClassDB::bind_method(D_METHOD("add_effect", "effect"), &Pattern::add_effect);

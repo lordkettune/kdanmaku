@@ -39,7 +39,7 @@ protected:
     static void _bind_methods();
 
 public:
-    int constant(const Variant& p_value);
+    int val(const Variant& p_value);
 
     int move(int p_from, int p_to);
     
@@ -57,6 +57,8 @@ public:
     int yield();
     int end();
     int clear();
+
+    int sfx(int p_from);
 
     void execute(int p_self, Shot* p_shot);
 

@@ -71,6 +71,8 @@ public:
     int get_active_shot_count() const;
     int get_pattern_count() const;
 
+    void play_sfx(const StringName& p_key);
+
     void set_max_shots(int p_max_shots);
     int get_max_shots() const;
 

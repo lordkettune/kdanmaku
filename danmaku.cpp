@@ -120,6 +120,10 @@ int Danmaku::get_pattern_count() const {
     return patterns.size();
 }
 
+void Danmaku::play_sfx(const StringName& p_key) {
+    emit_signal("play_sfx", p_key);
+}
+
 void Danmaku::set_region(const Rect2& p_region) {
     region = p_region;
 }
@@ -257,6 +261,8 @@ void Danmaku::_bind_methods() {
 
     ClassDB::bind_method(D_METHOD("clear_circle"), &Danmaku::clear_circle);
     ClassDB::bind_method(D_METHOD("clear_rect"), &Danmaku::clear_rect);
+
+    ClassDB::bind_method(D_METHOD("play_sfx", "key"), &Danmaku::play_sfx);
     
     ClassDB::bind_method(D_METHOD("get_free_shot_count"), &Danmaku::get_free_shot_count);
     ClassDB::bind_method(D_METHOD("get_active_shot_count"), &Danmaku::get_active_shot_count);
@@ -276,6 +282,8 @@ void Danmaku::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_shot_sprite_count"), &Danmaku::get_shot_sprite_count);
     ClassDB::bind_method(D_METHOD("set_shot_sprite", "index", "sprite"), &Danmaku::set_shot_sprite);
     ClassDB::bind_method(D_METHOD("get_shot_sprite", "index"), &Danmaku::get_shot_sprite);
+
+    ADD_SIGNAL(MethodInfo("play_sfx", PropertyInfo(Variant::STRING, "key")));
 
     ADD_PROPERTY(PropertyInfo(Variant::INT, "max_shots"), "set_max_shots", "get_max_shots");
     ADD_PROPERTY(PropertyInfo(Variant::RECT2, "region"), "set_region", "get_region");

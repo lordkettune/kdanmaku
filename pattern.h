@@ -95,6 +95,8 @@ public:
     template <typename F>
     void clear(F p_constraint);
 
+    void play_sfx(const StringName& p_key);
+
     Danmaku* get_danmaku() const;
     void remove_from_danmaku();
 
