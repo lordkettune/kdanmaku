@@ -411,6 +411,7 @@ void Pattern::_bind_methods() {
     BIND_CONSTANT(EFFECTS);
     BIND_CONSTANT(ROTATION);
     BIND_CONSTANT(SPEED);
+    BIND_CONSTANT(PAUSED);
     BIND_CONSTANT(AIM);
 }
 
