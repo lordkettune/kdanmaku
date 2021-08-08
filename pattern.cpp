@@ -207,7 +207,6 @@ void Pattern::remove_from_danmaku() {
 void Pattern::set_delegate(Object* p_delegate) {
     delegate = p_delegate;
 }
-
 Object* Pattern::get_delegate() const {
     return delegate;
 }
@@ -215,7 +214,6 @@ Object* Pattern::get_delegate() const {
 void Pattern::set_despawn_distance(float p_despawn_distance) {
     despawn_distance = p_despawn_distance;
 }
-
 float Pattern::get_despawn_distance() const {
     return despawn_distance;
 }
@@ -223,39 +221,101 @@ float Pattern::get_despawn_distance() const {
 void Pattern::set_autodelete(bool p_autodelete) {
     autodelete = p_autodelete;
 }
-
 bool Pattern::get_autodelete() const {
     return autodelete;
 }
 
 void Pattern::set_register(Register p_reg, const Variant& p_value) {
     switch (p_reg) {
-        case COUNT:    params.count = p_value;    break;
-        case SHAPE:    params.shape = p_value;    break;
-        case SPRITE:   params.sprite = p_value;   break;
-        case OFFSET:   params.offset = p_value;   break;
-        case EFFECTS:  params.effects = p_value;  break;
-        case ROTATION: params.rotation = p_value; break;
-        case SPEED:    params.speed = p_value;    break;
-        case PAUSED:   params.paused = p_value;   break;
-        case AIM:      params.aim = p_value;      break;
-        default: registers[p_reg >> 2] = p_value; break;
+        case COUNT:    set_fire_count(p_value);    break;
+        case SHAPE:    set_fire_shape(p_value);    break;
+        case SPRITE:   set_fire_sprite(p_value);   break;
+        case OFFSET:   set_fire_offset(p_value);   break;
+        case EFFECTS:  set_fire_effects(p_value);  break;
+        case ROTATION: set_fire_rotation(p_value); break;
+        case SPEED:    set_fire_speed(p_value);    break;
+        case PAUSED:   set_fire_paused(p_value);   break;
+        case AIM:      set_fire_aim(p_value);      break;
+        default: registers[p_reg >> 2] = p_value;  break;
     }
 }
 
 Variant Pattern::get_register(Register p_reg) const {
     switch (p_reg) {
-        case COUNT:    return params.count;
-        case SHAPE:    return params.shape;
-        case SPRITE:   return params.sprite;
-        case OFFSET:   return params.offset;
-        case EFFECTS:  return params.effects;
-        case ROTATION: return params.rotation;
-        case SPEED:    return params.speed;
-        case PAUSED:   return params.paused;
-        case AIM:      return params.aim;
+        case COUNT:    return get_fire_count();
+        case SHAPE:    return get_fire_shape();
+        case SPRITE:   return get_fire_sprite();
+        case OFFSET:   return get_fire_offset();
+        case EFFECTS:  return get_fire_effects();
+        case ROTATION: return get_fire_rotation();
+        case SPEED:    return get_fire_speed();
+        case PAUSED:   return get_fire_paused();
+        case AIM:      return get_fire_aim();
         default: return registers[p_reg >> 2];
     }
+}
+
+void Pattern::set_fire_count(int p_count) {
+    params.count = p_count;
+}
+int Pattern::get_fire_count() const {
+    return params.count;
+}
+
+void Pattern::set_fire_shape(String p_shape) {
+    params.shape = p_shape;
+}
+String Pattern::get_fire_shape() const {
+    return params.shape;
+}
+
+void Pattern::set_fire_sprite(String p_sprite) {
+    params.sprite = p_sprite;
+}
+String Pattern::get_fire_sprite() const {
+    return params.sprite;
+}
+
+void Pattern::set_fire_offset(Vector2 p_offset) {
+    params.offset = p_offset;
+}
+Vector2 Pattern::get_fire_offset() const {
+    return params.offset;
+}
+
+void Pattern::set_fire_effects(Vector<int> p_effects) {
+    params.effects = p_effects;
+}
+Vector<int> Pattern::get_fire_effects() const {
+    return params.effects;
+}
+
+void Pattern::set_fire_rotation(float p_rotation) {
+    params.rotation = p_rotation;
+}
+float Pattern::get_fire_rotation() const {
+    return params.rotation;
+}
+
+void Pattern::set_fire_speed(float p_speed) {
+    params.speed = p_speed;
+}
+float Pattern::get_fire_speed() const {
+    return params.speed;
+}
+
+void Pattern::set_fire_paused(bool p_paused) {
+    params.paused = p_paused;
+}
+bool Pattern::get_fire_paused() const {
+    return params.paused;
+}
+
+void Pattern::set_fire_aim(bool p_aim) {
+    params.aim = p_aim;
+}
+bool Pattern::get_fire_aim() const {
+    return params.aim;
 }
 
 void Pattern::reset() {
@@ -378,6 +438,26 @@ void Pattern::_bind_methods() {
     ClassDB::bind_method(D_METHOD("reset"), &Pattern::reset);
     ClassDB::bind_method(D_METHOD("fire"), &Pattern::fire);
 
+    ClassDB::bind_method(D_METHOD("set_fire_count", "count"), &Pattern::set_fire_count);
+    ClassDB::bind_method(D_METHOD("set_fire_shape", "shape"), &Pattern::set_fire_shape);
+    ClassDB::bind_method(D_METHOD("set_fire_sprite", "sprite"), &Pattern::set_fire_sprite);
+    ClassDB::bind_method(D_METHOD("set_fire_offset", "offset"), &Pattern::set_fire_offset);
+    ClassDB::bind_method(D_METHOD("set_fire_effects", "effects"), &Pattern::set_fire_effects);
+    ClassDB::bind_method(D_METHOD("set_fire_rotation", "rotation"), &Pattern::set_fire_rotation);
+    ClassDB::bind_method(D_METHOD("set_fire_speed", "speed"), &Pattern::set_fire_speed);
+    ClassDB::bind_method(D_METHOD("set_fire_paused", "paused"), &Pattern::set_fire_paused);
+    ClassDB::bind_method(D_METHOD("set_fire_aim", "aim"), &Pattern::set_fire_aim);
+
+    ClassDB::bind_method(D_METHOD("get_fire_count"), &Pattern::get_fire_count);
+    ClassDB::bind_method(D_METHOD("get_fire_shape"), &Pattern::get_fire_shape);
+    ClassDB::bind_method(D_METHOD("get_fire_sprite"), &Pattern::get_fire_sprite);
+    ClassDB::bind_method(D_METHOD("get_fire_offset"), &Pattern::get_fire_offset);
+    ClassDB::bind_method(D_METHOD("get_fire_effects"), &Pattern::get_fire_effects);
+    ClassDB::bind_method(D_METHOD("get_fire_rotation"), &Pattern::get_fire_rotation);
+    ClassDB::bind_method(D_METHOD("get_fire_speed"), &Pattern::get_fire_speed);
+    ClassDB::bind_method(D_METHOD("get_fire_paused"), &Pattern::get_fire_paused);
+    ClassDB::bind_method(D_METHOD("get_fire_aim"), &Pattern::get_fire_aim);
+
     ClassDB::bind_method(D_METHOD("set_delegate", "delegate"), &Pattern::set_delegate);
     ClassDB::bind_method(D_METHOD("set_despawn_distance", "despawn_distance"), &Pattern::set_despawn_distance);
     ClassDB::bind_method(D_METHOD("set_autodelete", "autodelete"), &Pattern::set_autodelete);
@@ -389,6 +469,16 @@ void Pattern::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "delegate"), "set_delegate", "get_delegate");
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "despawn_distance"), "set_despawn_distance", "get_despawn_distance");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "autodelete"), "set_autodelete", "get_autodelete");
+
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "fire_count"), "set_fire_count", "get_fire_count");
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "fire_shape"), "set_fire_shape", "get_fire_shape");
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "fire_sprite"), "set_fire_sprite", "get_fire_sprite");
+    ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "fire_offset"), "set_fire_offset", "get_fire_offset");
+    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "fire_effects"), "set_fire_effects", "get_fire_effects");
+    ADD_PROPERTY(PropertyInfo(Variant::REAL, "fire_rotation"), "set_fire_rotation", "get_fire_rotation");
+    ADD_PROPERTY(PropertyInfo(Variant::REAL, "fire_speed"), "set_fire_speed", "get_fire_speed");
+    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "fire_paused"), "set_fire_paused", "get_fire_paused");
+    ADD_PROPERTY(PropertyInfo(Variant::BOOL, "fire_aim"), "set_fire_aim", "get_fire_aim");
 
     BIND_CONSTANT(REG0);
     BIND_CONSTANT(REG1);

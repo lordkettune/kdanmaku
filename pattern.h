@@ -79,6 +79,33 @@ public:
     void set_register(Register p_reg, const Variant& p_value);
     Variant get_register(Register p_reg) const;
 
+    void set_fire_count(int p_count);
+    int get_fire_count() const;
+
+    void set_fire_shape(String p_shape);
+    String get_fire_shape() const;
+
+    void set_fire_sprite(String p_sprite);
+    String get_fire_sprite() const;
+
+    void set_fire_offset(Vector2 p_offset);
+    Vector2 get_fire_offset() const;
+
+    void set_fire_effects(Vector<int> p_effects);
+    Vector<int> get_fire_effects() const;
+
+    void set_fire_rotation(float p_rotation);
+    float get_fire_rotation() const;
+
+    void set_fire_speed(float p_speed);
+    float get_fire_speed() const;
+
+    void set_fire_paused(bool p_paused);
+    bool get_fire_paused() const;
+
+    void set_fire_aim(bool p_aim);
+    bool get_fire_aim() const;
+
     int add_effect(const Ref<ShotEffect>& p_effect);
 
     void fire();
