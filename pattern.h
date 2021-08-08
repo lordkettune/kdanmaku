@@ -109,6 +109,13 @@ public:
     int add_effect(const Ref<ShotEffect>& p_effect);
 
     void fire();
+    void fire_single();
+    void fire_circle();
+    void fire_fan(float p_angle);
+    void fire_single_layered(float p_step);
+    void fire_circle_layered(int p_layers, float p_step);
+    void fire_fan_layered(float p_angle, int p_layers, float p_step);
+
     void reset();
 
     void shape_single(Shot* p_shot);

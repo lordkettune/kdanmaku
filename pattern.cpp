@@ -379,6 +379,43 @@ void Pattern::fire() {
     }
 }
 
+void Pattern::fire_single() {
+    set_fire_shape("single");
+    fire();
+}
+
+void Pattern::fire_circle() {
+    set_fire_shape("circle");
+    fire();
+}
+
+void Pattern::fire_fan(float p_angle) {
+    set_fire_shape("fan");
+    set_register(SHAPE0, p_angle);
+    fire();
+}
+
+void Pattern::fire_single_layered(float p_step) {
+    set_fire_shape("single_layered");
+    set_register(SHAPE0, p_step);
+    fire();
+}
+
+void Pattern::fire_circle_layered(int p_layers, float p_step) {
+    set_fire_shape("circle_layered");
+    set_register(SHAPE0, p_layers);
+    set_register(SHAPE1, p_step);
+    fire();
+}
+
+void Pattern::fire_fan_layered(float p_angle, int p_layers, float p_step) {
+    set_fire_shape("fan_layered");
+    set_register(SHAPE0, p_angle);
+    set_register(SHAPE1, p_layers);
+    set_register(SHAPE2, p_step);
+    fire();
+}
+
 void Pattern::shape_single(Shot* p_shot) {}
 
 void Pattern::shape_circle(Shot* p_shot) {
@@ -436,7 +473,14 @@ void Pattern::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_register", "register"), &Pattern::get_register);
     ClassDB::bind_method(D_METHOD("add_effect", "effect"), &Pattern::add_effect);
     ClassDB::bind_method(D_METHOD("reset"), &Pattern::reset);
+
     ClassDB::bind_method(D_METHOD("fire"), &Pattern::fire);
+    ClassDB::bind_method(D_METHOD("fire_single"), &Pattern::fire_single);
+    ClassDB::bind_method(D_METHOD("fire_circle"), &Pattern::fire_circle);
+    ClassDB::bind_method(D_METHOD("fire_fan"), &Pattern::fire_fan);
+    ClassDB::bind_method(D_METHOD("fire_single_layered"), &Pattern::fire_single_layered);
+    ClassDB::bind_method(D_METHOD("fire_circle_layered"), &Pattern::fire_circle_layered);
+    ClassDB::bind_method(D_METHOD("fire_fan_layered"), &Pattern::fire_fan_layered);
 
     ClassDB::bind_method(D_METHOD("set_fire_count", "count"), &Pattern::set_fire_count);
     ClassDB::bind_method(D_METHOD("set_fire_shape", "shape"), &Pattern::set_fire_shape);
