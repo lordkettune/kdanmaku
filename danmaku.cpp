@@ -61,11 +61,12 @@ void Danmaku::release(Shot* p_shot) {
 }
 
 Ref<ShotSprite> Danmaku::get_sprite(const String& p_key) const {
+    ERR_FAIL_COND_V(sprites.size() == 0, Ref<ShotSprite>());
     for (int i = 0; i != sprites.size(); ++i) {
         if (sprites[i]->get_key() == p_key)
             return sprites[i];
     }
-    ERR_FAIL_V_MSG(Ref<ShotSprite>(), "Failed to find shot sprite");
+    return sprites[0];
 }
 
 void Danmaku::clear_circle(Vector2 p_origin, float p_radius) {
