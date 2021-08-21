@@ -44,10 +44,11 @@ Variant Shot::get_register(Register p_reg) const {
     }
 }
 
-void Shot::set_effects(const Vector<int>& p_effects) {
+void Shot::set_effects(Array p_effects) {
     for (int i = 0; i != p_effects.size(); ++i) {
-        ERR_FAIL_INDEX(p_effects[i], MAX_SHOT_EFFECTS);
-        instruction_pointers[p_effects[i]] = 0;
+        int id = owner->add_effect(p_effects[i]);
+        ERR_FAIL_INDEX(id, MAX_SHOT_EFFECTS);
+        instruction_pointers[id] = 0;
     }
 }
 

@@ -79,7 +79,7 @@ public:
     void set_register(Register p_reg, const Variant& p_value);
     Variant get_register(Register p_reg) const;
 
-    void set_effects(const Vector<int>& p_effects);
+    void set_effects(Array p_effects);
 
     Pattern* get_pattern() const;
     Danmaku* get_danmaku() const;

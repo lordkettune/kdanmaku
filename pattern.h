@@ -31,7 +31,7 @@ class Pattern : public Node2D {
         String shape;
         String sprite;
         Vector2 offset;
-        Vector<int> effects;
+        Array effects;
         float rotation;
         float speed;
         bool paused;
@@ -91,8 +91,8 @@ public:
     void set_fire_offset(Vector2 p_offset);
     Vector2 get_fire_offset() const;
 
-    void set_fire_effects(Vector<int> p_effects);
-    Vector<int> get_fire_effects() const;
+    void set_fire_effects(Array p_effects);
+    Array get_fire_effects() const;
 
     void set_fire_rotation(float p_rotation);
     float get_fire_rotation() const;

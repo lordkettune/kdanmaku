@@ -181,6 +181,12 @@ int Pattern::fill_buffer(real_t*& buf) {
 }
 
 int Pattern::add_effect(const Ref<ShotEffect>& p_effect) {
+    for (int i = 0; i != effect_count; ++i) {
+        if (effects[i] == p_effect) {
+            return i;
+        }
+    }
+    ERR_FAIL_INDEX_V(effect_count, MAX_SHOT_EFFECTS, 0);
     effects[effect_count] = p_effect;
     return effect_count++;
 }
@@ -283,10 +289,10 @@ Vector2 Pattern::get_fire_offset() const {
     return params.offset;
 }
 
-void Pattern::set_fire_effects(Vector<int> p_effects) {
+void Pattern::set_fire_effects(Array p_effects) {
     params.effects = p_effects;
 }
-Vector<int> Pattern::get_fire_effects() const {
+Array Pattern::get_fire_effects() const {
     return params.effects;
 }
 
@@ -322,7 +328,7 @@ void Pattern::reset() {
     params.count = 1;
     params.shape = "";
     params.sprite = "";
-    params.effects = Vector<int>();
+    params.effects = Array();
     params.offset = Vector2(0, 0);
     params.rotation = 0;
     params.speed = 0;
@@ -471,7 +477,6 @@ void Pattern::_bind_methods() {
     ClassDB::bind_method(D_METHOD("play_sfx", "key"), &Pattern::play_sfx);
     ClassDB::bind_method(D_METHOD("set_register", "register", "value"), &Pattern::set_register);
     ClassDB::bind_method(D_METHOD("get_register", "register"), &Pattern::get_register);
-    ClassDB::bind_method(D_METHOD("add_effect", "effect"), &Pattern::add_effect);
     ClassDB::bind_method(D_METHOD("reset"), &Pattern::reset);
 
     ClassDB::bind_method(D_METHOD("fire"), &Pattern::fire);
