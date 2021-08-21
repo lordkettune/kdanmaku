@@ -222,6 +222,7 @@ void ShotEffect::_bind_methods() {
     ClassDB::bind_method(D_METHOD("mod", "lhs", "rhs", "to"), &ShotEffect::mod);
 
     ClassDB::bind_method(D_METHOD("fire"), &ShotEffect::fire);
+    ClassDB::bind_method(D_METHOD("reset"), &ShotEffect::reset);
 
     ClassDB::bind_method(D_METHOD("jumpif", "test", "jump"), &ShotEffect::jumpif);
 
