@@ -139,6 +139,7 @@ void Shot::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_danmaku"), &Shot::get_danmaku);
     ClassDB::bind_method(D_METHOD("set_register", "register", "value"), &Shot::set_register);
     ClassDB::bind_method(D_METHOD("get_register", "register"), &Shot::get_register);
+    ClassDB::bind_method(D_METHOD("get_id"), &Shot::get_id);
 
     ClassDB::bind_method(D_METHOD("set_paused", "paused"), &Shot::set_paused);
     ClassDB::bind_method(D_METHOD("set_speed", "speed"), &Shot::set_speed);
