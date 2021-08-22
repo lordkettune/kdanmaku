@@ -210,10 +210,10 @@ void Pattern::remove_from_danmaku() {
     danmaku = nullptr;
 }
 
-void Pattern::set_delegate(Object* p_delegate) {
+void Pattern::set_delegate(Ref<Reference> p_delegate) {
     delegate = p_delegate;
 }
-Object* Pattern::get_delegate() const {
+Ref<Reference> Pattern::get_delegate() const {
     return delegate;
 }
 
@@ -326,7 +326,7 @@ bool Pattern::get_fire_aim() const {
 
 void Pattern::reset() {
     params.count = 1;
-    params.shape = "";
+    params.shape = "single";
     params.sprite = "";
     params.effects = Array();
     params.offset = Vector2(0, 0);
@@ -422,6 +422,15 @@ void Pattern::fire_fan_layered(float p_angle, int p_layers, float p_step) {
     fire();
 }
 
+void Pattern::fire_custom(String p_name, Variant p_s0, Variant p_s1, Variant p_s2, Variant p_s3) {
+    set_fire_shape(p_name);
+    set_register(SHAPE0, p_s0);
+    set_register(SHAPE1, p_s1);
+    set_register(SHAPE2, p_s2);
+    set_register(SHAPE3, p_s3);
+    fire();    
+}
+
 void Pattern::shape_single(Shot* p_shot) {}
 
 void Pattern::shape_circle(Shot* p_shot) {
@@ -469,7 +478,20 @@ void Pattern::shape_fan_layered(Shot* p_shot) {
 }
 
 void Pattern::shape_custom(Shot* p_shot) {
-    // TODO
+    ERR_FAIL_COND(delegate.is_null());
+    Variant shot = p_shot;
+    Variant::CallError error;
+    const Variant* argv[5] = {&shot, &registers[SHAPE0 >> 2], &registers[SHAPE1 >> 2], &registers[SHAPE2 >> 2], &registers[SHAPE3 >> 2]};
+    int argc = 1;
+    for (int i = 1; i != 5; ++i) {
+        if (argv[i]->get_type() != Variant::Type::NIL) {
+            argc++;
+        }
+    }
+    delegate->call(params.shape, argv, argc, error);
+    if (error.error != Variant::CallError::CALL_OK) {
+        ERR_FAIL_MSG("Failed to call custom pattern: " + Variant::get_call_error_text(this, params.shape, argv, argc, error));
+    }
 }
 
 void Pattern::_bind_methods() {
@@ -486,6 +508,7 @@ void Pattern::_bind_methods() {
     ClassDB::bind_method(D_METHOD("fire_single_layered"), &Pattern::fire_single_layered);
     ClassDB::bind_method(D_METHOD("fire_circle_layered"), &Pattern::fire_circle_layered);
     ClassDB::bind_method(D_METHOD("fire_fan_layered"), &Pattern::fire_fan_layered);
+    ClassDB::bind_method(D_METHOD("fire_custom", "name", "p0", "p1", "p2", "p3"), &Pattern::fire_custom, DEFVAL(Variant()), DEFVAL(Variant()), DEFVAL(Variant()), DEFVAL(Variant()));
 
     ClassDB::bind_method(D_METHOD("set_fire_count", "count"), &Pattern::set_fire_count);
     ClassDB::bind_method(D_METHOD("set_fire_shape", "shape"), &Pattern::set_fire_shape);
@@ -556,13 +579,14 @@ void Pattern::_bind_methods() {
 
 Pattern::Pattern() {
     danmaku = NULL;
-    delegate = NULL;
+    delegate = Ref<Reference>();
     despawn_distance = 0;
     autodelete = false;
     effect_count = 0;
-    reset();
 
     for (int i = 0; i != MAX_SHOT_EFFECTS; ++i) {
         effects[i] = Ref<ShotEffect>();
     }
+
+    reset();
 }

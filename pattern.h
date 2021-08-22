@@ -24,7 +24,7 @@ class Pattern : public Node2D {
 
     Danmaku* danmaku;
     Vector<Shot*> shots;
-    Object* delegate;
+    Ref<Reference> delegate;
 
     struct {
         int count;
@@ -115,6 +115,7 @@ public:
     void fire_single_layered(float p_step);
     void fire_circle_layered(int p_layers, float p_step);
     void fire_fan_layered(float p_angle, int p_layers, float p_step);
+    void fire_custom(String p_name, Variant p_s0, Variant p_s1, Variant p_s2, Variant p_s3);
 
     void reset();
 
@@ -134,8 +135,8 @@ public:
     Danmaku* get_danmaku() const;
     void remove_from_danmaku();
 
-    void set_delegate(Object* p_delegate);
-    Object* get_delegate() const;
+    void set_delegate(Ref<Reference> p_delegate);
+    Ref<Reference> get_delegate() const;
 
     void set_despawn_distance(float p_despawn_distance);
     float get_despawn_distance() const;
