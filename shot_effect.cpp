@@ -14,6 +14,7 @@ enum {
     CMD_FIRE,
     CMD_RESET,
     CMD_JUMPIF,
+    CMD_JUMPNOT,
     CMD_YIELD,
     CMD_END,
     CMD_CLEAR,
@@ -113,6 +114,18 @@ int ShotEffect::jumpif(int p_test, int p_jump) {
     return commands.size() - 1;
 }
 
+int ShotEffect::jumpnot(int p_test, int p_jump) {
+    commands.push_back(MAKE_CMD_AB(CMD_JUMPNOT, p_test, p_jump));
+    return commands.size() - 1;
+}
+
+void ShotEffect::jumphere(int p_ins) {
+    int cmd = CMD(commands[p_ins]);
+    int a = ARG_A(commands[p_ins]);
+    ERR_FAIL_COND(cmd != CMD_JUMPIF && cmd != CMD_JUMPNOT);
+    commands.write[p_ins] = MAKE_CMD_AB(cmd, a, commands.size());
+}
+
 int ShotEffect::yield() {
     commands.push_back(CMD_YIELD);
     return commands.size() - 1;
@@ -187,6 +200,14 @@ Begin:
                 }
                 break;
             
+            case CMD_JUMPNOT:
+                if (!get_register(ARG_A(cmd))) {
+                    ERR_FAIL_INDEX(ARG_B(cmd), commands.size());
+                    *ins = ARG_B(cmd);
+                    goto Begin;
+                }
+                break;
+            
             case CMD_YIELD:
                 *ins = (*ins + 1) % commands.size();
                 return;
@@ -225,6 +246,8 @@ void ShotEffect::_bind_methods() {
     ClassDB::bind_method(D_METHOD("reset"), &ShotEffect::reset);
 
     ClassDB::bind_method(D_METHOD("jumpif", "test", "jump"), &ShotEffect::jumpif);
+    ClassDB::bind_method(D_METHOD("jumpnot", "test", "jump"), &ShotEffect::jumpnot);
+    ClassDB::bind_method(D_METHOD("jumphere", "ins"), &ShotEffect::jumphere);
 
     ClassDB::bind_method(D_METHOD("yield"), &ShotEffect::yield);
     ClassDB::bind_method(D_METHOD("end"), &ShotEffect::end);

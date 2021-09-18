@@ -53,6 +53,8 @@ public:
     int reset();
 
     int jumpif(int p_test, int p_jump);
+    int jumpnot(int p_test, int p_jump);
+    void jumphere(int p_ins);
 
     int yield();
     int end();
