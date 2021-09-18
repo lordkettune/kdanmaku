@@ -62,6 +62,7 @@ public:
     Shot* capture();
     void release(Shot* p_shot);
 
+    void clear_all();
     void clear_circle(Vector2 p_origin, float p_radius);
     void clear_rect(Rect2 p_rect);
 

@@ -69,6 +69,14 @@ Ref<ShotSprite> Danmaku::get_sprite(const String& p_key) const {
     return sprites[0];
 }
 
+void Danmaku::clear_all() {
+    for (int i = 0; i != patterns.size(); ++i) {
+        patterns[i]->clear([=](Shot* shot) {
+            return true;
+        });
+    }
+}
+
 void Danmaku::clear_circle(Vector2 p_origin, float p_radius) {
     for (int i = 0; i != patterns.size(); ++i) {
         Transform2D transform = patterns[i]->get_global_transform();
@@ -260,6 +268,7 @@ void Danmaku::_destroy() {
 void Danmaku::_bind_methods() {
     ClassDB::bind_method(D_METHOD("_update_buffer"), &Danmaku::_update_buffer);
 
+    ClassDB::bind_method(D_METHOD("clear_all"), &Danmaku::clear_all);
     ClassDB::bind_method(D_METHOD("clear_circle"), &Danmaku::clear_circle);
     ClassDB::bind_method(D_METHOD("clear_rect"), &Danmaku::clear_rect);
 
