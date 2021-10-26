@@ -207,7 +207,7 @@ void ShotEffect::jumphere(int p_ins) {
 
 
 int ShotEffect::timer(int p_reg) {
-    commands.push_back(CMD_TIMER);
+    commands.push_back(MAKE_CMD_A(CMD_TIMER, p_reg));
     return CURRENT;
 }
 
@@ -304,7 +304,7 @@ Begin:
             case CMD_TIMER:
                 {
                     Variant timer = get_register(ARG_A(cmd));
-                    if (timer) {
+                    if (Variant::evaluate(Variant::OP_GREATER, timer, 0)) {
                         set_register(ARG_A(cmd), Variant::evaluate(Variant::OP_SUBTRACT, timer, 1));
                         return;
                     }
