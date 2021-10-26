@@ -1,6 +1,7 @@
 #include "shot_effect.h"
 #include "shot.h"
 #include "pattern.h"
+#include "hitbox.h"
 
 #include "core/method_bind_ext.gen.inc"
 
@@ -30,6 +31,17 @@ enum {
     CMD_SFX
 };
 
+#define CONSTANT_REG(idx) (REG_CONSTANT | (idx << 2))
+
+enum {
+    CONST_LEFT_WALL = CONSTANT_REG(0),
+    CONST_RIGHT_WALL = CONSTANT_REG(1),
+    CONST_TOP_WALL = CONSTANT_REG(2),
+    CONST_BOTTOM_WALL = CONSTANT_REG(3),
+
+    CONST_HITBOX_POSITION = CONSTANT_REG(4)
+};
+
 #define REG_SRC(reg) (reg & 0x03)
 #define REG_IDX(reg) (reg >> 2)
 
@@ -55,8 +67,9 @@ void ShotEffect::set_register(Register p_reg, const Variant& p_value) {
             break;
 
         default:
+        case REG_CONSTANT:
         case REG_VALUE:
-            ERR_FAIL_MSG("Cannot set a constant register!");
+            ERR_FAIL_MSG("Cannot set a value or constant register!");
             break;
     }
 }
@@ -69,10 +82,31 @@ Variant ShotEffect::get_register(Register p_reg) const {
         case REG_PATTERN:
             return pattern->get_register(p_reg);
         
+        case REG_CONSTANT:
+            return get_constant(p_reg);
+        
         default:
         case REG_VALUE:
             return constants[REG_IDX(p_reg)];
     }
+}
+
+Variant ShotEffect::get_constant(Register p_const) const {
+    switch (p_const) {
+        case CONST_LEFT_WALL: return pattern->get_danmaku()->get_region().get_position().x;
+        case CONST_TOP_WALL:  return pattern->get_danmaku()->get_region().get_position().y;
+        case CONST_RIGHT_WALL: {
+            Rect2 region = pattern->get_danmaku()->get_region();
+            return region.get_position().x + region.get_size().x;
+        }
+        case CONST_BOTTOM_WALL: {
+            Rect2 region = pattern->get_danmaku()->get_region();
+            return region.get_position().y + region.get_size().y;
+        }
+
+        case CONST_HITBOX_POSITION: return pattern->get_danmaku()->get_hitbox()->get_global_position();
+    }
+    return Variant();
 }
 
 int ShotEffect::val(const Variant& p_value) {
@@ -135,7 +169,7 @@ int ShotEffect::test(int p_test, int p_jump) {
     return CURRENT;
 }
 
-int ShotEffect::patch(int p_ins) {
+void ShotEffect::patch(int p_ins) {
     int cmd = CMD(commands[p_ins]);
     int a = ARG_A(commands[p_ins]);
     ERR_FAIL_COND(cmd != CMD_TEST);
@@ -334,4 +368,10 @@ void ShotEffect::_bind_methods() {
     ClassDB::bind_method(D_METHOD("clear"), &ShotEffect::clear);
 
     ClassDB::bind_method(D_METHOD("sfx", "from"), &ShotEffect::sfx);
+
+    BIND_CONSTANT(CONST_LEFT_WALL);
+    BIND_CONSTANT(CONST_RIGHT_WALL);
+    BIND_CONSTANT(CONST_TOP_WALL);
+    BIND_CONSTANT(CONST_BOTTOM_WALL);
+    BIND_CONSTANT(CONST_HITBOX_POSITION);
 }
