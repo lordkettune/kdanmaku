@@ -17,8 +17,7 @@
 enum {
     REG_VALUE,
     REG_PATTERN,
-    REG_SHOT,
-    REG_CONSTANT
+    REG_SHOT
 };
 
 class Shot;
@@ -81,7 +80,6 @@ public:
 private:
     void set_register(Register p_reg, const Variant& p_value);
     Variant get_register(Register p_reg) const;
-    Variant get_constant(Register p_const) const;
 };
 
 #endif
