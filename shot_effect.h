@@ -17,7 +17,8 @@
 enum {
     REG_VALUE,
     REG_PATTERN,
-    REG_SHOT
+    REG_SHOT,
+    REG_STATE
 };
 
 class Shot;
@@ -29,11 +30,13 @@ typedef uint8_t Register;
 class ShotEffect : public Resource {
     GDCLASS(ShotEffect, Resource);
 
-    Shot* shot;
-    Pattern* pattern;
+    Shot* current_shot;
+    Pattern* current_pattern;
+    Variant* current_state;
     
     Vector<Command> commands;
     Vector<Variant> constants;
+    Vector<Variant> states;
 
     Ref<ShotEffect> next_pass;
 
@@ -77,6 +80,9 @@ public:
     int sfx(int p_from);
     int vsfx(const Variant& p_value);
 
+    Register state(const Variant& p_default);
+    void initialize_states(Variant* p_registers) const;
+
     void set_next_pass(Ref<ShotEffect> p_next_pass);
     Ref<ShotEffect> get_next_pass() const;
     int get_pass_count() const;
@@ -86,8 +92,9 @@ public:
     ShotEffect();
 
 private:
-    void execute_tick(Shot* p_shot, int p_id);
-    void execute(Shot* p_shot, int p_id);
+    void execute_tick(Shot* p_shot, int p_id, Variant* p_state);
+    void execute(Shot* p_shot, int p_id, Variant* p_state);
+
     void set_register(Register p_reg, const Variant& p_value);
     Variant get_register(Register p_reg) const;
 };

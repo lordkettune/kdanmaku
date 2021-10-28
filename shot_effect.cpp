@@ -48,11 +48,15 @@ enum {
 void ShotEffect::set_register(Register p_reg, const Variant& p_value) {
     switch (REG_SRC(p_reg)) {
         case REG_SHOT:
-            shot->set_register(p_reg, p_value);
+            current_shot->set_register(p_reg, p_value);
             break;
         
         case REG_PATTERN:
-            pattern->set_register(p_reg, p_value);
+            current_pattern->set_register(p_reg, p_value);
+            break;
+        
+        case REG_STATE:
+            current_state[p_reg >> 2] = p_value;
             break;
 
         default:
@@ -65,10 +69,13 @@ void ShotEffect::set_register(Register p_reg, const Variant& p_value) {
 Variant ShotEffect::get_register(Register p_reg) const {
     switch (REG_SRC(p_reg)) {
         case REG_SHOT:
-            return shot->get_register(p_reg);
+            return current_shot->get_register(p_reg);
         
         case REG_PATTERN:
-            return pattern->get_register(p_reg);
+            return current_shot->get_register(p_reg);
+        
+        case REG_STATE:
+            return current_state[p_reg >> 2];
         
         default:
         case REG_VALUE:
@@ -223,11 +230,28 @@ int ShotEffect::get_pass_count() const {
     return 1;
 }
 
-void ShotEffect::execute_tick(Shot* p_shot, int p_id) {
-    shot = p_shot;
-    pattern = p_shot->get_pattern();
+Register ShotEffect::state(const Variant& p_default) {
+    ERR_FAIL_COND_V(states.size() >= STATE_REGISTERS, REG_STATE);
+    Register reg = REG_STATE | (states.size() << 2);
+    states.push_back(p_default);
+    return reg;
+}
 
-    int* ins = shot->get_instruction_pointer(p_id);
+void ShotEffect::initialize_states(Variant* p_registers) const {
+    for (int i = 0; i != states.size(); ++i) {
+        *p_registers++ = states[i];
+    }
+    if (next_pass.is_valid()) {
+        next_pass->initialize_states(p_registers);
+    }
+}
+
+void ShotEffect::execute_tick(Shot* p_shot, int p_id, Variant* p_state) {
+    current_shot = p_shot;
+    current_state = p_state;
+    current_pattern = p_shot->get_pattern();
+
+    int* ins = current_shot->get_instruction_pointer(p_id);
     if (*ins == -1) {
         return;
     }
@@ -286,11 +310,11 @@ Begin:
                 break;
             
             case CMD_FIRE:
-                shot->get_pattern()->fire();
+                current_shot->get_pattern()->fire();
                 break;
             
             case CMD_RESET:
-                shot->get_pattern()->reset();
+                current_shot->get_pattern()->reset();
                 break;
             
             case CMD_TIMER:
@@ -312,11 +336,11 @@ Begin:
                 return;
             
             case CMD_CLEAR:
-                shot->clear();
+                current_shot->clear();
                 return;
             
             case CMD_SFX:
-                shot->get_pattern()->play_sfx(get_register(ARG_A(cmd)));
+                current_shot->get_pattern()->play_sfx(get_register(ARG_A(cmd)));
                 break;
         }
 
@@ -326,15 +350,15 @@ Begin:
     *ins = *ins % commands.size();
 }
 
-void ShotEffect::execute(Shot* p_shot, int p_id) {
-    execute_tick(p_shot, p_id);
+void ShotEffect::execute(Shot* p_shot, int p_id, Variant* p_state) {
+    execute_tick(p_shot, p_id, p_state);
     if (next_pass.is_valid()) {
-        next_pass->execute(p_shot, p_id + 1);
+        next_pass->execute(p_shot, p_id + 1, p_state + states.size());
     }
 }
 
 void ShotEffect::execute(Shot* p_shot) {
-    execute(p_shot, 0);
+    execute(p_shot, 0, p_shot->get_state());
 }
 
 void ShotEffect::_bind_methods() {
@@ -374,17 +398,21 @@ void ShotEffect::_bind_methods() {
     ClassDB::bind_method(D_METHOD("sfx", "from"), &ShotEffect::sfx);
     ClassDB::bind_method(D_METHOD("vsfx", "value"), &ShotEffect::vsfx);
 
+    ClassDB::bind_method(D_METHOD("state", "default"), &ShotEffect::state);
+
     ClassDB::bind_method(D_METHOD("set_next_pass", "next_pass"), &ShotEffect::set_next_pass);
     ClassDB::bind_method(D_METHOD("get_next_pass"), &ShotEffect::get_next_pass);
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "next_pass", PROPERTY_HINT_RESOURCE_TYPE, "ShotEffect"), "set_next_pass", "get_next_pass");
 }
 
 ShotEffect::ShotEffect() {
-    shot = nullptr;
-    pattern = nullptr;
+    current_shot = nullptr;
+    current_pattern = nullptr;
+    current_state = nullptr;
 
     commands = Vector<Command>();
     constants = Vector<Variant>();
+    states = Vector<Variant>();
 
     next_pass = Ref<ShotEffect>();
 }

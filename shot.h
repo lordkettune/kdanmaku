@@ -12,6 +12,7 @@
 #include "shot_effect.h"
 #include "core/object.h"
 
+#define STATE_REGISTERS 8
 #define SHOT_REGISTERS 8
 #define SHOT_REG(idx) (REG_SHOT | (idx << 2))
 
@@ -28,6 +29,7 @@ class Shot : public Object {
     Ref<ShotEffect> effect;
     int instruction_pointers[MAX_SHOT_EFFECTS];
     Variant registers[SHOT_REGISTERS];
+    Variant state[STATE_REGISTERS];
 
     Ref<ShotSprite> sprite;
     ShotFrame frame;
@@ -72,6 +74,7 @@ public:
     _FORCE_INLINE_ int get_id() { return id; }
     _FORCE_INLINE_ int* get_instruction_pointer(int p_idx) { return &instruction_pointers[p_idx]; }
     _FORCE_INLINE_ float get_radius() { return frame.radius; }
+    _FORCE_INLINE_ Variant* get_state() { return state; }
     _FORCE_INLINE_ ShotFrame* get_frame() { return &frame; }
 
     void reset(Pattern* p_owner, int p_local_id);

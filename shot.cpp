@@ -51,6 +51,7 @@ void Shot::set_effect(Ref<ShotEffect> p_effect) {
         for (int i = 0; i != p_effect->get_pass_count(); ++i) {
             instruction_pointers[i] = 0;
         }
+        p_effect->initialize_states(state);
     }
 }
 
