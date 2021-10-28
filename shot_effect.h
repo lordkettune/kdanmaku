@@ -44,6 +44,7 @@ public:
     int val(const Variant& p_value);
 
     int move(int p_from, int p_to);
+    int vmove(const Variant& p_value, int p_to);
     
     int add(int p_lhs, int p_rhs, int p_to);
     int sub(int p_lhs, int p_rhs, int p_to);
@@ -74,6 +75,7 @@ public:
     int clear();
 
     int sfx(int p_from);
+    int vsfx(const Variant& p_value);
 
     void set_next_pass(Ref<ShotEffect> p_next_pass);
     Ref<ShotEffect> get_next_pass() const;

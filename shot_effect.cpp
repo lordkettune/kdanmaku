@@ -86,6 +86,11 @@ int ShotEffect::move(int p_from, int p_to) {
     return CURRENT;
 }
 
+int ShotEffect::vmove(const Variant& p_value, int p_to) {
+    commands.push_back(MAKE_CMD_AB(CMD_MOVE, val(p_value), p_to));
+    return CURRENT;
+}
+
 int ShotEffect::add(int p_lhs, int p_rhs, int p_to) {
     commands.push_back(MAKE_CMD_ABC(CMD_ADD, p_lhs, p_rhs, p_to));
     return CURRENT;
@@ -195,6 +200,11 @@ int ShotEffect::clear() {
 
 int ShotEffect::sfx(int p_from) {
     commands.push_back(MAKE_CMD_A(CMD_SFX, p_from));
+    return CURRENT;
+}
+
+int ShotEffect::vsfx(const Variant& p_value) {
+    commands.push_back(MAKE_CMD_A(CMD_SFX, val(p_value)));
     return CURRENT;
 }
 
@@ -331,6 +341,7 @@ void ShotEffect::_bind_methods() {
     ClassDB::bind_method(D_METHOD("val", "value"), &ShotEffect::val);
 
     ClassDB::bind_method(D_METHOD("move", "from", "to"), &ShotEffect::move);
+    ClassDB::bind_method(D_METHOD("vmove", "value", "to"), &ShotEffect::vmove);
     
     ClassDB::bind_method(D_METHOD("add", "lhs", "rhs", "to"), &ShotEffect::add);
     ClassDB::bind_method(D_METHOD("sub", "lhs", "rhs", "to"), &ShotEffect::sub);
@@ -361,6 +372,7 @@ void ShotEffect::_bind_methods() {
     ClassDB::bind_method(D_METHOD("clear"), &ShotEffect::clear);
 
     ClassDB::bind_method(D_METHOD("sfx", "from"), &ShotEffect::sfx);
+    ClassDB::bind_method(D_METHOD("vsfx", "value"), &ShotEffect::vsfx);
 
     ClassDB::bind_method(D_METHOD("set_next_pass", "next_pass"), &ShotEffect::set_next_pass);
     ClassDB::bind_method(D_METHOD("get_next_pass"), &ShotEffect::get_next_pass);
