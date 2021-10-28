@@ -80,6 +80,8 @@ public:
     int sfx(int p_from);
     int vsfx(const Variant& p_value);
 
+    int debug(int p_reg);
+
     Register state(const Variant& p_default);
     void initialize_states(Variant* p_registers) const;
 

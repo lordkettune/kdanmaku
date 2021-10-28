@@ -28,7 +28,9 @@ enum {
     CMD_YIELD,
     CMD_END,
     CMD_CLEAR,
-    CMD_SFX
+    CMD_SFX,
+
+    CMD_DEBUG
 };
 
 #define REG_SRC(reg) (reg & 0x03)
@@ -72,7 +74,7 @@ Variant ShotEffect::get_register(Register p_reg) const {
             return current_shot->get_register(p_reg);
         
         case REG_PATTERN:
-            return current_shot->get_register(p_reg);
+            return current_pattern->get_register(p_reg);
         
         case REG_STATE:
             return current_state[p_reg >> 2];
@@ -215,6 +217,11 @@ int ShotEffect::vsfx(const Variant& p_value) {
     return CURRENT;
 }
 
+int ShotEffect::debug(int p_reg) {
+    commands.push_back(MAKE_CMD_A(CMD_DEBUG, p_reg));
+    return CURRENT;
+}
+
 void ShotEffect::set_next_pass(Ref<ShotEffect> p_next_pass) {
     next_pass = p_next_pass;
 }
@@ -342,6 +349,10 @@ Begin:
             case CMD_SFX:
                 current_shot->get_pattern()->play_sfx(get_register(ARG_A(cmd)));
                 break;
+            
+            case CMD_DEBUG:
+                print_line(get_register(ARG_A(cmd)));
+                break;
         }
 
         *ins = *ins + 1;
@@ -397,6 +408,8 @@ void ShotEffect::_bind_methods() {
 
     ClassDB::bind_method(D_METHOD("sfx", "from"), &ShotEffect::sfx);
     ClassDB::bind_method(D_METHOD("vsfx", "value"), &ShotEffect::vsfx);
+
+    ClassDB::bind_method(D_METHOD("debug", "reg"), &ShotEffect::debug);
 
     ClassDB::bind_method(D_METHOD("state", "default"), &ShotEffect::state);
 
