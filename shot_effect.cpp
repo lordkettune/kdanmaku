@@ -198,11 +198,26 @@ int ShotEffect::sfx(int p_from) {
     return CURRENT;
 }
 
-void ShotEffect::execute(int p_self, Shot* p_shot) {
+void ShotEffect::set_next_pass(Ref<ShotEffect> p_next_pass) {
+    next_pass = p_next_pass;
+}
+
+Ref<ShotEffect> ShotEffect::get_next_pass() const {
+    return next_pass;
+}
+
+int ShotEffect::get_pass_count() const {
+    if (next_pass.is_valid()) {
+        return 1 + next_pass->get_pass_count();
+    }
+    return 1;
+}
+
+void ShotEffect::execute_tick(Shot* p_shot, int p_id) {
     shot = p_shot;
     pattern = p_shot->get_pattern();
 
-    int* ins = shot->get_instruction_pointer(p_self);
+    int* ins = shot->get_instruction_pointer(p_id);
     if (*ins == -1) {
         return;
     }
@@ -301,6 +316,17 @@ Begin:
     *ins = *ins % commands.size();
 }
 
+void ShotEffect::execute(Shot* p_shot, int p_id) {
+    execute_tick(p_shot, p_id);
+    if (next_pass.is_valid()) {
+        next_pass->execute(p_shot, p_id + 1);
+    }
+}
+
+void ShotEffect::execute(Shot* p_shot) {
+    execute(p_shot, 0);
+}
+
 void ShotEffect::_bind_methods() {
     ClassDB::bind_method(D_METHOD("val", "value"), &ShotEffect::val);
 
@@ -335,4 +361,18 @@ void ShotEffect::_bind_methods() {
     ClassDB::bind_method(D_METHOD("clear"), &ShotEffect::clear);
 
     ClassDB::bind_method(D_METHOD("sfx", "from"), &ShotEffect::sfx);
+
+    ClassDB::bind_method(D_METHOD("set_next_pass", "next_pass"), &ShotEffect::set_next_pass);
+    ClassDB::bind_method(D_METHOD("get_next_pass"), &ShotEffect::get_next_pass);
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "next_pass", PROPERTY_HINT_RESOURCE_TYPE, "ShotEffect"), "set_next_pass", "get_next_pass");
+}
+
+ShotEffect::ShotEffect() {
+    shot = nullptr;
+    pattern = nullptr;
+
+    commands = Vector<Command>();
+    constants = Vector<Variant>();
+
+    next_pass = Ref<ShotEffect>();
 }

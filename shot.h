@@ -25,6 +25,7 @@ class Shot : public Object {
     Pattern* owner;
     uint32_t flags;
 
+    Ref<ShotEffect> effect;
     int instruction_pointers[MAX_SHOT_EFFECTS];
     Variant registers[SHOT_REGISTERS];
 
@@ -79,7 +80,8 @@ public:
     void set_register(Register p_reg, const Variant& p_value);
     Variant get_register(Register p_reg) const;
 
-    void set_effects(Array p_effects);
+    void set_effect(Ref<ShotEffect> p_effect);
+    Ref<ShotEffect> get_effect() const;
 
     Pattern* get_pattern() const;
     Danmaku* get_danmaku() const;

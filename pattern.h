@@ -31,15 +31,14 @@ class Pattern : public Node2D {
         String shape;
         String sprite;
         Vector2 offset;
-        Array effects;
+        Ref<ShotEffect> effect;
         float rotation;
         float speed;
         bool paused;
         bool aim;
-    } params;
+    } fire_params;
 
     int effect_count;
-    Ref<ShotEffect> effects[MAX_SHOT_EFFECTS];
     Variant registers[PATTERN_REGISTERS];
 
     float despawn_distance;
@@ -60,20 +59,20 @@ public:
         REG6 = PATTERN_REG(6),
         REG7 = PATTERN_REG(7),
 
-        SHAPE0 = PATTERN_REG(8),
-        SHAPE1 = PATTERN_REG(9),
-        SHAPE2 = PATTERN_REG(10),
-        SHAPE3 = PATTERN_REG(11),
+        FIRE_SHAPE0 = PATTERN_REG(8),
+        FIRE_SHAPE1 = PATTERN_REG(9),
+        FIRE_SHAPE2 = PATTERN_REG(10),
+        FIRE_SHAPE3 = PATTERN_REG(11),
 
-        COUNT    = PATTERN_REG(12),
-        SHAPE    = PATTERN_REG(13),
-        SPRITE   = PATTERN_REG(14),
-        OFFSET   = PATTERN_REG(15),
-        EFFECTS  = PATTERN_REG(16),
-        ROTATION = PATTERN_REG(17),
-        SPEED    = PATTERN_REG(18),
-        PAUSED   = PATTERN_REG(19),
-        AIM      = PATTERN_REG(20)
+        FIRE_COUNT    = PATTERN_REG(12),
+        FIRE_SHAPE    = PATTERN_REG(13),
+        FIRE_SPRITE   = PATTERN_REG(14),
+        FIRE_OFFSET   = PATTERN_REG(15),
+        FIRE_EFFECT   = PATTERN_REG(16),
+        FIRE_ROTATION = PATTERN_REG(17),
+        FIRE_SPEED    = PATTERN_REG(18),
+        FIRE_PAUSED   = PATTERN_REG(19),
+        FIRE_AIM      = PATTERN_REG(20)
     };
 
     void set_register(Register p_reg, const Variant& p_value);
@@ -91,8 +90,8 @@ public:
     void set_fire_offset(Vector2 p_offset);
     Vector2 get_fire_offset() const;
 
-    void set_fire_effects(Array p_effects);
-    Array get_fire_effects() const;
+    void set_fire_effect(Ref<ShotEffect> p_effect);
+    Ref<ShotEffect> get_fire_effect() const;
 
     void set_fire_rotation(float p_rotation);
     float get_fire_rotation() const;
@@ -105,8 +104,6 @@ public:
 
     void set_fire_aim(bool p_aim);
     bool get_fire_aim() const;
-
-    int add_effect(const Ref<ShotEffect>& p_effect);
 
     void fire();
     void fire_single();

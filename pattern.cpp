@@ -71,11 +71,9 @@ void Pattern::_tick() {
             // Move shot by its direction and speed, then update its global position
             shot->set_position(shot->get_position() + shot->get_velocity());
 
-            // Run effects
-            for (int j = 0; j != effect_count; ++j) {
-                if (!effects[j].is_null()) {
-                    effects[j]->execute(j, shot);
-                }
+            // Run effect
+            if (shot->get_effect().is_valid()) {
+                shot->get_effect()->execute(shot);
             }
         }
 
@@ -180,17 +178,6 @@ int Pattern::fill_buffer(real_t*& buf) {
     return shots.size();
 }
 
-int Pattern::add_effect(const Ref<ShotEffect>& p_effect) {
-    for (int i = 0; i != effect_count; ++i) {
-        if (effects[i] == p_effect) {
-            return i;
-        }
-    }
-    ERR_FAIL_INDEX_V(effect_count, MAX_SHOT_EFFECTS, 0);
-    effects[effect_count] = p_effect;
-    return effect_count++;
-}
-
 void Pattern::play_sfx(const StringName& p_key) {
     ERR_FAIL_NULL(danmaku);
     danmaku->play_sfx(p_key);
@@ -233,156 +220,158 @@ bool Pattern::get_autodelete() const {
 
 void Pattern::set_register(Register p_reg, const Variant& p_value) {
     switch (p_reg) {
-        case COUNT:    set_fire_count(p_value);    break;
-        case SHAPE:    set_fire_shape(p_value);    break;
-        case SPRITE:   set_fire_sprite(p_value);   break;
-        case OFFSET:   set_fire_offset(p_value);   break;
-        case EFFECTS:  set_fire_effects(p_value);  break;
-        case ROTATION: set_fire_rotation(p_value); break;
-        case SPEED:    set_fire_speed(p_value);    break;
-        case PAUSED:   set_fire_paused(p_value);   break;
-        case AIM:      set_fire_aim(p_value);      break;
+        case FIRE_COUNT:    set_fire_count(p_value);    break;
+        case FIRE_SHAPE:    set_fire_shape(p_value);    break;
+        case FIRE_SPRITE:   set_fire_sprite(p_value);   break;
+        case FIRE_OFFSET:   set_fire_offset(p_value);   break;
+        case FIRE_EFFECT:   set_fire_effect(p_value);   break;
+        case FIRE_ROTATION: set_fire_rotation(p_value); break;
+        case FIRE_SPEED:    set_fire_speed(p_value);    break;
+        case FIRE_PAUSED:   set_fire_paused(p_value);   break;
+        case FIRE_AIM:      set_fire_aim(p_value);      break;
         default: registers[p_reg >> 2] = p_value;  break;
     }
 }
 
 Variant Pattern::get_register(Register p_reg) const {
     switch (p_reg) {
-        case COUNT:    return get_fire_count();
-        case SHAPE:    return get_fire_shape();
-        case SPRITE:   return get_fire_sprite();
-        case OFFSET:   return get_fire_offset();
-        case EFFECTS:  return get_fire_effects();
-        case ROTATION: return get_fire_rotation();
-        case SPEED:    return get_fire_speed();
-        case PAUSED:   return get_fire_paused();
-        case AIM:      return get_fire_aim();
+        case FIRE_COUNT:    return get_fire_count();
+        case FIRE_SHAPE:    return get_fire_shape();
+        case FIRE_SPRITE:   return get_fire_sprite();
+        case FIRE_OFFSET:   return get_fire_offset();
+        case FIRE_EFFECT:   return get_fire_effect();
+        case FIRE_ROTATION: return get_fire_rotation();
+        case FIRE_SPEED:    return get_fire_speed();
+        case FIRE_PAUSED:   return get_fire_paused();
+        case FIRE_AIM:      return get_fire_aim();
         default: return registers[p_reg >> 2];
     }
 }
 
 void Pattern::set_fire_count(int p_count) {
-    params.count = p_count;
+    fire_params.count = p_count;
 }
 int Pattern::get_fire_count() const {
-    return params.count;
+    return fire_params.count;
 }
 
 void Pattern::set_fire_shape(String p_shape) {
-    params.shape = p_shape;
+    fire_params.shape = p_shape;
 }
 String Pattern::get_fire_shape() const {
-    return params.shape;
+    return fire_params.shape;
 }
 
 void Pattern::set_fire_sprite(String p_sprite) {
-    params.sprite = p_sprite;
+    fire_params.sprite = p_sprite;
 }
 String Pattern::get_fire_sprite() const {
-    return params.sprite;
+    return fire_params.sprite;
 }
 
 void Pattern::set_fire_offset(Vector2 p_offset) {
-    params.offset = p_offset;
+    fire_params.offset = p_offset;
 }
 Vector2 Pattern::get_fire_offset() const {
-    return params.offset;
+    return fire_params.offset;
 }
 
-void Pattern::set_fire_effects(Array p_effects) {
-    params.effects = p_effects;
+void Pattern::set_fire_effect(Ref<ShotEffect> p_effect) {
+    fire_params.effect = p_effect;
 }
-Array Pattern::get_fire_effects() const {
-    return params.effects;
+Ref<ShotEffect> Pattern::get_fire_effect() const {
+    return fire_params.effect;
 }
 
 void Pattern::set_fire_rotation(float p_rotation) {
-    params.rotation = p_rotation;
+    fire_params.rotation = p_rotation;
 }
 float Pattern::get_fire_rotation() const {
-    return params.rotation;
+    return fire_params.rotation;
 }
 
 void Pattern::set_fire_speed(float p_speed) {
-    params.speed = p_speed;
+    fire_params.speed = p_speed;
 }
 float Pattern::get_fire_speed() const {
-    return params.speed;
+    return fire_params.speed;
 }
 
 void Pattern::set_fire_paused(bool p_paused) {
-    params.paused = p_paused;
+    fire_params.paused = p_paused;
 }
 bool Pattern::get_fire_paused() const {
-    return params.paused;
+    return fire_params.paused;
 }
 
 void Pattern::set_fire_aim(bool p_aim) {
-    params.aim = p_aim;
+    fire_params.aim = p_aim;
 }
 bool Pattern::get_fire_aim() const {
-    return params.aim;
+    return fire_params.aim;
 }
 
 void Pattern::reset() {
-    params.count = 1;
-    params.shape = "single";
-    params.sprite = "";
-    params.effects = Array();
-    params.offset = Vector2(0, 0);
-    params.rotation = 0;
-    params.speed = 0;
-    params.paused = false;
-    params.aim = false;
+    fire_params.count = 1;
+    fire_params.shape = "single";
+    fire_params.sprite = "";
+    fire_params.effect = Ref<ShotEffect>();
+    fire_params.offset = Vector2(0, 0);
+    fire_params.rotation = 0;
+    fire_params.speed = 0;
+    fire_params.paused = false;
+    fire_params.aim = false;
 }
 
 void Pattern::fire() {
     ERR_FAIL_NULL(danmaku);
 
     void(Pattern::*shape)(Shot*) = &Pattern::shape_custom;
-    if (params.shape.length()) {
-        switch ((char)params.shape[0]) {
+    if (fire_params.shape.length()) {
+        switch ((char)fire_params.shape[0]) {
             case 's':
-                if (params.shape == "single" ) shape = &Pattern::shape_single;
-                if (params.shape == "single_layered") shape = &Pattern::shape_single_layered;
+                if (fire_params.shape == "single") shape = &Pattern::shape_single;
+                if (fire_params.shape == "single_layered") shape = &Pattern::shape_single_layered;
                 break;
             case 'c':
-                if (params.shape == "circle") shape = &Pattern::shape_circle;
-                if (params.shape == "circle_layered") shape = &Pattern::shape_circle_layered;
+                if (fire_params.shape == "circle") shape = &Pattern::shape_circle;
+                if (fire_params.shape == "circle_layered") shape = &Pattern::shape_circle_layered;
                 break;
             case 'f':
-                if (params.shape == "fan") shape = &Pattern::shape_fan;
-                if (params.shape == "fan_layered") shape = &Pattern::shape_fan_layered;
+                if (fire_params.shape == "fan") shape = &Pattern::shape_fan;
+                if (fire_params.shape == "fan_layered") shape = &Pattern::shape_fan_layered;
                 break;
         }
     }
 
-    Ref<ShotSprite> sprite = danmaku->get_sprite(params.sprite);
+    Ref<ShotSprite> sprite = danmaku->get_sprite(fire_params.sprite);
     if (sprite.is_null()) {
         ERR_FAIL_MSG("No sprite defined, cannot fire");
     }
 
-    float rotation = params.rotation;
-    if (params.aim) {
+    float rotation = fire_params.rotation;
+    if (fire_params.aim) {
         Hitbox* hitbox = danmaku->get_hitbox();
         ERR_FAIL_NULL(hitbox);
         rotation += (hitbox->get_global_position() - get_global_position()).angle();
     }
     Vector2 direction = Vector2(Math::cos(rotation), Math::sin(rotation));
 
-    for (int i = 0; i != params.count; ++i) {
+    for (int i = 0; i != fire_params.count; ++i) {
         Shot* shot = danmaku->capture();
         shot->reset(this, i);
         shot->set_direction(direction);
         shot->set_sprite(sprite);
-        shot->set_speed(params.speed);
-        shot->set_position(params.offset);
-        shot->set_effects(params.effects);
-        shot->set_paused(params.paused);
+        shot->set_speed(fire_params.speed);
+        shot->set_position(fire_params.offset);
+        shot->set_effect(fire_params.effect);
+        shot->set_paused(fire_params.paused);
         shot->flag(Shot::FLAG_ACTIVE);
         shots.push_back(shot);
         (this->*shape)(shot);
     }
+
+    reset();
 }
 
 void Pattern::fire_single() {
@@ -397,79 +386,79 @@ void Pattern::fire_circle() {
 
 void Pattern::fire_fan(float p_angle) {
     set_fire_shape("fan");
-    set_register(SHAPE0, p_angle);
+    set_register(FIRE_SHAPE0, p_angle);
     fire();
 }
 
 void Pattern::fire_single_layered(float p_step) {
     set_fire_shape("single_layered");
-    set_register(SHAPE0, p_step);
+    set_register(FIRE_SHAPE0, p_step);
     fire();
 }
 
 void Pattern::fire_circle_layered(int p_layers, float p_step) {
     set_fire_shape("circle_layered");
-    set_register(SHAPE0, p_layers);
-    set_register(SHAPE1, p_step);
+    set_register(FIRE_SHAPE0, p_layers);
+    set_register(FIRE_SHAPE1, p_step);
     fire();
 }
 
 void Pattern::fire_fan_layered(float p_angle, int p_layers, float p_step) {
     set_fire_shape("fan_layered");
-    set_register(SHAPE0, p_angle);
-    set_register(SHAPE1, p_layers);
-    set_register(SHAPE2, p_step);
+    set_register(FIRE_SHAPE0, p_angle);
+    set_register(FIRE_SHAPE1, p_layers);
+    set_register(FIRE_SHAPE2, p_step);
     fire();
 }
 
 void Pattern::fire_custom(String p_name, Variant p_s0, Variant p_s1, Variant p_s2, Variant p_s3) {
     set_fire_shape(p_name);
-    set_register(SHAPE0, p_s0);
-    set_register(SHAPE1, p_s1);
-    set_register(SHAPE2, p_s2);
-    set_register(SHAPE3, p_s3);
+    set_register(FIRE_SHAPE0, p_s0);
+    set_register(FIRE_SHAPE1, p_s1);
+    set_register(FIRE_SHAPE2, p_s2);
+    set_register(FIRE_SHAPE3, p_s3);
     fire();    
 }
 
 void Pattern::shape_single(Shot* p_shot) {}
 
 void Pattern::shape_circle(Shot* p_shot) {
-    p_shot->set_rotation(p_shot->get_rotation() + p_shot->get_id() * (2 * Math_PI / params.count));
+    p_shot->set_rotation(p_shot->get_rotation() + p_shot->get_id() * (2 * Math_PI / fire_params.count));
 }
 
 void Pattern::shape_fan(Shot* p_shot) {
-    float angle = get_register(SHAPE0);
+    float angle = get_register(FIRE_SHAPE0);
     float base = p_shot->get_rotation() - angle / 2;
-    float theta = angle / (params.count - 1);
+    float theta = angle / (fire_params.count - 1);
 
     p_shot->set_rotation(base + p_shot->get_id() * theta);
 }
 
 void Pattern::shape_single_layered(Shot* p_shot) {
-    float step = get_register(SHAPE0);
+    float step = get_register(FIRE_SHAPE0);
 
     p_shot->set_speed(p_shot->get_speed() + step * p_shot->get_id());
 }
 
 void Pattern::shape_circle_layered(Shot* p_shot) {
-    int layers = get_register(SHAPE0);
-    float step = get_register(SHAPE1);
+    int layers = get_register(FIRE_SHAPE0);
+    float step = get_register(FIRE_SHAPE1);
 
     int row = p_shot->get_id() % layers;
     int col = p_shot->get_id() / layers;
 
     p_shot->set_speed(p_shot->get_speed() + step * row);
-    p_shot->set_rotation(p_shot->get_rotation() + col * (2 * Math_PI / (params.count / layers)));
+    p_shot->set_rotation(p_shot->get_rotation() + col * (2 * Math_PI / (fire_params.count / layers)));
 }
 
 void Pattern::shape_fan_layered(Shot* p_shot) {
-    float angle = get_register(SHAPE0);
+    float angle = get_register(FIRE_SHAPE0);
     float base = p_shot->get_rotation() - angle / 2;
 
-    int layers = get_register(SHAPE1);
-    float step = get_register(SHAPE2);
+    int layers = get_register(FIRE_SHAPE1);
+    float step = get_register(FIRE_SHAPE2);
 
-    float theta = angle / (params.count / layers - 1);
+    float theta = angle / (fire_params.count / layers - 1);
     int row = p_shot->get_id() % layers;
     int col = p_shot->get_id() / layers;
 
@@ -481,16 +470,16 @@ void Pattern::shape_custom(Shot* p_shot) {
     ERR_FAIL_COND(delegate.is_null());
     Variant shot = p_shot;
     Variant::CallError error;
-    const Variant* argv[5] = {&shot, &registers[SHAPE0 >> 2], &registers[SHAPE1 >> 2], &registers[SHAPE2 >> 2], &registers[SHAPE3 >> 2]};
+    const Variant* argv[5] = {&shot, &registers[FIRE_SHAPE0 >> 2], &registers[FIRE_SHAPE1 >> 2], &registers[FIRE_SHAPE2 >> 2], &registers[FIRE_SHAPE3 >> 2]};
     int argc = 1;
     for (int i = 1; i != 5; ++i) {
         if (argv[i]->get_type() != Variant::Type::NIL) {
             argc++;
         }
     }
-    delegate->call(params.shape, argv, argc, error);
+    delegate->call(fire_params.shape, argv, argc, error);
     if (error.error != Variant::CallError::CALL_OK) {
-        ERR_FAIL_MSG("Failed to call custom pattern: " + Variant::get_call_error_text(this, params.shape, argv, argc, error));
+        ERR_FAIL_MSG("Failed to call custom pattern: " + Variant::get_call_error_text(this, fire_params.shape, argv, argc, error));
     }
 }
 
@@ -514,7 +503,7 @@ void Pattern::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_fire_shape", "shape"), &Pattern::set_fire_shape);
     ClassDB::bind_method(D_METHOD("set_fire_sprite", "sprite"), &Pattern::set_fire_sprite);
     ClassDB::bind_method(D_METHOD("set_fire_offset", "offset"), &Pattern::set_fire_offset);
-    ClassDB::bind_method(D_METHOD("set_fire_effects", "effects"), &Pattern::set_fire_effects);
+    ClassDB::bind_method(D_METHOD("set_fire_effect", "effect"), &Pattern::set_fire_effect);
     ClassDB::bind_method(D_METHOD("set_fire_rotation", "rotation"), &Pattern::set_fire_rotation);
     ClassDB::bind_method(D_METHOD("set_fire_speed", "speed"), &Pattern::set_fire_speed);
     ClassDB::bind_method(D_METHOD("set_fire_paused", "paused"), &Pattern::set_fire_paused);
@@ -524,7 +513,7 @@ void Pattern::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_fire_shape"), &Pattern::get_fire_shape);
     ClassDB::bind_method(D_METHOD("get_fire_sprite"), &Pattern::get_fire_sprite);
     ClassDB::bind_method(D_METHOD("get_fire_offset"), &Pattern::get_fire_offset);
-    ClassDB::bind_method(D_METHOD("get_fire_effects"), &Pattern::get_fire_effects);
+    ClassDB::bind_method(D_METHOD("get_fire_effect"), &Pattern::get_fire_effect);
     ClassDB::bind_method(D_METHOD("get_fire_rotation"), &Pattern::get_fire_rotation);
     ClassDB::bind_method(D_METHOD("get_fire_speed"), &Pattern::get_fire_speed);
     ClassDB::bind_method(D_METHOD("get_fire_paused"), &Pattern::get_fire_paused);
@@ -546,7 +535,7 @@ void Pattern::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "fire_shape"), "set_fire_shape", "get_fire_shape");
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "fire_sprite"), "set_fire_sprite", "get_fire_sprite");
     ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "fire_offset"), "set_fire_offset", "get_fire_offset");
-    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "fire_effects"), "set_fire_effects", "get_fire_effects");
+    ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "fire_effect"), "set_fire_effect", "get_fire_effect");
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "fire_rotation"), "set_fire_rotation", "get_fire_rotation");
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "fire_speed"), "set_fire_speed", "get_fire_speed");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "fire_paused"), "set_fire_paused", "get_fire_paused");
@@ -561,20 +550,20 @@ void Pattern::_bind_methods() {
     BIND_CONSTANT(REG6);
     BIND_CONSTANT(REG7);
 
-    BIND_CONSTANT(SHAPE0);
-    BIND_CONSTANT(SHAPE1);
-    BIND_CONSTANT(SHAPE2);
-    BIND_CONSTANT(SHAPE3);
+    BIND_CONSTANT(FIRE_SHAPE0);
+    BIND_CONSTANT(FIRE_SHAPE1);
+    BIND_CONSTANT(FIRE_SHAPE2);
+    BIND_CONSTANT(FIRE_SHAPE3);
 
-    BIND_CONSTANT(COUNT);
-    BIND_CONSTANT(SHAPE);
-    BIND_CONSTANT(SPRITE);
-    BIND_CONSTANT(OFFSET);
-    BIND_CONSTANT(EFFECTS);
-    BIND_CONSTANT(ROTATION);
-    BIND_CONSTANT(SPEED);
-    BIND_CONSTANT(PAUSED);
-    BIND_CONSTANT(AIM);
+    BIND_CONSTANT(FIRE_COUNT);
+    BIND_CONSTANT(FIRE_SHAPE);
+    BIND_CONSTANT(FIRE_SPRITE);
+    BIND_CONSTANT(FIRE_OFFSET);
+    BIND_CONSTANT(FIRE_EFFECT);
+    BIND_CONSTANT(FIRE_ROTATION);
+    BIND_CONSTANT(FIRE_SPEED);
+    BIND_CONSTANT(FIRE_PAUSED);
+    BIND_CONSTANT(FIRE_AIM);
 }
 
 Pattern::Pattern() {
@@ -583,10 +572,6 @@ Pattern::Pattern() {
     despawn_distance = 0;
     autodelete = false;
     effect_count = 0;
-
-    for (int i = 0; i != MAX_SHOT_EFFECTS; ++i) {
-        effects[i] = Ref<ShotEffect>();
-    }
 
     reset();
 }

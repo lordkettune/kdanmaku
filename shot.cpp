@@ -10,6 +10,7 @@ void Shot::reset(Pattern* p_owner, int p_id) {
     flags = 0;
     speed = 0;
     sprite = Ref<ShotSprite>();
+    effect = Ref<ShotEffect>();
     position = Vector2(0, 0);
     direction = Vector2(0, 1);
 
@@ -44,12 +45,17 @@ Variant Shot::get_register(Register p_reg) const {
     }
 }
 
-void Shot::set_effects(Array p_effects) {
-    for (int i = 0; i != p_effects.size(); ++i) {
-        int id = owner->add_effect(p_effects[i]);
-        ERR_FAIL_INDEX(id, MAX_SHOT_EFFECTS);
-        instruction_pointers[id] = 0;
+void Shot::set_effect(Ref<ShotEffect> p_effect) {
+    effect = p_effect;
+    if (p_effect.is_valid()) {
+        for (int i = 0; i != p_effect->get_pass_count(); ++i) {
+            instruction_pointers[i] = 0;
+        }
     }
+}
+
+Ref<ShotEffect> Shot::get_effect() const {
+    return effect;
 }
 
 Pattern* Shot::get_pattern() const {

@@ -35,6 +35,8 @@ class ShotEffect : public Resource {
     Vector<Command> commands;
     Vector<Variant> constants;
 
+    Ref<ShotEffect> next_pass;
+
 protected:
     static void _bind_methods();
 
@@ -73,11 +75,17 @@ public:
 
     int sfx(int p_from);
 
-    void execute(int p_self, Shot* p_shot);
+    void set_next_pass(Ref<ShotEffect> p_next_pass);
+    Ref<ShotEffect> get_next_pass() const;
+    int get_pass_count() const;
 
-    ShotEffect() {}
+    void execute(Shot* p_shot);
+
+    ShotEffect();
 
 private:
+    void execute_tick(Shot* p_shot, int p_id);
+    void execute(Shot* p_shot, int p_id);
     void set_register(Register p_reg, const Variant& p_value);
     Variant get_register(Register p_reg) const;
 };
