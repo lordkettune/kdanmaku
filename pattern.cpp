@@ -42,18 +42,18 @@ void Pattern::_tick() {
         return;
     }
 
-    Transform2D transform = get_global_transform();
+    Transform2D transform = get_global_transform().affine_inverse();
 
     Rect2 region = danmaku->get_region();
     region = region.grow(despawn_distance + danmaku->get_tolerance());
-    region = transform.xform_inv(region);
+    region = transform.xform(region);
 
     Hitbox* hitbox = danmaku->get_hitbox();
     Vector2 hitbox_position = Vector2(0, 0);
 
     if (hitbox != NULL) {
         hitbox_position = hitbox->get_global_transform().get_origin();
-        hitbox_position = transform.xform_inv(hitbox_position);
+        hitbox_position = transform.xform(hitbox_position);
     }
 
     bool clean = false;
@@ -137,7 +137,7 @@ int Pattern::fill_buffer(real_t*& buf) {
     ERR_FAIL_NULL_V(danmaku, 0);
 
     Transform2D transform = get_global_transform();
-    transform = danmaku->get_global_transform().inverse() * transform;
+    transform = danmaku->get_global_transform().affine_inverse() * transform;
 
     Ref<Texture> atlas = danmaku->get_atlas();
     if (!atlas.is_valid()) {
