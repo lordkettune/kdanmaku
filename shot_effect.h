@@ -55,22 +55,15 @@ public:
     int div(int p_lhs, int p_rhs, int p_to);
     int mod(int p_lhs, int p_rhs, int p_to);
 
-    int equal(int p_lhs, int p_rhs, int p_to);
-    int less(int p_lhs, int p_rhs, int p_to);
-    int lesseq(int p_lhs, int p_rhs, int p_to);
-    int unot(int p_test, int p_to);
-
+    int equal(int p_lhs, int p_rhs, int p_jump);
+    int less(int p_lhs, int p_rhs, int p_jump);
+    int lesseq(int p_lhs, int p_rhs, int p_jump);
     int test(int p_test, int p_jump);
+
     void patch(int p_ins);
 
     int fire();
     int reset();
-
-    /* DEPRECATED */
-    int jumpif(int p_test, int p_jump);
-    int jumpnot(int p_test, int p_jump);
-    void jumphere(int p_ins);
-    /* DEPRECATED */
 
     int timer(int p_reg);
     int yield();
