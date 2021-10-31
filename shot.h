@@ -56,7 +56,8 @@ public:
         DIRECTION = SHOT_REG(10),
         ROTATION  = SHOT_REG(11),
         VELOCITY  = SHOT_REG(12),
-        PAUSED    = SHOT_REG(13)
+        PAUSED    = SHOT_REG(13),
+        SPRITE    = SHOT_REG(14)
     };
 
     enum {
@@ -94,6 +95,9 @@ public:
 
     void set_sprite(Ref<ShotSprite> p_sprite);
     Ref<ShotSprite> get_sprite() const;
+
+    void set_sprite_key(String p_key);
+    String get_sprite_key() const;
 
     void set_position(const Vector2& p_position);
     Vector2 get_position() const;

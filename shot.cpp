@@ -25,11 +25,12 @@ void Shot::reset(Pattern* p_owner, int p_id) {
 
 void Shot::set_register(Register p_reg, const Variant& p_value) {
     switch (p_reg) {
-        case POSITION:  set_position(p_value);  break;
-        case SPEED:     set_speed(p_value);     break;
-        case DIRECTION: set_direction(p_value); break;
-        case ROTATION:  set_rotation(p_value);  break;
-        case VELOCITY:  set_velocity(p_value);  break;
+        case POSITION:  set_position(p_value);   break;
+        case SPEED:     set_speed(p_value);      break;
+        case DIRECTION: set_direction(p_value);  break;
+        case ROTATION:  set_rotation(p_value);   break;
+        case VELOCITY:  set_velocity(p_value);   break;
+        case SPRITE:    set_sprite_key(p_value); break;
         default: registers[p_reg >> 2] = p_value; break;
     }
 }
@@ -41,6 +42,7 @@ Variant Shot::get_register(Register p_reg) const {
         case DIRECTION: return get_direction();
         case ROTATION:  return get_rotation();
         case VELOCITY:  return get_velocity();
+        case SPRITE:    return get_sprite_key();
         default: return registers[p_reg >> 2];
     }
 }
@@ -86,6 +88,20 @@ void Shot::set_sprite(Ref<ShotSprite> p_sprite) {
 
 Ref<ShotSprite> Shot::get_sprite() const {
     return sprite;
+}
+
+void Shot::set_sprite_key(String p_key) {
+    Ref<ShotSprite> temp = get_danmaku()->get_sprite(p_key);
+    if (temp.is_valid()) {
+        set_sprite(temp);
+    }
+}
+
+String Shot::get_sprite_key() const {
+    if (sprite.is_null()) {
+        return "";
+    }
+    return sprite->get_key();
 }
 
 void Shot::set_position(const Vector2& p_position) {
@@ -154,7 +170,7 @@ void Shot::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_position", "position"), &Shot::set_position);
     ClassDB::bind_method(D_METHOD("set_velocity", "velocity"), &Shot::set_velocity);
     ClassDB::bind_method(D_METHOD("set_rotation", "rotation"), &Shot::set_rotation);
-    ClassDB::bind_method(D_METHOD("set_sprite", "sprite"), &Shot::set_sprite);
+    ClassDB::bind_method(D_METHOD("set_sprite", "sprite"), &Shot::set_sprite_key);
 
     ClassDB::bind_method(D_METHOD("get_paused"), &Shot::get_paused);
     ClassDB::bind_method(D_METHOD("get_speed"), &Shot::get_speed);
@@ -162,7 +178,7 @@ void Shot::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_position"), &Shot::get_position);
     ClassDB::bind_method(D_METHOD("get_velocity"), &Shot::get_velocity);
     ClassDB::bind_method(D_METHOD("get_rotation"), &Shot::get_rotation);
-    ClassDB::bind_method(D_METHOD("get_sprite"), &Shot::get_sprite);
+    ClassDB::bind_method(D_METHOD("get_sprite"), &Shot::get_sprite_key);
 
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "paused"), "set_paused", "get_paused");
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "speed"), "set_speed", "get_speed");
@@ -170,7 +186,7 @@ void Shot::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "position"), "set_position", "get_position");
     ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "velocity"), "set_velocity", "get_velocity");
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "rotation"), "set_rotation", "get_rotation");
-    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "sprite", PROPERTY_HINT_RESOURCE_TYPE, "ShotSprite"), "set_sprite", "get_sprite");
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "sprite"), "set_sprite", "get_sprite");
 
     BIND_CONSTANT(REG0);
     BIND_CONSTANT(REG1);
@@ -186,6 +202,7 @@ void Shot::_bind_methods() {
     BIND_CONSTANT(ROTATION);
     BIND_CONSTANT(VELOCITY);
     BIND_CONSTANT(PAUSED);
+    BIND_CONSTANT(SPRITE);
 }
 
 Shot::Shot() {
