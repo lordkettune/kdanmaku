@@ -42,21 +42,14 @@ void Pattern::_tick() {
         return;
     }
 
-    Transform2D transform = get_global_transform().affine_inverse();
-
-    Rect2 region = danmaku->get_region();
-    region = region.grow(despawn_distance + danmaku->get_tolerance());
-    region = transform.xform(region);
-
-    Hitbox* hitbox = danmaku->get_hitbox();
-    Vector2 hitbox_position = Vector2(0, 0);
-
-    if (hitbox != NULL) {
-        hitbox_position = hitbox->get_global_transform().get_origin();
-        hitbox_position = transform.xform(hitbox_position);
-    }
-
     bool clean = false;
+    Rect2 region = danmaku->get_region().grow(despawn_distance + danmaku->get_tolerance());
+    Hitbox* hitbox = danmaku->get_hitbox();
+
+    Vector2 hitbox_position = Vector2(0, 0);
+    if (hitbox) {
+        hitbox_position = hitbox->get_global_transform().get_origin();
+    }
 
     // Update all shots
     for (int i = 0; i != shots.size(); ++i) {
@@ -90,7 +83,7 @@ void Pattern::_tick() {
 
         // Check for graze or collision
         if (hitbox != NULL) {
-            float distance = shot->get_position().distance_to(hitbox_position);
+            float distance = shot->get_global_position().distance_to(hitbox_position);
 
             if (distance <= hitbox->get_collision_radius() + shot->get_radius()) {
                 if (!shot->flagged(Shot::FLAG_COLLIDING)) {
@@ -112,7 +105,7 @@ void Pattern::_tick() {
         }
 
         // Clear shot if it's either outside the gameplay region or in clear circle
-        if (!region.has_point(shot->get_position())) {
+        if (!region.has_point(shot->get_global_position())) {
             shot->unflag(Shot::FLAG_ACTIVE);
             clean = true;
         }

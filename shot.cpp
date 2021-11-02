@@ -12,6 +12,7 @@ void Shot::reset(Pattern* p_owner, int p_id) {
     sprite = Ref<ShotSprite>();
     effect = Ref<ShotEffect>();
     position = Vector2(0, 0);
+    global_position = Vector2(0, 0);
     direction = Vector2(0, 1);
 
     for (int i = 0; i != SHOT_REGISTERS; ++i) {
@@ -105,11 +106,20 @@ String Shot::get_sprite_key() const {
 }
 
 void Shot::set_position(const Vector2& p_position) {
+    flag(FLAG_UPDATE_GLOBAL);
     position = p_position;
 }
 
 Vector2 Shot::get_position() const {
     return position;
+}
+
+Vector2 Shot::get_global_position() {
+    if (flagged(FLAG_UPDATE_GLOBAL)) {
+        global_position = owner->get_global_transform().xform(position);
+        unflag(FLAG_UPDATE_GLOBAL);
+    }
+    return global_position;
 }
 
 void Shot::set_speed(float p_speed) {

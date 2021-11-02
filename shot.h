@@ -35,6 +35,7 @@ class Shot : public Object {
     ShotFrame frame;
     
     Vector2 position;
+    Vector2 global_position;
     Vector2 direction;
     float speed;
 
@@ -65,7 +66,8 @@ public:
         FLAG_CLEARED   = 2,
         FLAG_GRAZING   = 4,
         FLAG_COLLIDING = 8,
-        FLAG_PAUSED    = 16
+        FLAG_PAUSED    = 16,
+        FLAG_UPDATE_GLOBAL = 32
     };
 
     _FORCE_INLINE_ void flag(int p_flag)     { flags |= p_flag;  }
@@ -101,6 +103,7 @@ public:
 
     void set_position(const Vector2& p_position);
     Vector2 get_position() const;
+    Vector2 get_global_position();
 
     void set_speed(float p_speed);
     float get_speed() const;
