@@ -65,8 +65,10 @@ void Pattern::_tick() {
             shot->set_position(shot->get_position() + shot->get_velocity());
 
             // Run effect
-            if (shot->get_effect().is_valid()) {
-                shot->get_effect()->execute(shot);
+            if (!shot->flagged(Shot::FLAG_CLEARED)) {
+                if (shot->get_effect().is_valid()) {
+                    shot->get_effect()->execute(shot);
+                }
             }
         }
 
