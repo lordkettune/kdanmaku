@@ -190,6 +190,8 @@ void Shot::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_rotation"), &Shot::get_rotation);
     ClassDB::bind_method(D_METHOD("get_sprite"), &Shot::get_sprite_key);
 
+    ClassDB::bind_method(D_METHOD("clear"), &Shot::clear);
+
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "paused"), "set_paused", "get_paused");
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "speed"), "set_speed", "get_speed");
     ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "direction"), "set_direction", "get_direction");
