@@ -43,6 +43,7 @@ class Pattern : public Node2D {
 
     float despawn_distance;
     bool autodelete;
+    uint32_t collision_layers;
 
 protected:
     void _notification(int p_what);
@@ -140,6 +141,9 @@ public:
 
     void set_autodelete(bool p_autodelete);
     bool get_autodelete() const;
+
+    void set_collision_layers(uint32_t p_collision_layers);
+    uint32_t get_collision_layers() const;
 
     int fill_buffer(real_t*& buf);
 

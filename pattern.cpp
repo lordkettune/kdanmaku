@@ -2,6 +2,7 @@
 #include "hitbox.h"
 
 #include "core/math/math_funcs.h"
+#include "servers/physics_2d_server.h"
 
 void Pattern::_notification(int p_what) {
     switch (p_what) {
@@ -112,6 +113,21 @@ void Pattern::_tick() {
             clean = true;
         }
     }
+    
+    // Check if bullets collide with physics bodies, expensive, don't use this for patterns with a lot of shots!
+    if (collision_layers) {
+        Ref<World2D> world = get_world_2d();
+
+        Physics2DDirectSpaceState* ss = world->get_direct_space_state();
+        Physics2DDirectSpaceState::ShapeResult results;
+
+        for (int i = 0; i != shots.size(); ++i) {
+            if (ss->intersect_point(shots[i]->get_global_position(), &results, 1, Set<RID>(), collision_layers)) {
+                shots[i]->set_speed(0);
+                shots[i]->clear();
+            }
+        }
+    }
 
     // Shots left danmaku region, release them back to Danmaku
     if (clean) {
@@ -211,6 +227,13 @@ void Pattern::set_autodelete(bool p_autodelete) {
 }
 bool Pattern::get_autodelete() const {
     return autodelete;
+}
+
+void Pattern::set_collision_layers(uint32_t p_collision_layers) {
+    collision_layers = p_collision_layers;
+}
+uint32_t Pattern::get_collision_layers() const {
+    return collision_layers;
 }
 
 void Pattern::set_register(Register p_reg, const Variant& p_value) {
@@ -517,14 +540,17 @@ void Pattern::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_delegate", "delegate"), &Pattern::set_delegate);
     ClassDB::bind_method(D_METHOD("set_despawn_distance", "despawn_distance"), &Pattern::set_despawn_distance);
     ClassDB::bind_method(D_METHOD("set_autodelete", "autodelete"), &Pattern::set_autodelete);
+    ClassDB::bind_method(D_METHOD("set_collision_layers", "collision_layers"), &Pattern::set_collision_layers);
 
     ClassDB::bind_method(D_METHOD("get_delegate"), &Pattern::get_delegate);
     ClassDB::bind_method(D_METHOD("get_despawn_distance"), &Pattern::get_despawn_distance);
     ClassDB::bind_method(D_METHOD("get_autodelete"), &Pattern::get_autodelete);
+    ClassDB::bind_method(D_METHOD("get_collision_layers"), &Pattern::get_collision_layers);
 
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "delegate"), "set_delegate", "get_delegate");
     ADD_PROPERTY(PropertyInfo(Variant::REAL, "despawn_distance"), "set_despawn_distance", "get_despawn_distance");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "autodelete"), "set_autodelete", "get_autodelete");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "collision_layers"), "set_collision_layers", "get_collision_layers");
 
     ADD_PROPERTY(PropertyInfo(Variant::INT, "fire_count"), "set_fire_count", "get_fire_count");
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "fire_shape"), "set_fire_shape", "get_fire_shape");
@@ -566,6 +592,7 @@ Pattern::Pattern() {
     delegate = Ref<Reference>();
     despawn_distance = 0;
     autodelete = false;
+    collision_layers = 0;
     effect_count = 0;
 
     reset();
