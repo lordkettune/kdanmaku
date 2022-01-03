@@ -106,6 +106,10 @@ public:
     void set_fire_aim(bool p_aim);
     bool get_fire_aim() const;
 
+    int get_shot_count() const;
+    Shot* get_shot(int p_id) const;
+    Variant _call_shots(const Variant **p_args, int p_argcount, Variant::CallError &r_error);
+
     void fire();
     void fire_single();
     void fire_circle();

@@ -341,6 +341,40 @@ void Pattern::reset() {
     fire_params.aim = false;
 }
 
+int Pattern::get_shot_count() const {
+    return shots.size();
+}
+
+Shot* Pattern::get_shot(int p_id) const {
+    ERR_FAIL_INDEX_V(p_id, shots.size(), nullptr);
+    return shots[p_id];
+}
+
+Variant Pattern::_call_shots(const Variant** p_args, int p_argcount, Variant::CallError& r_error) {
+    if (p_argcount < 1) {
+		r_error.error = Variant::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS;
+		r_error.argument = 0;
+        return Variant();
+	}
+
+	if (p_args[0]->get_type() != Variant::STRING) {
+		r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
+		r_error.argument = 0;
+		r_error.expected = Variant::STRING;
+        return Variant();
+	}
+
+	StringName method = *p_args[0];
+
+    r_error.error = Variant::CallError::CALL_OK;
+
+    for (int i = 0; i != shots.size(); ++i) {
+        shots[i]->call(method, &p_args[1], p_argcount - 1, r_error);
+    }
+    
+    return Variant();
+}
+
 void Pattern::fire() {
     ERR_FAIL_NULL(danmaku);
 
@@ -507,6 +541,17 @@ void Pattern::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_register", "register", "value"), &Pattern::set_register);
     ClassDB::bind_method(D_METHOD("get_register", "register"), &Pattern::get_register);
     ClassDB::bind_method(D_METHOD("reset"), &Pattern::reset);
+
+    ClassDB::bind_method(D_METHOD("get_shot_count"), &Pattern::get_shot_count);
+    ClassDB::bind_method(D_METHOD("get_shot", "id"), &Pattern::get_shot);
+
+    {
+        MethodInfo mi;
+        mi.name = "call_shots";
+        mi.arguments.push_back(PropertyInfo(Variant::STRING, "method"));
+
+        ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "call_shots", &Pattern::_call_shots, mi);
+    }
 
     ClassDB::bind_method(D_METHOD("fire"), &Pattern::fire);
     ClassDB::bind_method(D_METHOD("fire_single"), &Pattern::fire_single);
