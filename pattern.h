@@ -109,6 +109,7 @@ public:
     int get_shot_count() const;
     Shot* get_shot(int p_id) const;
     Variant _call_shots(const Variant **p_args, int p_argcount, Variant::CallError &r_error);
+    void auto_direct(float p_offset = 0);
 
     void fire();
     void fire_single();

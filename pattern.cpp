@@ -375,6 +375,16 @@ Variant Pattern::_call_shots(const Variant** p_args, int p_argcount, Variant::Ca
     return Variant();
 }
 
+void Pattern::auto_direct(float p_offset) {
+    for (int i = 0; i != get_shot_count(); ++i) {
+        Shot* shot = get_shot(i);
+        Shot* next = get_shot((i + 1) % get_shot_count());
+        Vector2 normal = (next->get_position() - shot->get_position()).normalized();
+        normal = normal.rotated(p_offset);
+        shot->set_direction(normal);
+    }
+}
+
 void Pattern::fire() {
     ERR_FAIL_NULL(danmaku);
 
@@ -544,6 +554,7 @@ void Pattern::_bind_methods() {
 
     ClassDB::bind_method(D_METHOD("get_shot_count"), &Pattern::get_shot_count);
     ClassDB::bind_method(D_METHOD("get_shot", "id"), &Pattern::get_shot);
+    ClassDB::bind_method(D_METHOD("auto_direct", "offset"), &Pattern::auto_direct, 0);
 
     {
         MethodInfo mi;
